@@ -32,6 +32,9 @@ const HIGHLIGHT_EMISSION := Color(1.0, 1.0, 1.0)
 const HIGHLIGHT_ENERGY := 0.6
 ## docs/02 §6.2: contact reporting for damage.
 const MAX_CONTACTS_REPORTED := 4
+## When a block breaks, sleeping bodies within its bounds + this margin are woken
+## (Jolt does not wake bodies whose support simply disappears).
+const WAKE_MARGIN := 0.15
 ## Dev hp label (H key).
 const HP_LABEL_FONT_SIZE := 48
 const HP_LABEL_OFFSET_Y := 0.3
@@ -143,12 +146,30 @@ func _apply_damage(amount: float) -> void:
 
 ## Faz 1: the block simply vanishes (no fracture pieces yet). Kept in the tree for accounting.
 func _break() -> void:
+	_wake_neighbours()
 	is_broken = true
 	visible = false
 	collision_layer = 0
 	collision_mask = 0
 	freeze = true
 	EventBus.block_broken.emit(self, material_id)
+
+
+## Wakes every block/core touching this block's bounding box (grown by WAKE_MARGIN) so whatever
+## rested on it falls once it is gone.
+func _wake_neighbours() -> void:
+	var size := ShapeBuilder.to_vec3(GameConfig.shape(shape_id)["size"])
+	var box := BoxShape3D.new()
+	box.size = size + Vector3.ONE * WAKE_MARGIN * 2.0
+	var query := PhysicsShapeQueryParameters3D.new()
+	query.shape = box
+	query.transform = global_transform * Transform3D(Basis.IDENTITY, Vector3.UP * size.y / 2.0)
+	query.collision_mask = PhysicsLayers.BLOCK | PhysicsLayers.CORE
+	query.exclude = [get_rid()]
+	for hit in get_world_3d().direct_space_state.intersect_shape(query):
+		var body := hit["collider"] as RigidBody3D
+		if body:
+			body.sleeping = false
 
 
 func _emit_ball_impact(pos: Vector3, impulse: float) -> void:

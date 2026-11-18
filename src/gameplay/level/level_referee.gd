@@ -1,26 +1,92 @@
 class_name LevelReferee
 extends Node
-## Applies the edge rule (docs/02 §2, §6.6).
-## Step 5: the core is checked every physics tick (drop -> EventBus.core_dropped, immediately);
-## blocks are judged once they settle (asleep) or drop below fall_kill_y.
-## Step 9 turns this into the AIMING -> BALL_IN_FLIGHT -> SETTLING -> EVALUATE state machine.
+## Level rules (docs/02 §6.6, K-018):
+##   AIMING -> BALL_IN_FLIGHT -> SETTLING -> EVALUATE -> AIMING | WON | LOST
+## - BALL_IN_FLIGHT starts on EventBus.ball_fired (one shot used), SETTLING on ball_expired.
+## - SETTLING ends when every body in play rests (asleep or slower than
+##   rules.physics.settle_linear_velocity_threshold) or after rules.physics.settle_timeout_sec.
+## - EVALUATE applies the edge rule to every block and checks the objective:
+##     clear_percent (default): cleared volume (or count) / total >= target; cleared = fallen,
+##       or broken when rules.objective_defaults.broken_counts_as_cleared. Core/joints excluded.
+##     drop_core / drop_all_cores: the core(s) fell off.
+##   Not met: shots left -> AIMING, none left -> LOST (no automatic final clear).
+## - Golden Core: checked every tick; dropping it emits EventBus.core_dropped (jackpot in
+##   clear_percent levels, never affects stars).
+## - Stars (rules.stars, mode shots_left) from shots left at the win.
+## Talks to the rest of the game only through EventBus.
 
+enum State { AIMING, BALL_IN_FLIGHT, SETTLING, EVALUATE, WON, LOST }
+
+const STATE_NAMES := {
+	State.AIMING: "AIMING", State.BALL_IN_FLIGHT: "BALL_IN_FLIGHT", State.SETTLING: "SETTLING",
+	State.EVALUATE: "EVALUATE", State.WON: "WON", State.LOST: "LOST",
+}
+const OBJ_CLEAR_PERCENT := "clear_percent"
+const OBJ_DROP_CORE := "drop_core"
+const OBJ_DROP_ALL_CORES := "drop_all_cores"
+const SUPPORTED_OBJECTIVES: PackedStringArray = [OBJ_CLEAR_PERCENT, OBJ_DROP_CORE, OBJ_DROP_ALL_CORES]
+const STARS_MODE_SHOTS_LEFT := "shots_left"
+const MEASURE_VOLUME := "volume"
+## Only re-emit clear progress when it moved more than this (avoids per-tick signal spam).
+const PROGRESS_EPSILON := 0.001
+
+var state: State = State.AIMING
+var objective_type: String = ""
+var clear_target: float = 0.0
+var clear_ratio: float = 0.0
+var shots_total: int = 0
+var shots_left: int = 0
+var stars: int = 0
 var core_dropped: bool = false
 
 var _tower: TowerBuilder
 var _platform: Platform
 var _margin: float = 0.0
 var _kill_y: float = 0.0
+var _settle_timeout: float = 0.0
+var _settle_threshold: float = 0.0
+var _settle_elapsed: float = 0.0
+var _measure_volume: bool = true
+var _broken_counts: bool = true
+var _last_ratio: float = -1.0
 
 
-func setup(tower: TowerBuilder, platform: Platform) -> void:
+func setup(level: Dictionary, tower: TowerBuilder, platform: Platform) -> void:
 	_tower = tower
 	_platform = platform
-	var rule := str(GameConfig.rule("physics.edge_rule"))
-	if rule != EdgeRule.COM_OUTSIDE_PLATFORM:
-		push_error("LevelReferee: desteklenmeyen edge_rule: " + rule)
+	var edge_rule := str(GameConfig.rule("physics.edge_rule"))
+	if edge_rule != EdgeRule.COM_OUTSIDE_PLATFORM:
+		push_error("LevelReferee: desteklenmeyen edge_rule: " + edge_rule)
 	_margin = float(GameConfig.rule("physics.edge_margin"))
 	_kill_y = float(GameConfig.rule("physics.fall_kill_y"))
+	_settle_timeout = float(GameConfig.rule("physics.settle_timeout_sec"))
+	_settle_threshold = float(GameConfig.rule("physics.settle_linear_velocity_threshold"))
+	_measure_volume = str(GameConfig.rule("objective_defaults.clear_measure")) == MEASURE_VOLUME
+	_broken_counts = bool(GameConfig.rule("objective_defaults.broken_counts_as_cleared"))
+
+	var shots: Variant = level.get("shots", GameConfig.rule("shots.default_per_level"))
+	shots_total = int(shots)
+	shots_left = shots_total
+	var objective: Dictionary = level.get("objective", {})
+	objective_type = str(objective.get("type", GameConfig.rule("objective_defaults.type")))
+	clear_target = float(objective.get("target", GameConfig.rule("objective_defaults.clear_percent_target")))
+	if not SUPPORTED_OBJECTIVES.has(objective_type):
+		push_error("LevelReferee: '%s' hedefi Faz 1'de yok; clear_percent kullanılıyor" % objective_type)
+		objective_type = OBJ_CLEAR_PERCENT
+	if objective_type != OBJ_CLEAR_PERCENT and _tower.cores.is_empty():
+		push_error("LevelReferee: %s hedefi ama bölümde küre yok" % objective_type)
+
+	EventBus.ball_fired.connect(_on_ball_fired)
+	EventBus.ball_expired.connect(_on_ball_expired)
+	_announce_start.call_deferred(str(level.get("id", "")))
+
+
+func is_aiming() -> bool:
+	return state == State.AIMING
+
+
+func state_name() -> String:
+	return STATE_NAMES[state]
 
 
 func fallen_block_count() -> int:
@@ -31,33 +97,143 @@ func fallen_block_count() -> int:
 	return n
 
 
-func _physics_process(_delta: float) -> void:
+func _announce_start(level_id: String) -> void:
+	EventBus.level_started.emit(level_id)
+	EventBus.shots_changed.emit(shots_left, shots_total)
+	EventBus.referee_state_changed.emit(state_name())
+	_update_progress(false)
+
+
+func _on_ball_fired(_ball_id: String) -> void:
+	if state != State.AIMING:
+		return
+	shots_left -= 1
+	EventBus.shots_changed.emit(shots_left, shots_total)
+	_set_state(State.BALL_IN_FLIGHT)
+
+
+func _on_ball_expired(_ball_id: String) -> void:
+	if state == State.BALL_IN_FLIGHT:
+		_settle_elapsed = 0.0
+		_set_state(State.SETTLING)
+
+
+func _physics_process(delta: float) -> void:
 	if _tower == null:
 		return
+	if state != State.WON and state != State.LOST:
+		_check_cores()
+	_mark_settled_blocks()
+	_retire_lost_bodies()
+	_update_progress(false)
+	if state == State.SETTLING:
+		_settle_elapsed += delta
+		if _all_settled() or _settle_elapsed >= _settle_timeout:
+			_evaluate()
+
+
+func _check_cores() -> void:
 	for c in _tower.cores:
-		if not c.is_fallen and _check(c):
+		if not c.is_fallen and _is_out(c):
 			c.set_fallen(true)
 			if not core_dropped:
 				core_dropped = true
 				EventBus.core_dropped.emit(c)
+
+
+## Settled blocks get their (grey) verdict early; the final verdict is made in _evaluate().
+func _mark_settled_blocks() -> void:
 	for b in _tower.blocks:
-		if b.is_broken:
-			continue
-		# A block's verdict is only final once it has settled (or left the world).
-		if b.sleeping or b.world_center_of_mass().y < _kill_y:
-			b.set_fallen(_check(b))
+		if not b.is_broken and (b.sleeping or b.world_center_of_mass().y < _kill_y):
+			b.set_fallen(_is_out(b))
+
+
+## Below fall_kill_y: stop simulating and hide (stands in for the docs' KillZone, keeps the body budget low).
+func _retire_lost_bodies() -> void:
 	for body in _tower.all_bodies():
 		if body.visible and body.world_center_of_mass().y < _kill_y:
-			_retire(body)
+			body.set_fallen(true)
+			body.visible = false
+			body.set_deferred("freeze", true)
 
 
-func _check(body: Block) -> bool:
+func _all_settled() -> bool:
+	for body in _tower.all_bodies():
+		if not body.visible or body.is_broken:
+			continue
+		if not body.sleeping and body.linear_velocity.length() >= _settle_threshold:
+			return false
+	return true
+
+
+func _evaluate() -> void:
+	_set_state(State.EVALUATE)
+	for b in _tower.blocks:
+		if not b.is_broken:
+			b.set_fallen(_is_out(b))
+	_update_progress(true)
+	if _objective_met():
+		stars = _stars_for(shots_left)
+		_set_state(State.WON)
+		EventBus.level_completed.emit(stars, shots_left)
+	elif shots_left > 0:
+		_set_state(State.AIMING)
+	else:
+		_set_state(State.LOST)
+		EventBus.level_failed.emit()
+
+
+func _objective_met() -> bool:
+	match objective_type:
+		OBJ_DROP_CORE:
+			return core_dropped
+		OBJ_DROP_ALL_CORES:
+			for c in _tower.cores:
+				if not c.is_fallen:
+					return false
+			return not _tower.cores.is_empty()
+	return clear_ratio >= clear_target
+
+
+## final = true uses the settled verdicts only; otherwise blocks still moving are judged live.
+func _update_progress(final: bool) -> void:
+	var total := 0.0
+	var cleared := 0.0
+	for b in _tower.blocks:
+		var weight := b.volume if _measure_volume else 1.0
+		total += weight
+		var gone := b.is_fallen if final else (b.is_fallen or (not b.is_broken and _is_out(b)))
+		if b.is_broken and _broken_counts:
+			gone = true
+		if gone:
+			cleared += weight
+	clear_ratio = cleared / total if total > 0.0 else 0.0
+	if final or absf(clear_ratio - _last_ratio) > PROGRESS_EPSILON:
+		_last_ratio = clear_ratio
+		EventBus.clear_progress_changed.emit(clear_ratio, clear_target)
+
+
+## rules.stars, mode shots_left: 3 stars if shots_left >= shots - offset3, 2 if >= shots - offset2, else 1.
+func _stars_for(left: int) -> int:
+	var mode := str(GameConfig.rule("stars.mode"))
+	if mode != STARS_MODE_SHOTS_LEFT:
+		push_warning("LevelReferee: stars.mode '%s' Faz 1'de yok; shots_left kullanılıyor" % mode)
+	var three := shots_total - int(GameConfig.rule("stars.three_star_min_shots_left_offset"))
+	var two := shots_total - int(GameConfig.rule("stars.two_star_min_shots_left_offset"))
+	if left >= three:
+		return 3
+	if left >= two:
+		return 2
+	return 1
+
+
+func _is_out(body: Block) -> bool:
 	return EdgeRule.is_fallen(body.world_center_of_mass(), _platform.half_width,
 			_platform.half_depth, _margin, _kill_y)
 
 
-## Below fall_kill_y: stop simulating and hide (stands in for the docs' KillZone, keeps the body budget low).
-func _retire(body: Block) -> void:
-	body.set_fallen(true)
-	body.visible = false
-	body.set_deferred("freeze", true)
+func _set_state(new_state: State) -> void:
+	if new_state == state:
+		return
+	state = new_state
+	EventBus.referee_state_changed.emit(state_name())

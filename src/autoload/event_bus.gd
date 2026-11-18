@@ -7,6 +7,7 @@ extends Node
 # --- Shot / ball ---
 signal ball_fired(ball_id: String)
 signal ball_impact(position: Vector3, impulse: float, material_id: String)
+signal ball_expired(ball_id: String)
 
 # --- Blocks / objective ---
 signal block_damaged(block: Node3D, hp_left: float)
@@ -16,6 +17,8 @@ signal core_dropped(core: Node3D)
 # --- Level flow ---
 signal level_started(level_id: String)
 signal shots_changed(shots_left: int, shots_total: int)
+## clear_percent (K-018): ratio of cleared block volume (or count), live estimate while settling.
+signal clear_progress_changed(ratio: float, target: float)
 signal referee_state_changed(state_name: String)
 signal level_completed(stars: int, shots_left: int)
 signal level_failed()

@@ -11,8 +11,17 @@ signal target_changed(has_target: bool, target: Vector3)
 
 const MODE_TAP_TARGET := "tap_target"
 
-## Step 9 turns this off while a ball is in flight / the tower settles.
-var enabled: bool = true
+## Off while a ball is in flight / the tower settles / the level is over (LevelReferee state).
+var enabled: bool = true:
+	set(value):
+		enabled = value
+		if not value:
+			_pressed = false
+			_fire_pending = false
+			_query_pending = false
+			has_target = false
+			if is_node_ready():
+				_cannon.show_target(false, Vector3.ZERO)
 var has_target: bool = false
 var target: Vector3 = Vector3.ZERO
 

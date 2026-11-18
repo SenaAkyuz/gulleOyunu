@@ -83,4 +83,5 @@ func expire() -> void:
 	_expired = true
 	behavior.on_expire()
 	expired.emit(self)
+	EventBus.ball_expired.emit(ball_id)
 	queue_free()

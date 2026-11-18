@@ -1,6 +1,6 @@
 extends Node3D
-## Builds a level from its JSON (docs/02 §4.2): camera, platform, tower, referee, cannon.
-## The full referee state machine (Step 9) comes later.
+## Builds a level from its JSON (docs/02 §4.2): camera, platform, tower, referee, cannon, HUD.
+## Aiming is only enabled while the referee is in AIMING (EventBus.referee_state_changed).
 ## Play: left mouse / touch = aim at a surface, release = fire.
 ## Dev keys: G = play-area guide, Space = wake every body, Tab = select body,
 ## arrows = push selected body (rules.dev.nudge_impulse), H = hp labels, R = restart level.
@@ -11,7 +11,6 @@ extends Node3D
 var level_data: Dictionary = {}
 var _info_static: String = ""
 var _selected: int = -1
-var _shots_fired: int = 0
 var _hp_visible: bool = false
 
 @onready var _camera: LevelCamera = $Camera3D
@@ -21,8 +20,8 @@ var _hp_visible: bool = false
 @onready var _cannon: Cannon = $Cannon
 @onready var _balls: Node3D = $Balls
 @onready var _area_guide: MeshInstance3D = $AreaGuide
-@onready var _info: Label = $HUD/InfoLabel
-@onready var _result: Label = $HUD/ResultLabel
+@onready var _hud: Hud = $HUD
+@onready var _aim: AimInput = $Cannon/AimInput
 
 
 func _ready() -> void:
@@ -38,7 +37,9 @@ func _ready() -> void:
 	var plat: Dictionary = level_data.get("platform", {})
 	_platform.build(float(plat.get("width")), float(plat.get("depth")))
 	_tower.build(level_data)
-	_referee.setup(_tower, _platform)
+	EventBus.referee_state_changed.connect(_on_referee_state_changed)
+	_referee.setup(level_data, _tower, _platform)
+	_hud.setup(int(level_data.get("index", 0)), _referee.objective_type)
 
 	_cannon.position = ShapeBuilder.to_vec3(GameConfig.rule("cannon.position"))
 	var dots: Variant = level_data.get("aim_preview_dots")
@@ -47,19 +48,16 @@ func _ready() -> void:
 	_cannon.setup(_balls, GameConfig.starting_ball_id(), int(dots))
 
 	_build_area_guide()
-	_result.visible = false
-	EventBus.core_dropped.connect(_on_core_dropped)
-	EventBus.ball_fired.connect(_on_ball_fired)
-	_info_static = "%s · %d blok + %d küre · top: %s\nSol tık: nişan · bırak: ateş   H hp · G alan · Boşluk · Tab seç · Oklar it · R baştan · F12" % [
-		level_id, _tower.blocks.size(), _tower.cores.size(), _cannon.ball_id]
+	_info_static = "%s · %s · %d blok + %d küre · top: %s\nSol tık: nişan · bırak: ateş   H hp · G alan · Boşluk · Tab seç · Oklar it · R baştan · F12" % [
+		level_id, _referee.objective_type, _tower.blocks.size(), _tower.cores.size(), _cannon.ball_id]
 
 
 func _physics_process(_delta: float) -> void:
 	var bodies := _tower.all_bodies()
 	var sel := bodies[_selected].block_id if _selected >= 0 and _selected < bodies.size() else "-"
-	_info.text = "%s\nDuran: %d/%d  Seçili: %s  Düşen: %d  Kırılan: %d  Atış: %d" % [
-		_info_static, _tower.sleeping_count(), bodies.size(), sel,
-		_referee.fallen_block_count(), _tower.broken_count(), _shots_fired]
+	_hud.set_dev_text("%s\nDurum: %s  Duran: %d/%d  Seçili: %s  Düşen: %d  Kırılan: %d  Temizlik: %%%d" % [
+		_info_static, _referee.state_name(), _tower.sleeping_count(), bodies.size(), sel,
+		_referee.fallen_block_count(), _tower.broken_count(), roundi(_referee.clear_ratio * 100.0)])
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -92,13 +90,8 @@ func _unhandled_input(event: InputEvent) -> void:
 			get_tree().reload_current_scene()
 
 
-func _on_ball_fired(_ball_id: String) -> void:
-	_shots_fired += 1
-
-
-func _on_core_dropped(_core: Node3D) -> void:
-	_result.text = "KÜRE DÜŞTÜ!"
-	_result.visible = true
+func _on_referee_state_changed(_state_name: String) -> void:
+	_aim.enabled = _referee.is_aiming()
 
 
 func _select(index: int) -> void:
