@@ -112,6 +112,14 @@ func ball(id: String) -> Dictionary:
 	return _balls.get(id, {})
 
 
+## The ball the player owns from the start (balls.json unlock.type == "start"; K-005: heavy).
+func starting_ball_id() -> String:
+	for id: String in _balls:
+		if str((_balls[id] as Dictionary).get("unlock", {}).get("type")) == "start":
+			return id
+	return ""
+
+
 func world(id: String) -> Dictionary:
 	return _worlds.get(id, {})
 
@@ -214,3 +222,5 @@ func _check_rules() -> void:
 		errors.append("rules.camera.keep_aspect geçersiz: %s" % rule("camera.keep_aspect"))
 	if not _balls.has("heavy"):
 		errors.append("balls.json: 'heavy' (başlangıç topu) yok")
+	if starting_ball_id().is_empty():
+		errors.append("balls.json: unlock.type = 'start' olan top yok")

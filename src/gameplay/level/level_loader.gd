@@ -1,6 +1,7 @@
 extends Node3D
-## Builds a level from its JSON (docs/02 §4.2): camera, platform, tower, referee, cannon placeholder.
-## Cannon (Step 6) and the full referee state machine (Step 9) come later.
+## Builds a level from its JSON (docs/02 §4.2): camera, platform, tower, referee, cannon.
+## The full referee state machine (Step 9) comes later.
+## Play: left mouse / touch = aim at a surface, release = fire.
 ## Dev keys: G = play-area guide, Space = wake every body, Tab = select body,
 ## arrows = push selected body (rules.dev.nudge_impulse), R = restart level.
 
@@ -10,12 +11,14 @@ extends Node3D
 var level_data: Dictionary = {}
 var _info_static: String = ""
 var _selected: int = -1
+var _shots_fired: int = 0
 
 @onready var _camera: LevelCamera = $Camera3D
 @onready var _platform: Platform = $Platform
 @onready var _tower: TowerBuilder = $Tower
 @onready var _referee: LevelReferee = $LevelReferee
-@onready var _cannon_marker: Node3D = $CannonPlaceholder
+@onready var _cannon: Cannon = $Cannon
+@onready var _balls: Node3D = $Balls
 @onready var _area_guide: MeshInstance3D = $AreaGuide
 @onready var _info: Label = $HUD/InfoLabel
 @onready var _result: Label = $HUD/ResultLabel
@@ -36,24 +39,24 @@ func _ready() -> void:
 	_tower.build(level_data)
 	_referee.setup(_tower, _platform)
 
-	var cannon_pos := ShapeBuilder.to_vec3(GameConfig.rule("cannon.position"))
-	_cannon_marker.position = cannon_pos
-	_cannon_marker.look_at(Vector3(0.0, cannon_pos.y, 0.0), Vector3.UP)
+	_cannon.position = ShapeBuilder.to_vec3(GameConfig.rule("cannon.position"))
+	_cannon.setup(_balls, GameConfig.starting_ball_id())
 
 	_build_area_guide()
 	_result.visible = false
 	EventBus.core_dropped.connect(_on_core_dropped)
+	EventBus.ball_fired.connect(_on_ball_fired)
 	_select(_tower.blocks.size())  # start with the first core selected
-	_info_static = "%s · %d blok + %d küre\nG: alan  Boşluk: uyandır  Tab: seç  Oklar: it  R: baştan  F12: görüntü" % [
-		level_id, _tower.blocks.size(), _tower.cores.size()]
+	_info_static = "%s · %d blok + %d küre · top: %s\nSol tık: nişan · bırak: ateş   G alan · Boşluk uyandır · Tab seç · Oklar it · R baştan · F12" % [
+		level_id, _tower.blocks.size(), _tower.cores.size(), _cannon.ball_id]
 
 
 func _physics_process(_delta: float) -> void:
 	var bodies := _tower.all_bodies()
 	var sel := bodies[_selected].block_id if _selected >= 0 and _selected < bodies.size() else "-"
-	_info.text = "%s\nUyuyan: %d/%d   Kayma: %.3f m   Seçili: %s   Düşen blok: %d" % [
+	_info.text = "%s\nUyuyan: %d/%d   Kayma: %.3f m   Seçili: %s   Düşen blok: %d   Atış: %d" % [
 		_info_static, _tower.sleeping_count(), bodies.size(), _tower.max_drift(), sel,
-		_referee.fallen_block_count()]
+		_referee.fallen_block_count(), _shots_fired]
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -81,6 +84,10 @@ func _unhandled_input(event: InputEvent) -> void:
 			_select(_selected + 1)
 		KEY_R:
 			get_tree().reload_current_scene()
+
+
+func _on_ball_fired(_ball_id: String) -> void:
+	_shots_fired += 1
 
 
 func _on_core_dropped(_core: Node3D) -> void:

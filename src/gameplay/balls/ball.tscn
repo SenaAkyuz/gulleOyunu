@@ -1,0 +1,6 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://src/gameplay/balls/ball.gd" id="1_ball"]
+
+[node name="Ball" type="RigidBody3D"]
+script = ExtResource("1_ball")
