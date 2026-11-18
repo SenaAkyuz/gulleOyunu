@@ -3,6 +3,7 @@
 [ext_resource type="Script" path="res://src/gameplay/level/level_loader.gd" id="1_loader"]
 [ext_resource type="Script" path="res://src/gameplay/level/level_camera.gd" id="2_camera"]
 [ext_resource type="Script" path="res://src/gameplay/world/platform.gd" id="3_platform"]
+[ext_resource type="Script" path="res://src/gameplay/level/tower_builder.gd" id="4_tower"]
 
 [sub_resource type="Environment" id="Env_grey"]
 background_mode = 1
@@ -49,6 +50,7 @@ current = true
 script = ExtResource("3_platform")
 
 [node name="Tower" type="Node3D" parent="."]
+script = ExtResource("4_tower")
 
 [node name="CannonPlaceholder" type="Node3D" parent="."]
 

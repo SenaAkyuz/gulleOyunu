@@ -81,6 +81,11 @@ if not is_vec3(rules.get("cannon", {}).get("position")):
     errors.append("rules.cannon.position [x, y, z] olmali")
 if not is_num(phys.get("spawn_edge_inset")) or phys.get("spawn_edge_inset") < 0:
     errors.append("rules.physics.spawn_edge_inset 0 veya pozitif sayi olmali")
+obj_def = rules.get("objective_defaults", {})
+if obj_def.get("core_shape") not in shapes:
+    errors.append(f"rules.objective_defaults.core_shape '{obj_def.get('core_shape')}' shapes.json'da yok")
+if obj_def.get("core_material") not in materials:
+    errors.append(f"rules.objective_defaults.core_material '{obj_def.get('core_material')}' materials.json'da yok")
 for key in ("thickness", "friction", "bounce"):
     if not is_num(rules.get("platform", {}).get(key)):
         errors.append(f"rules.platform.{key} sayi olmali")

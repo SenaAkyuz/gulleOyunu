@@ -1,15 +1,18 @@
 extends Node3D
 ## Builds a level from its JSON (docs/02 §4.2).
-## Step 3: camera, platform, cannon placeholder and the play-area guide (G key).
-## Blocks (Step 4), cannon (Step 6) and referee (Step 9) are added in later steps.
+## Camera, platform, tower, cannon placeholder and dev helpers.
+## Cannon (Step 6) and referee (Step 9) are added in later steps.
+## Dev keys: G = play-area guide, Space = wake every body (stability test).
 
 ## Empty = rules.dev.start_level_id
 @export var level_id: String = ""
 
 var level_data: Dictionary = {}
+var _info_static: String = ""
 
 @onready var _camera: LevelCamera = $Camera3D
 @onready var _platform: Platform = $Platform
+@onready var _tower: TowerBuilder = $Tower
 @onready var _cannon_marker: Node3D = $CannonPlaceholder
 @onready var _area_guide: MeshInstance3D = $AreaGuide
 @onready var _info: Label = $HUD/InfoLabel
@@ -28,21 +31,32 @@ func _ready() -> void:
 
 	var plat: Dictionary = level_data.get("platform", {})
 	_platform.build(float(plat.get("width")), float(plat.get("depth")))
+	_tower.build(level_data)
 
 	var cannon_pos := _vec3(GameConfig.rule("cannon.position"))
 	_cannon_marker.position = cannon_pos
 	_cannon_marker.look_at(Vector3(0.0, cannon_pos.y, 0.0), Vector3.UP)
 
 	_build_area_guide()
-	_info.text = "%s · fov %s (%s) · pitch %s · mesafe %s · bakış y %s · top %s\nG: kule alanı   F12: ekran görüntüsü" % [
-		level_id, cam_cfg["fov_deg"], cam_cfg["keep_aspect"], cam_cfg["pitch_deg"],
-		cam_cfg["distance"], cam_cfg["look_at_height"], cannon_pos]
+	_info_static = "%s · %d blok + %d küre\nG: kule alanı   Boşluk: kuleyi uyandır   F12: ekran görüntüsü" % [
+		level_id, _tower.blocks.size(), _tower.cores.size()]
+
+
+func _physics_process(_delta: float) -> void:
+	var total := _tower.all_bodies().size()
+	_info.text = "%s\nUyuyan: %d/%d   En büyük kayma: %.3f m" % [
+		_info_static, _tower.sleeping_count(), total, _tower.max_drift()]
 
 
 func _unhandled_input(event: InputEvent) -> void:
 	var key := event as InputEventKey
-	if key and key.pressed and not key.echo and key.keycode == KEY_G:
-		_area_guide.visible = not _area_guide.visible
+	if not (key and key.pressed and not key.echo):
+		return
+	match key.keycode:
+		KEY_G:
+			_area_guide.visible = not _area_guide.visible
+		KEY_SPACE:
+			_tower.wake_all()
 
 
 ## rules.camera, overridden key-by-key by level.camera_override (docs/02 §2).

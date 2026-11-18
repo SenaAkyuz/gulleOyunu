@@ -12,6 +12,7 @@ const REQUIRED_RULES: PackedStringArray = [
 	"aim.mode", "aim.default_preview_dots", "aim.aim_smoothing",
 	"aim.preview_dot_interval_sec", "aim.arc", "aim.on_miss",
 	"cannon.position",
+	"objective_defaults.core_shape", "objective_defaults.core_material",
 	"stars.mode", "stars.three_star_min_shots_left_offset", "stars.two_star_min_shots_left_offset",
 	"physics.gravity", "physics.tick_rate", "physics.settle_timeout_sec",
 	"physics.settle_linear_velocity_threshold", "physics.fall_kill_y", "physics.spawn_sleeping",

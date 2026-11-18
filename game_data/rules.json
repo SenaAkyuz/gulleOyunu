@@ -34,7 +34,10 @@
   },
   "objective_defaults": {
     "type": "drop_core",
-    "clear_percent_target": 0.8
+    "clear_percent_target": 0.8,
+    "core_shape": "core_sphere",
+    "core_material": "core_gold",
+    "_doc_core": "Bolum JSON'undaki cores[] ogeleri bu sekil + malzemeyle kurulur. cores[].y = kurenin alt yuzeyi (bloklarla ayni kural)."
   },
   "physics": {
     "gravity": 9.8,
