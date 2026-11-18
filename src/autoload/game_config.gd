@@ -22,7 +22,7 @@ const REQUIRED_RULES: PackedStringArray = [
 	"feel.shake_max_offset", "feel.shake_max_rotation_deg", "feel.shake_decay",
 	"feel.max_concurrent_bursts", "feel.shake_trauma_per_impulse", "feel.spark_min_impulse",
 	"platform.thickness", "platform.friction", "platform.bounce",
-	"dev.start_level_id", "dev.play_area_guide", "dev.stress_block_count",
+	"dev.start_level_id", "dev.play_area_guide", "dev.stress_block_count", "dev.nudge_impulse",
 ]
 const VALID_AIM_MODES: PackedStringArray = ["tap_target", "drag_release"]
 const VALID_EDGE_RULES: PackedStringArray = ["com_outside_platform"]

@@ -19,6 +19,12 @@ const PLACEHOLDER_COLORS := {
 	"core_gold": Color(1.0, 0.78, 0.2),
 }
 const FALLBACK_COLOR := Color(0.6, 0.6, 0.6)
+## Edge rule feedback: a body counted as fallen turns grey (docs/02 §2 "gri parıltı", grey-box version).
+const FALLEN_COLOR := Color(0.45, 0.45, 0.45)
+const FALLEN_TINT := 0.75
+## Dev selection highlight (Tab + arrow keys).
+const HIGHLIGHT_EMISSION := Color(1.0, 1.0, 1.0)
+const HIGHLIGHT_ENERGY := 0.6
 
 var block_id: String = ""
 var shape_id: String = ""
@@ -28,6 +34,14 @@ var is_keystone: bool = false
 var hp: float = 0.0
 ## Global position right after spawning (used to measure drift / stability).
 var spawn_position: Vector3 = Vector3.ZERO
+## Set by LevelReferee via the edge rule.
+var is_fallen: bool = false
+
+var _visual_mat: StandardMaterial3D
+var _base_color: Color
+var _base_emission_enabled: bool
+var _base_emission: Color
+var _base_emission_energy: float
 
 
 ## Configures the body before it enters the tree. Returns false if shape/material is unknown.
@@ -42,7 +56,12 @@ func setup(id: String, shape_name: String, material_name: String, pos: Vector3, 
 	material_id = material_name
 	name = id
 
-	var volume := ShapeBuilder.build(self, shape_def, _visual_material(material_name))
+	_visual_mat = _visual_material(material_name)
+	_base_color = _visual_mat.albedo_color
+	_base_emission_enabled = _visual_mat.emission_enabled
+	_base_emission = _visual_mat.emission
+	_base_emission_energy = _visual_mat.emission_energy_multiplier
+	var volume := ShapeBuilder.build(self, shape_def, _visual_mat)
 	mass = volume * float(mat["density"])
 	var pm := PhysicsMaterial.new()
 	pm.friction = float(mat["friction"])
@@ -59,6 +78,26 @@ func setup(id: String, shape_name: String, material_name: String, pos: Vector3, 
 	position = pos
 	rotation_degrees = rot_deg
 	return true
+
+
+func set_fallen(value: bool) -> void:
+	if value == is_fallen:
+		return
+	is_fallen = value
+	var target := FALLEN_COLOR
+	target.a = _base_color.a
+	_visual_mat.albedo_color = _base_color.lerp(target, FALLEN_TINT) if value else _base_color
+
+
+func set_highlight(on: bool) -> void:
+	if on:
+		_visual_mat.emission_enabled = true
+		_visual_mat.emission = HIGHLIGHT_EMISSION
+		_visual_mat.emission_energy_multiplier = HIGHLIGHT_ENERGY
+	else:
+		_visual_mat.emission_enabled = _base_emission_enabled
+		_visual_mat.emission = _base_emission
+		_visual_mat.emission_energy_multiplier = _base_emission_energy
 
 
 func drift() -> float:

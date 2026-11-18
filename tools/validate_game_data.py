@@ -92,6 +92,8 @@ for key in ("thickness", "friction", "bounce"):
 guide = rules.get("dev", {}).get("play_area_guide", {})
 if not (is_vec3(guide.get("min")) and is_vec3(guide.get("max"))):
     errors.append("rules.dev.play_area_guide min/max [x, y, z] olmali")
+if not is_num(rules.get("dev", {}).get("nudge_impulse")) or rules["dev"]["nudge_impulse"] <= 0:
+    errors.append("rules.dev.nudge_impulse pozitif sayi olmali")
 stress = rules.get("dev", {}).get("stress_block_count")
 if not isinstance(stress, int) or isinstance(stress, bool) or stress <= 0:
     errors.append("rules.dev.stress_block_count pozitif tam sayi olmali")

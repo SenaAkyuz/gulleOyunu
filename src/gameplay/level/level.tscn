@@ -4,6 +4,7 @@
 [ext_resource type="Script" path="res://src/gameplay/level/level_camera.gd" id="2_camera"]
 [ext_resource type="Script" path="res://src/gameplay/world/platform.gd" id="3_platform"]
 [ext_resource type="Script" path="res://src/gameplay/level/tower_builder.gd" id="4_tower"]
+[ext_resource type="Script" path="res://src/gameplay/level/level_referee.gd" id="5_referee"]
 
 [sub_resource type="Environment" id="Env_grey"]
 background_mode = 1
@@ -52,6 +53,9 @@ script = ExtResource("3_platform")
 [node name="Tower" type="Node3D" parent="."]
 script = ExtResource("4_tower")
 
+[node name="LevelReferee" type="Node" parent="."]
+script = ExtResource("5_referee")
+
 [node name="CannonPlaceholder" type="Node3D" parent="."]
 
 [node name="Base" type="MeshInstance3D" parent="CannonPlaceholder"]
@@ -81,3 +85,23 @@ theme_override_constants/outline_size = 8
 theme_override_font_sizes/font_size = 30
 text = "..."
 autowrap_mode = 3
+
+[node name="ResultLabel" type="Label" parent="HUD"]
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -500.0
+offset_top = -500.0
+offset_right = 500.0
+offset_bottom = -340.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/font_color = Color(1, 0.85, 0.2, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 16
+theme_override_font_sizes/font_size = 110
+text = "KÜRE DÜŞTÜ!"
+horizontal_alignment = 1
+vertical_alignment = 1

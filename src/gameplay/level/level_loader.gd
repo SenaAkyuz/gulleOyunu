@@ -1,21 +1,24 @@
 extends Node3D
-## Builds a level from its JSON (docs/02 §4.2).
-## Camera, platform, tower, cannon placeholder and dev helpers.
-## Cannon (Step 6) and referee (Step 9) are added in later steps.
-## Dev keys: G = play-area guide, Space = wake every body (stability test).
+## Builds a level from its JSON (docs/02 §4.2): camera, platform, tower, referee, cannon placeholder.
+## Cannon (Step 6) and the full referee state machine (Step 9) come later.
+## Dev keys: G = play-area guide, Space = wake every body, Tab = select body,
+## arrows = push selected body (rules.dev.nudge_impulse), R = restart level.
 
 ## Empty = rules.dev.start_level_id
 @export var level_id: String = ""
 
 var level_data: Dictionary = {}
 var _info_static: String = ""
+var _selected: int = -1
 
 @onready var _camera: LevelCamera = $Camera3D
 @onready var _platform: Platform = $Platform
 @onready var _tower: TowerBuilder = $Tower
+@onready var _referee: LevelReferee = $LevelReferee
 @onready var _cannon_marker: Node3D = $CannonPlaceholder
 @onready var _area_guide: MeshInstance3D = $AreaGuide
 @onready var _info: Label = $HUD/InfoLabel
+@onready var _result: Label = $HUD/ResultLabel
 
 
 func _ready() -> void:
@@ -26,37 +29,84 @@ func _ready() -> void:
 		push_error("Level: bölüm yüklenemedi: " + level_id)
 		return
 
-	var cam_cfg := _camera_settings()
-	_camera.configure(cam_cfg)
+	_camera.configure(_camera_settings())
 
 	var plat: Dictionary = level_data.get("platform", {})
 	_platform.build(float(plat.get("width")), float(plat.get("depth")))
 	_tower.build(level_data)
+	_referee.setup(_tower, _platform)
 
-	var cannon_pos := _vec3(GameConfig.rule("cannon.position"))
+	var cannon_pos := ShapeBuilder.to_vec3(GameConfig.rule("cannon.position"))
 	_cannon_marker.position = cannon_pos
 	_cannon_marker.look_at(Vector3(0.0, cannon_pos.y, 0.0), Vector3.UP)
 
 	_build_area_guide()
-	_info_static = "%s · %d blok + %d küre\nG: kule alanı   Boşluk: kuleyi uyandır   F12: ekran görüntüsü" % [
+	_result.visible = false
+	EventBus.core_dropped.connect(_on_core_dropped)
+	_select(_tower.blocks.size())  # start with the first core selected
+	_info_static = "%s · %d blok + %d küre\nG: alan  Boşluk: uyandır  Tab: seç  Oklar: it  R: baştan  F12: görüntü" % [
 		level_id, _tower.blocks.size(), _tower.cores.size()]
 
 
 func _physics_process(_delta: float) -> void:
-	var total := _tower.all_bodies().size()
-	_info.text = "%s\nUyuyan: %d/%d   En büyük kayma: %.3f m" % [
-		_info_static, _tower.sleeping_count(), total, _tower.max_drift()]
+	var bodies := _tower.all_bodies()
+	var sel := bodies[_selected].block_id if _selected >= 0 and _selected < bodies.size() else "-"
+	_info.text = "%s\nUyuyan: %d/%d   Kayma: %.3f m   Seçili: %s   Düşen blok: %d" % [
+		_info_static, _tower.sleeping_count(), bodies.size(), _tower.max_drift(), sel,
+		_referee.fallen_block_count()]
 
 
 func _unhandled_input(event: InputEvent) -> void:
 	var key := event as InputEventKey
-	if not (key and key.pressed and not key.echo):
+	if not (key and key.pressed):
+		return
+	# Arrow keys may auto-repeat (hold to keep pushing); the others react once per press.
+	match key.keycode:
+		KEY_LEFT:
+			_nudge(Vector3.LEFT)
+		KEY_RIGHT:
+			_nudge(Vector3.RIGHT)
+		KEY_DOWN:
+			_nudge(Vector3.BACK)     # +z: towards the camera
+		KEY_UP:
+			_nudge(Vector3.FORWARD)  # -z: away from the camera
+	if key.echo:
 		return
 	match key.keycode:
 		KEY_G:
 			_area_guide.visible = not _area_guide.visible
 		KEY_SPACE:
 			_tower.wake_all()
+		KEY_TAB:
+			_select(_selected + 1)
+		KEY_R:
+			get_tree().reload_current_scene()
+
+
+func _on_core_dropped(_core: Node3D) -> void:
+	_result.text = "KÜRE DÜŞTÜ!"
+	_result.visible = true
+
+
+func _select(index: int) -> void:
+	var bodies := _tower.all_bodies()
+	if bodies.is_empty():
+		return
+	if _selected >= 0 and _selected < bodies.size():
+		bodies[_selected].set_highlight(false)
+	_selected = posmod(index, bodies.size())
+	bodies[_selected].set_highlight(true)
+
+
+func _nudge(direction: Vector3) -> void:
+	var bodies := _tower.all_bodies()
+	if _selected < 0 or _selected >= bodies.size():
+		return
+	var b := bodies[_selected]
+	if not b.visible:
+		return
+	b.sleeping = false
+	b.apply_central_impulse(direction * float(GameConfig.rule("dev.nudge_impulse")))
 
 
 ## rules.camera, overridden key-by-key by level.camera_override (docs/02 §2).
@@ -71,8 +121,8 @@ func _camera_settings() -> Dictionary:
 ## Yellow wireframe box of the playable tower area (rules.dev.play_area_guide).
 func _build_area_guide() -> void:
 	var guide: Dictionary = GameConfig.rule("dev.play_area_guide")
-	var a := _vec3(guide["min"])
-	var b := _vec3(guide["max"])
+	var a := ShapeBuilder.to_vec3(guide["min"])
+	var b := ShapeBuilder.to_vec3(guide["max"])
 	var c: Array[Vector3] = [
 		Vector3(a.x, a.y, a.z), Vector3(b.x, a.y, a.z), Vector3(b.x, a.y, b.z), Vector3(a.x, a.y, b.z),
 		Vector3(a.x, b.y, a.z), Vector3(b.x, b.y, a.z), Vector3(b.x, b.y, b.z), Vector3(a.x, b.y, b.z)]
@@ -87,8 +137,3 @@ func _build_area_guide() -> void:
 		mesh.surface_add_vertex(c[e.y])
 	mesh.surface_end()
 	_area_guide.mesh = mesh
-
-
-static func _vec3(v: Variant) -> Vector3:
-	var arr: Array = v
-	return Vector3(float(arr[0]), float(arr[1]), float(arr[2]))

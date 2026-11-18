@@ -101,6 +101,8 @@
     "play_area_guide": { "min": [-5, 0, -3], "max": [5, 12, 3] },
     "_doc_dev_guide": "start_level_id: F5 ile acilan bolum. play_area_guide: G tusuyla gosterilen oynanabilir kule alani (docs/03 2).",
     "stress_block_count": 120,
+    "nudge_impulse": 1.0,
+    "_doc_nudge": "Ok tuslariyla secili cisme (Tab) uygulanan itme impulsu (N*s). Kenar kurali testi icin.",
     "_doc": "Gelistirici araclari. stress_block_count: P tusuyla kurulan performans test kulesindeki blok sayisi (S-008)."
   },
   "quality": {
