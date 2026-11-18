@@ -13,19 +13,24 @@ var _gravity: float = 0.0
 var _arc: String = ""
 var _smoothing: float = 0.0
 var _target_dir: Vector3 = Vector3.FORWARD
+var _preview_target: Vector3 = Vector3.ZERO
+var _preview_on: bool = false
 
 @onready var _yaw: Node3D = $Yaw
 @onready var _pitch: Node3D = $Yaw/Pitch
 @onready var _muzzle: Marker3D = $Yaw/Pitch/Muzzle
 @onready var _target_marker: MeshInstance3D = $TargetMarker
+@onready var _preview: TrajectoryPreview = $TrajectoryPreview
 
 
-func setup(balls_parent: Node3D, start_ball_id: String) -> void:
+## preview_dots: the level's aim_preview_dots (or rules.aim.default_preview_dots).
+func setup(balls_parent: Node3D, start_ball_id: String, preview_dots: int) -> void:
 	_balls_parent = balls_parent
 	ball_id = start_ball_id
 	_gravity = float(GameConfig.rule("physics.gravity"))
 	_arc = str(GameConfig.rule("aim.arc"))
 	_smoothing = float(GameConfig.rule("aim.aim_smoothing"))
+	_preview.setup(preview_dots, float(GameConfig.rule("aim.preview_dot_interval_sec")))
 	var to_tower := Vector3(-global_position.x, 0.0, -global_position.z)
 	_target_dir = to_tower.normalized() if to_tower.length() > 0.0 else Vector3.FORWARD
 	_apply_direction(_target_dir)
@@ -67,16 +72,27 @@ func fire_at(target: Vector3) -> Ball:
 	return ball
 
 
+## Target marker + dotted trajectory while the player is aiming.
 func show_target(visible_now: bool, pos: Vector3) -> void:
 	_target_marker.visible = visible_now
+	_preview_on = visible_now
+	_preview_target = pos
 	if visible_now:
 		_target_marker.global_position = pos
+	else:
+		_preview.hide_path()
 
 
 func _process(delta: float) -> void:
 	var current := -_pitch.global_basis.z
 	var weight := 1.0 - exp(-_smoothing * delta)
 	_apply_direction(current.slerp(_target_dir, weight))
+	if _preview_on:
+		# Recomputed every frame: the muzzle moves while the barrel turns.
+		var from := muzzle_position()
+		var velocity: Vector3 = solve_to(_preview_target)["velocity"]
+		_preview.show_path(from, velocity, _gravity,
+				Ballistics.time_to_reach(from, _preview_target, velocity))
 
 
 ## Barrel points along -Z: yaw around Y, then pitch around X.

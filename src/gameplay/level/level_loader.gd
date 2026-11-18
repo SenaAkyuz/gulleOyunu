@@ -40,13 +40,15 @@ func _ready() -> void:
 	_referee.setup(_tower, _platform)
 
 	_cannon.position = ShapeBuilder.to_vec3(GameConfig.rule("cannon.position"))
-	_cannon.setup(_balls, GameConfig.starting_ball_id())
+	var dots: Variant = level_data.get("aim_preview_dots")
+	if dots == null:
+		dots = GameConfig.rule("aim.default_preview_dots")
+	_cannon.setup(_balls, GameConfig.starting_ball_id(), int(dots))
 
 	_build_area_guide()
 	_result.visible = false
 	EventBus.core_dropped.connect(_on_core_dropped)
 	EventBus.ball_fired.connect(_on_ball_fired)
-	_select(_tower.blocks.size())  # start with the first core selected
 	_info_static = "%s · %d blok + %d küre · top: %s\nSol tık: nişan · bırak: ateş   G alan · Boşluk uyandır · Tab seç · Oklar it · R baştan · F12" % [
 		level_id, _tower.blocks.size(), _tower.cores.size(), _cannon.ball_id]
 

@@ -2,6 +2,7 @@
 
 [ext_resource type="Script" path="res://src/gameplay/cannon/cannon.gd" id="1_cannon"]
 [ext_resource type="Script" path="res://src/gameplay/cannon/aim_input.gd" id="2_aim"]
+[ext_resource type="Script" path="res://src/gameplay/cannon/trajectory_preview.gd" id="3_preview"]
 
 [sub_resource type="StandardMaterial3D" id="Mat_cannon"]
 albedo_color = Color(0.7, 0.15, 0.12, 1)
@@ -48,6 +49,9 @@ position = Vector3(0, 0, -1.2)
 
 [node name="AimInput" type="Node" parent="."]
 script = ExtResource("2_aim")
+
+[node name="TrajectoryPreview" type="MultiMeshInstance3D" parent="."]
+script = ExtResource("3_preview")
 
 [node name="TargetMarker" type="MeshInstance3D" parent="."]
 top_level = true

@@ -36,6 +36,17 @@ static func solve(from: Vector3, to: Vector3, speed: float, gravity: float, arc:
 	}
 
 
-## Position after t seconds (used by the trajectory preview in Step 7).
+## Time for a ball launched from `from` with `velocity` to reach `to` (horizontal distance based;
+## straight up/down shots use the full distance).
+static func time_to_reach(from: Vector3, to: Vector3, velocity: Vector3) -> float:
+	var delta := to - from
+	var flat_d := Vector2(delta.x, delta.z).length()
+	var flat_v := Vector2(velocity.x, velocity.z).length()
+	if flat_d < MIN_HORIZONTAL_DISTANCE or flat_v <= 0.0:
+		return delta.length() / maxf(velocity.length(), MIN_HORIZONTAL_DISTANCE)
+	return flat_d / flat_v
+
+
+## Position after t seconds (used by the trajectory preview).
 static func point_at(from: Vector3, velocity: Vector3, gravity: float, t: float) -> Vector3:
 	return from + velocity * t + Vector3.DOWN * gravity * t * t / 2.0
