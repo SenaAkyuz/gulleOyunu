@@ -81,6 +81,12 @@ if not is_vec3(rules.get("cannon", {}).get("position")):
     errors.append("rules.cannon.position [x, y, z] olmali")
 if not is_num(phys.get("spawn_edge_inset")) or phys.get("spawn_edge_inset") < 0:
     errors.append("rules.physics.spawn_edge_inset 0 veya pozitif sayi olmali")
+for key in ("thickness", "friction", "bounce"):
+    if not is_num(rules.get("platform", {}).get(key)):
+        errors.append(f"rules.platform.{key} sayi olmali")
+guide = rules.get("dev", {}).get("play_area_guide", {})
+if not (is_vec3(guide.get("min")) and is_vec3(guide.get("max"))):
+    errors.append("rules.dev.play_area_guide min/max [x, y, z] olmali")
 stress = rules.get("dev", {}).get("stress_block_count")
 if not isinstance(stress, int) or isinstance(stress, bool) or stress <= 0:
     errors.append("rules.dev.stress_block_count pozitif tam sayi olmali")
@@ -237,6 +243,10 @@ for lf in sorted((ROOT / "levels").rglob("*.json")):
     for b in lv.get("free_balls", {}):
         if b not in ball_ids:
             errors.append(f"{rel}: free_balls '{b}' gecersiz top")
+
+start_level = rules.get("dev", {}).get("start_level_id")
+if start_level not in seen_levels:
+    errors.append(f"rules.dev.start_level_id '{start_level}' icin bolum dosyasi yok")
 
 missing = len(level_ids_expected - seen_levels)
 if missing:

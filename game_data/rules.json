@@ -87,7 +87,16 @@
     "spark_min_impulse": 4.0,
     "_doc_taslak": "shake_trauma_per_impulse ve spark_min_impulse taslak; Faz 1 Adim 10-11'de Dev Panel ile ayarlanacak"
   },
+  "platform": {
+    "thickness": 1.0,
+    "friction": 0.8,
+    "bounce": 0.05,
+    "_doc": "Platform (kaide) fizik degerleri. Boyut (width x depth) bolum JSON'undan gelir; ust yuzey y=0."
+  },
   "dev": {
+    "start_level_id": "w01_l01",
+    "play_area_guide": { "min": [-5, 0, -3], "max": [5, 12, 3] },
+    "_doc_dev_guide": "start_level_id: F5 ile acilan bolum. play_area_guide: G tusuyla gosterilen oynanabilir kule alani (docs/03 2).",
     "stress_block_count": 120,
     "_doc": "Gelistirici araclari. stress_block_count: P tusuyla kurulan performans test kulesindeki blok sayisi (S-008)."
   },

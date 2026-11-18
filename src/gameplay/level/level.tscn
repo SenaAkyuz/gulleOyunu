@@ -1,0 +1,81 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://src/gameplay/level/level_loader.gd" id="1_loader"]
+[ext_resource type="Script" path="res://src/gameplay/level/level_camera.gd" id="2_camera"]
+[ext_resource type="Script" path="res://src/gameplay/world/platform.gd" id="3_platform"]
+
+[sub_resource type="Environment" id="Env_grey"]
+background_mode = 1
+background_color = Color(0.55, 0.68, 0.78, 1)
+ambient_light_source = 2
+ambient_light_color = Color(0.75, 0.78, 0.82, 1)
+ambient_light_energy = 0.6
+tonemap_mode = 3
+glow_enabled = true
+
+[sub_resource type="StandardMaterial3D" id="Mat_cannon"]
+albedo_color = Color(0.7, 0.15, 0.12, 1)
+
+[sub_resource type="CylinderMesh" id="Mesh_barrel"]
+material = SubResource("Mat_cannon")
+top_radius = 0.28
+bottom_radius = 0.35
+height = 1.4
+
+[sub_resource type="BoxMesh" id="Mesh_cannon_base"]
+material = SubResource("Mat_cannon")
+size = Vector3(1, 0.4, 1)
+
+[sub_resource type="StandardMaterial3D" id="Mat_guide"]
+shading_mode = 0
+albedo_color = Color(1, 0.85, 0.2, 1)
+no_depth_test = true
+
+[node name="Level" type="Node3D"]
+script = ExtResource("1_loader")
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Env_grey")
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+rotation = Vector3(-0.9, 0.6, 0)
+shadow_enabled = true
+
+[node name="Camera3D" type="Camera3D" parent="."]
+script = ExtResource("2_camera")
+current = true
+
+[node name="Platform" type="StaticBody3D" parent="."]
+script = ExtResource("3_platform")
+
+[node name="Tower" type="Node3D" parent="."]
+
+[node name="CannonPlaceholder" type="Node3D" parent="."]
+
+[node name="Base" type="MeshInstance3D" parent="CannonPlaceholder"]
+position = Vector3(0, 0.2, 0)
+mesh = SubResource("Mesh_cannon_base")
+
+[node name="Barrel" type="MeshInstance3D" parent="CannonPlaceholder"]
+position = Vector3(0, 0.6, -0.5)
+rotation = Vector3(-1.5708, 0, 0)
+mesh = SubResource("Mesh_barrel")
+
+[node name="AreaGuide" type="MeshInstance3D" parent="."]
+material_override = SubResource("Mat_guide")
+
+[node name="HUD" type="CanvasLayer" parent="."]
+
+[node name="InfoLabel" type="Label" parent="HUD"]
+anchors_preset = 10
+anchor_right = 1.0
+offset_left = 24.0
+offset_top = 24.0
+offset_right = -24.0
+offset_bottom = 140.0
+grow_horizontal = 2
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 8
+theme_override_font_sizes/font_size = 30
+text = "..."
+autowrap_mode = 3
