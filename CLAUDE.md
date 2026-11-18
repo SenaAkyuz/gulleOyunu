@@ -5,7 +5,8 @@
 
 ## 1. Proje tek cümlede
 Mobil (iOS + Android), fizik tabanlı bir **top atarak kule yıkma** bulmaca oyunu. Oyuncu ekranın altındaki
-**topla (cannon)** nişan alır, sınırlı sayıda gülle ile kuleyi yıkar ve **Altın Küre**'yi platformdan düşürür.
+**topla (cannon)** nişan alır, sınırlı sayıda gülle ile kuleyi yıkıp **blokların %80'ini platformdan düşürür** ("masayı temizle", K-018);
+kuleye gömülü **Altın Küre**'yi de düşürürse **jackpot** altını kazanır.
 8 dünya × 10 bölüm (şimdilik), 6 özel top, yıldız → altın ekonomisi, altın → top satın alma, gerçek para → altın.
 Rakip referansı: *Smash Away!* (Oakever). Hedefimiz: görsel olarak çok daha zengin, "juicy", tatmin edici yıkım.
 

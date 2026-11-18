@@ -16,7 +16,9 @@ ve şekiller aşamadan aşamaya değişir. Buradan çıkan tasarım ilkeleri:
 4. **Şekil çeşitliliği:** Aynı şablon üst üste gelmemeli (ritim kuralı §6).
 5. **Çift yapı bölümleri:** İki kule = "birini diğerine devir" (domino) veya "kalkanı aş, asıl kuleyi vur" bulmacası.
 
-**Bizim farkımız:** her kulede tasarım gereği **1–3 "anahtar destek" (keystone)** bulunur. Doğru keystone'a tek atış = 3 yıldız.
+**Bizim farkımız:** her kulede tasarım gereği **1–3 "anahtar destek" (keystone)** bulunur. **Keystone = vurulunca en büyük çöküşü başlatan blok.**
+Hedef "masayı temizle"dir (K-018: blok hacminin %80'i platformdan düşmeli); doğru keystone'a tek atış = hedefe tek atışta ulaşmak = 3 yıldız.
+Kuleye gömülü Altın Küre de düşerse **jackpot** (ekstra altın, yıldızı etkilemez).
 Böylece yıldız sistemi "şans" değil "zekâ" ödüllendirir.
 
 ---
@@ -25,6 +27,7 @@ Böylece yıldız sistemi "şans" değil "zekâ" ödüllendirir.
 
 - Birim: **grid birimi (1 = standart küp)**. Eksenler: **x** sağ (+) / sol, **y** yukarı, **z** ön (+, kameraya doğru) / arka.
 - Platform merkezi `x = 0, z = 0`, platform üst yüzeyi `y = 0`. Platform üst yüzeyi `platform.width` (x) × `platform.depth` (z) dikdörtgendir; kenar kuralı (`02` §2) bu yüzeye göre çalışır.
+- **Dar platform (K-018):** `clear_percent` bölümlerinde platform kulenin ayak izine yakın tutulur (her yönde ≈ 0.5–1 birim pay). Geniş platformda bloklar düşemez ve %80 hedefi imkânsızlaşır.
 - Oynanabilir kule alanı: genişlik ≈ **10 birim** (x: −5…+5), derinlik ≈ **6 birim** (z: −3…+3), yükseklik ≈ **12 birim**.
 - **Blok konumu:** `x, z` = bloğun taban merkezi, `y` = alt yüzeyi. **Dönüş:** `rot: [rx, ry, rz]` derece (Euler YXZ).
   Çoğu blok yalnızca `ry` ile (dikey eksen etrafında) döndürülür; eğik/devrik yerleşim için `rx` / `rz`.
@@ -40,7 +43,7 @@ Böylece yıldız sistemi "şans" değil "zekâ" ödüllendirir.
   "difficulty": 14,
   "role": "build_up",
   "shots": 3,
-  "objective": { "type": "drop_core" },
+  "objective": { "type": "clear_percent" },
   "aim_preview_dots": 14,
   "platform": { "width": 9, "depth": 5, "style": "stone_island" },
   "structures": [
@@ -63,6 +66,8 @@ Böylece yıldız sistemi "şans" değil "zekâ" ödüllendirir.
 - **`structures`** = şablon çağrıları (kısa, okunur, değiştirmesi kolay).
 - **`blocks`** = elle eklenen/değiştirilen bloklar (her bloğa otomatik `id`: `b01`, `b02`…).
 - `baked: true` → generator çıktısı "dondurulmuş" tam liste (yayın sürümünde bölümler pişirilmiş olur, böylece şablon kodu değişse de bölüm bozulmaz).
+- **`objective`** (K-018): varsayılan `{ "type": "clear_percent" }`; hedef oranı `rules.objective_defaults.clear_percent_target`, bölüme özel `objective.target` (0–1) ile ezilebilir.
+  `drop_core` / `drop_all_cores` bölümlerinde `cores` zorunlu; `clear_percent` bölümlerinde `cores` **opsiyoneldir** (jackpot küresi). `cores[].y` = kürenin alt yüzeyi.
 
 ---
 
@@ -115,10 +120,17 @@ Düşük zorlukta 1 sıra (okunur, neredeyse düz), yüksek zorlukta 2–3 sıra
    b. Bloğun **ve üstündeki tüm yükün** birleşik ağırlık merkezinin (x, z) izdüşümü bu poligonun içinde ve kenarına en az `rules.physics.support_margin` uzaklıkta olmalı.
    c. Eğik bloklar (`rx`/`rz` ≠ 0) için destek, temas noktalarından hesaplanır.
    d. Son doğrulama fizikle: `pre_settle_sec` simülasyonunda hiçbir blok `rules.physics.max_settle_drift` birimden fazla kaymamalı.
-2. **Keystone garantisi:** Şablon en az 1 keystone işaretler; simülasyon bu bloğa vurulunca hedefin gerçekleştiğini doğrular.
+2. **Keystone garantisi:** Şablon en az 1 keystone işaretler (keystone = en büyük çöküşü başlatan blok); simülasyon bu bloğa vurulunca hedefin
+   (varsayılan: blok hacminin `clear_percent_target` oranı platformdan düşer) gerçekleştiğini doğrular.
 3. **Görüş hattı (S-007):** v1'de kamera sabittir; bu yüzden **her keystone varsayılan kamera açısından (`rules.camera`) görünür olmalı** — en az bir yüzü önden/üstten açıkça görünür, başka bloğun arkasında saklı değil. Ayrıca toptan **doğrudan ya da lob atışla** ulaşılabilir olmalı. Arkada saklı veya önü tamamen kapalı keystone yasak. (Kamera döndürme v2'de gelirse bu kural yeniden değerlendirilir.)
 4. **Simetri ayarı:** `symmetry` parametresi 0–1; düşük zorlukta simetrik (okunur), yüksekte asimetrik (şaşırtıcı).
-5. **Kenar payı:** Bloklar platform kenarından en az 0.3 birim içeride doğar; aksi halde kenar kuralı (`02` §2) bölüm başında yanlış "düştü" sayabilir.
+5. **Kenar payı:** Bloklar platform kenarından en az 0.3 birim (`rules.physics.spawn_edge_inset`) içeride doğar; aksi halde kenar kuralı (`02` §2) bölüm başında yanlış "düştü" sayabilir.
+6. **Altın Küre yerleşimi (K-018):**
+   a. `clear_percent` bölümlerinde küre **jackpot**tır: kulenin **içine** (bloklarla çevrili), **kemer altına** veya **tepeye** gömülür. Keystone çöküşüyle
+      düşebilir ama garanti değildir; zorluk arttıkça daha derine gömülür (`core_protection`). Küre temizlik oranına katılmaz, yıldızı etkilemez.
+   b. `drop_core` bölümleri dünya başına **1–2** tanedir (zincire/halata asılı küre, boss). Bu bölümlerde küre **korunaklıdır: doğrudan tek atışla
+      düşmemelidir** (önünde kalkan blok, zincir/kiriş taşıyıcı, yuva/çukur). Simülasyon küreye doğrudan atışı dener; tek atışta düşüyorsa bölüm reddedilir.
+7. **Dar platform:** `clear_percent` bölümlerinde platform kulenin ayak izine yakın tutulur (§2); blokların %80'i düşebilmeli.
 
 ## 5. Çift kule ve çoklu yapı mantığı
 `structures` dizisinde birden çok şablon → aynı platformda veya **ayrı platformlarda** (Gökyüzü Adaları).
@@ -142,7 +154,7 @@ Her bölüm bir zorluk puanı taşır. Generator bu puanı **parametrelere** çe
 | `height` (birim) | 3 | 7 | 11 | Yüksek küre = zor erişim |
 | `heavy_ratio` (taş/metal oranı) | 0.1 | 0.45 | 0.75 | Ağır malzeme = az yıkım |
 | `redundancy` (yedek destek) | 0 | 1 | 3 | Keystone kırılsa da ayakta kalma |
-| `core_protection` | 0 | 1 | 3 | Küre etrafındaki koruyucu katman |
+| `core_protection` | 0 | 1 | 3 | Küre etrafındaki koruyucu katman / gömülme derinliği (jackpot zorlaşır) |
 | `shots` | 3 | 3 | 4–5 | Zor bölümlerde ekstra hak (oyuncuyu sinirlendirmemek için) |
 | `aim_preview_dots` | 20 | 12 | 6 | Kısa yörünge = tahmin zorlaşır |
 | `symmetry` | 1.0 | 0.6 | 0.2 | |
@@ -151,6 +163,10 @@ Her bölüm bir zorluk puanı taşır. Generator bu puanı **parametrelere** çe
 
 Ara değerler **doğrusal interpolasyon** (veya `difficulty.json`'daki eğri noktaları). Global çarpan: `difficulty.global_multiplier`
 (tüm oyunu bir tıkla %10 kolaylaştır/zorlaştır).
+
+**Zorluk nasıl artar (K-018, mevcut eğrilerle):** daha çok ve daha ağır blok (`block_count`, `heavy_ratio`), dağınık veya ikiz kuleler
+(`structure_count`, `twin_towers`), daha az gülle, kürenin daha derine gömülmesi (`core_protection`).
+> ⚠️ `_TODO_SENA`: K-018 "daha az gülle" diyor; mevcut `curves.shots` ise zorlukla gülleyi **artırıyor** (3 → 5, oyuncuyu sinirlendirmemek için). Eğri değiştirilmedi; karar bekleniyor.
 
 ### 6.2 Bölüm ritmi (dünya başına 10 bölüm) — "testere dişi" eğri
 ```
@@ -205,11 +221,15 @@ flowchart LR
 ```
 
 ### 8.1 Simülasyon metrikleri ve hedefler (`difficulty.json → sim_targets`)
+- **Çözüm** (K-018) = bölüm hedefine ulaşmak. Varsayılan `clear_percent`: blok hacminin `clear_percent_target` (0.8) oranı platformdan düşer; `drop_core`: küre düşer.
 - `one_shot_solve_rate`: rastgele örneklenen 200 atış noktasından kaçı tek atışta çözüyor.
   - intro: %30–60 · build_up: %10–30 · challenge: %2–8 · boss: %0.5–3 (ama 0 olamaz!)
 - `any_solve_rate_within_shots`: verilen atışla çözülebilirlik (açgözlü strateji ile) ≥ %20 olmalı.
 - `keystone_check`: her keystone'a doğrudan atış → hedef gerçekleşmeli (en az birinde).
-- `collapse_ratio`: çözümde platformdan düşen blok oranı (tatmin ölçüsü) ≥ 0.5 tercih edilir.
+- `collapse_ratio`: atış başına platformdan düşen blok hacmi oranı (tatmin ölçüsü); keystone vuruşunda `min_collapse_ratio` (0.5) ve üstü tercih edilir.
+- `jackpot_rate` (`clear_percent`): çözümlerin kaçında Altın Küre de düşüyor. Öneri: intro %50–80 → challenge %10–25. Şimdilik yalnızca raporlanır;
+  `difficulty.json → sim_targets`'a eşik eklemek Sena'nın onayına bağlı (`_TODO_SENA`).
+- `core_direct_hit_check` (`drop_core`): küreye doğrudan tek atış küreyi düşürmemeli (§4 kural 6b).
 
 ### 8.2 Bölüm editörü (Godot editör eklentisi, Faz 3)
 - Sol panel: şablon/blok paleti · Orta: grid üzerinde sürükle-bırak · Sağ: seçili bloğun malzemesi, döndürme, keystone işareti.

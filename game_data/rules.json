@@ -34,8 +34,10 @@
     "special_ball_reduces_stars": false
   },
   "objective_defaults": {
-    "type": "drop_core",
+    "type": "clear_percent",
     "clear_percent_target": 0.8,
+    "clear_measure": "volume",
+    "_doc": "K-018: varsayilan hedef clear_percent (bloklarin clear_percent_target orani platformdan duserse kazanilir). clear_measure: volume (blok hacmi) | count (adet). Altin Kure ve joint'ler orana dahil degil. Bolumde objective.target ile ezilebilir. Otomatik final temizligi yok. clear_percent bolumlerinde kure jackpot'tur (economy.rewards.core_jackpot_gold); drop_core bolumlerinde hedeftir.",
     "core_shape": "core_sphere",
     "core_material": "core_gold",
     "_doc_core": "Bolum JSON'undaki cores[] ogeleri bu sekil + malzemeyle kurulur. cores[].y = kurenin alt yuzeyi (bloklarla ayni kural)."

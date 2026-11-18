@@ -23,14 +23,19 @@
 
 ## 3. Çöküş anı (SATISFACTION)
 - Zincirleme düşüş sayacı: "x5 ZİNCİR!" yazısı (blok-blok kırılmaları sayılır).
-- **Final ağır çekim:** Altın Küre platformdan ayrıldığı an → 0.6 sn `time_scale 0.3`, kamera küreye hafif zoom, sonra normal.
-- Küre yere/düşüşe → altın ışık patlaması + "ding" + konfeti.
+- **Doluluk çubuğu (K-018):** HUD'da (üst orta, gülle göstergesinin altında) temizlenen blok hacmi / hedef. Her düşen blokla yumuşakça dolar,
+  %80 hedef çizgisi işaretli; hedefe yaklaşınca nabız atar, ulaşınca parlar + "TEMİZ!" + yükselen nota. Bloklar ancak durulunca kesinleştiği için
+  çubuk SETTLING boyunca anlık tahmini gösterir, kesin değer sonunda oturur.
+- **Altın Küre jackpot:** küre platformdan ayrıldığı an → ağır çekim (`feel.final_slowmo_scale` 0.3, `final_slowmo_duration_sec` 0.6), kamera küreye
+  hafif zoom, sonra normal → altın ışık patlaması + "ding" + **konfeti** + büyük "JACKPOT! +N 🪙" yazısı, altınlar HUD sayacına uçar. Yıldızı etkilemez.
+- Otomatik final temizliği **yok**: hedef tutunca kalan bloklar platformda kalır (oyuncu kendi yıkımını görür).
 - Platform dışına düşen her blok kısa "whoosh" + düşme sesi (uzakta, düşük ses).
 
 ## 4. Sonuç ekranı
 - Yıldızlar tek tek, her biri büyüyüp "çarparak" yerleşir (scale 1.6 → 1.0, elastic easing), her yıldızda yükselen nota.
 - Altın sayacı: rakamlar yuvarlanarak artar, altın ikonları ekrandan HUD'a yay çizerek uçar.
 - 3 yıldızda ekstra parlama + "MÜKEMMEL!".
+- Jackpot alındıysa ayrı satır: Altın Küre ikonu + "+N" (yıldız altınından sonra sayılır).
 
 ## 5. Özel top efektleri
 | Top | Uçuşta | Çarpmada |

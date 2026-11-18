@@ -49,13 +49,13 @@ Faz 1'i uygula (docs/02 ve docs/03'e uy):
 - Autoload: EventBus, GameConfig (game_data JSON'larını yükler).
 - block.tscn: RigidBody3D, tam 3D (eksen kilidi yok), uyuyarak doğar, kenar kuralı rules.physics.edge_rule, materials.json'dan yoğunluk/hp okur. Hasar modeli docs/02 §6.3.
 - ball.tscn (ağır top), cannon.tscn (dokun-hedefle ve sürükle-bırak; rules.aim.mode), noktalı yörünge önizlemesi.
-- Basit platform, KillZone, Altın Küre, LevelReferee (drop_core + yıldız: rules.stars).
+- Basit platform, KillZone, Altın Küre, LevelReferee (clear_percent + doluluk çubuğu + jackpot küre + yıldız: rules.stars; K-018).
 - game_data/levels/w01_akdeniz/w01_l01.json'u yükleyip çalıştır.
 - Basit FX: çarpmada küçük kamera sarsıntısı + kıvılcım parçacığı.
 - Dev panel (F1): yerçekimi, top hızı, malzeme hp canlı ayar.
 Bitince bana masaüstünde nasıl çalıştıracağımı ve neyi test etmem gerektiğini Türkçe anlat.
 ```
-**Bitti kriteri:** F5 ile oyun açılıyor; atış hissi iyi; kule ilk atışa kadar kıpırdamıyor; küre düşünce "KAZANDIN ⭐⭐⭐" yazıyor;
+**Bitti kriteri:** F5 ile oyun açılıyor; atış hissi iyi; kule ilk atışa kadar kıpırdamıyor; blokların %80'i düşünce "KAZANDIN ⭐⭐⭐" yazıyor, küre de düşerse jackpot kutlaması;
 Sena 10 kez oynayıp "eğlenceli" diyor. Değilse **Faz 1'de kal** ve hissi düzelt (top hızı, kütle, kamera).
 
 ## FAZ 2 — Veri omurgası ve kayıt (2–3 gün)

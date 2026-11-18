@@ -9,6 +9,8 @@
     "replay_ratio": 0.2,
     "boss_mult": 2.0,
     "crystal_coin_cap_per_level": 8,
+    "core_jackpot_gold": 20,
+    "_doc_jackpot": "K-018: clear_percent bolumunde kazanirken Altin Kure de dustuyse. Bolumdeki ilk jackpot tam, sonrakiler x replay_ratio. Yildizi etkilemez. Deger taslak (economy_sim ile kontrol).",
     "world_complete_bonus": 100,
     "world_perfect_bonus": 150,
     "rewarded_ad_double": { "enabled": true, "daily_limit": 5 }
@@ -27,6 +29,9 @@
     "avg_crystals_per_level": 6,
     "replays_per_level": 0.5,
     "special_balls_used_per_level_after_unlock": 0.4,
+    "core_jackpot_levels_per_world": 8,
+    "avg_core_jackpot_rate": 0.4,
+    "_doc_jackpot": "Dunya basina jackpot kureli (clear_percent) bolum sayisi (10 - 1..2 drop_core) ve ortalama oyuncunun kureyi dusurme orani.",
     "target_packs_affordable_per_world": [2, 3]
   }
 }

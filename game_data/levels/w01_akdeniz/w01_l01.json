@@ -6,24 +6,25 @@
   "difficulty": 2,
   "role": "intro",
   "shots": 3,
-  "objective": { "type": "drop_core" },
+  "objective": { "type": "clear_percent" },
   "aim_preview_dots": 20,
-  "platform": { "width": 7, "depth": 5, "style": "limestone_plinth" },
+  "platform": { "width": 4, "depth": 3, "style": "limestone_plinth" },
   "structures": [],
   "blocks": [
-    { "id": "b01", "shape": "cube", "mat": "stone",         "x": -1.0, "y": 0.0, "z": 0.0, "rot": [0, 0, 0] },
-    { "id": "b02", "shape": "cube", "mat": "crystal_amber", "x":  0.0, "y": 0.0, "z": 0.0, "rot": [0, 0, 0] },
-    { "id": "b03", "shape": "cube", "mat": "stone",         "x":  1.0, "y": 0.0, "z": 0.0, "rot": [0, 0, 0] },
-    { "id": "b04", "shape": "cube", "mat": "crystal_cyan",  "x": -0.5, "y": 1.0, "z": 0.0, "rot": [0, 0, 0] },
-    { "id": "b05", "shape": "cube", "mat": "crystal_cyan",  "x":  0.5, "y": 1.0, "z": 0.0, "rot": [0, 0, 0] },
-    { "id": "b06", "shape": "plank_s", "mat": "wood",       "x":  0.0, "y": 2.0, "z": 0.0, "rot": [0, 0, 0] }
+    { "id": "b01", "shape": "cube",    "mat": "stone",         "x": -1.0, "y": 0.0, "z": 0.0, "rot": [0, 0, 0] },
+    { "id": "b02", "shape": "cube",    "mat": "crystal_amber", "x":  0.0, "y": 0.0, "z": 0.0, "rot": [0, 0, 0] },
+    { "id": "b03", "shape": "cube",    "mat": "stone",         "x":  1.0, "y": 0.0, "z": 0.0, "rot": [0, 0, 0] },
+    { "id": "b04", "shape": "cube",    "mat": "crystal_cyan",  "x": -1.0, "y": 1.0, "z": 0.0, "rot": [0, 0, 0] },
+    { "id": "b05", "shape": "cube",    "mat": "crystal_cyan",  "x":  1.0, "y": 1.0, "z": 0.0, "rot": [0, 0, 0] },
+    { "id": "b06", "shape": "plank_s", "mat": "wood",          "x":  0.0, "y": 2.0, "z": 0.0, "rot": [0, 0, 0] },
+    { "id": "b07", "shape": "cube",    "mat": "crystal_amber", "x":  0.0, "y": 2.4, "z": 0.0, "rot": [0, 0, 0] }
   ],
   "joints": [],
-  "cores": [ { "x": 0.0, "y": 2.4, "z": 0.0, "attach": "rest" } ],
+  "cores": [ { "x": 0.0, "y": 1.0, "z": 0.0, "attach": "rest" } ],
   "keystones": ["b02"],
   "tutorial": { "type": "hand_tap", "target_block": "b02", "text_tr": "Dokun ve ateşle!" },
   "intro_ball": null,
   "free_balls": {},
   "baked": true,
-  "_doc": "FTUE bolumu: kristal ortadaki alt blok kirilinca piramit coker, kure duser. Tek atis cok buyuk ihtimalle yeter. FTUE icin bilerek tek sira (z=0); derinlik W1 B3+ ile gelir."
+  "_doc": "FTUE bolumu (K-018: clear_percent). Dar platform (4x3) ki bloklar dusebilsin. Altin Kure kulenin icine gomulu: alttaki amber kristalin (b02) ustunde, iki turkuaz kristalin (b04, b05) arasinda, kalasin (b06) altinda. Keystone b02: vurulunca ust yapi cokup arkaya/yanlara devrilir, kure de buyuk ihtimalle duser (ilk jackpot). Tek sira (z=0); derinlik W1 B3+ ile gelir. Tek atisla %80 temizlenip temizlenmedigi Faz 1 Adim 9'da oynanarak dogrulanacak (taslak)."
 }

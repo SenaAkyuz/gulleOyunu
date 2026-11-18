@@ -14,7 +14,8 @@
 
 ## 1. Proje tek cümlede
 Mobil (iOS + Android), fizik tabanlı bir **top atarak kule yıkma** bulmaca oyunu. Oyuncu ekranın altındaki
-**topla (cannon)** nişan alır, sınırlı sayıda gülle ile kuleyi yıkar ve **Altın Küre**'yi platformdan düşürür.
+**topla (cannon)** nişan alır, sınırlı sayıda gülle ile kuleyi yıkıp **blokların %80'ini platformdan düşürür** ("masayı temizle", K-018);
+kuleye gömülü **Altın Küre**'yi de düşürürse **jackpot** altını kazanır.
 8 dünya × 10 bölüm (şimdilik), 6 özel top, yıldız → altın ekonomisi, altın → top satın alma, gerçek para → altın.
 Rakip referansı: *Smash Away!* (Oakever). Hedefimiz: görsel olarak çok daha zengin, "juicy", tatmin edici yıkım.
 
@@ -114,10 +115,10 @@ flowchart LR
   A[Bölüm seç] --> B[Kuleyi incele<br/>zayıf noktayı bul]
   B --> C[Top seç<br/>Ağır / Özel]
   C --> D[Nişan al ve ateşle]
-  D --> E{Altın Küre<br/>düştü mü?}
+  D --> E{Blokların %80'i<br/>düştü mü?}
   E -- Hayır, gülle var --> B
   E -- Hayır, gülle bitti --> F[Başarısız<br/>Tekrar / +1 gülle]
-  E -- Evet --> G[Yıldız + Altın]
+  E -- Evet --> G[Yıldız + Altın<br/>küre de düştüyse jackpot]
   G --> H[Mağaza: top aç / satın al]
   H --> A
 ```
@@ -142,14 +143,20 @@ flowchart LR
 - Top fiziksel bir mermidir: kütle, hız, yerçekimi etkisi `balls.json` içinde.
 
 ### 3.3 Kazanma koşulu (bölüm bazında seçilir) ⚙️ `level.objective.type`
+✅ Karar (K-018, Sena onayladı — K-010'un yerine): **Ana hedef "masayı temizle", Altın Küre jackpot.**
+
 | Tip | Açıklama | Ne zaman kullanılır |
 |---|---|---|
-| `drop_core` | **Altın Küre** platformdan düşerse kazanırsın | Varsayılan (görsellerdeki altın küre) |
-| `clear_percent` | Blokların %X'i platformdan düşerse | Smash Away tarzı "masayı temizle" bölümleri |
+| `clear_percent` | Blokların **%80'i** (⚙️ `rules.objective_defaults.clear_percent_target`) platformdan düşerse kazanırsın. Oran **blok hacmine** göre (⚙️ `clear_measure = "volume"`, alternatif `"count"`); Altın Küre ve joint'ler (halat/zincir/sarmaşık) orana dahil değil. Ekranda **doluluk çubuğu**. Otomatik final temizliği **yok** | **Varsayılan** (Smash Away tarzı) |
+| `drop_core` | **Altın Küre** platformdan düşerse kazanırsın; küre **korunaklıdır**, doğrudan tek atışla düşmez | Dünya başına **1–2 bölüm** (zincire asılı küre, boss) |
 | `shatter_crystals` | Tüm kristal blokları (turuncu/turkuaz) kır | Kristal ağırlıklı özel bölümler |
 | `drop_all_cores` | Birden fazla küre (çift kule bölümleri) | Boss / çift kule |
 
 Kazanma kontrolü: son atıştan sonra fizik **durulana kadar** (tüm cisimler uyuyana veya ⚙️ `rules.settle_timeout_sec` dolana kadar) beklenir.
+
+**Altın Küre jackpot (K-018):** `clear_percent` bölümlerinde küre kulenin içine, kemer altına veya tepeye **gömülü** durur.
+Bölüm sırasında düşerse: ağır çekim + konfeti + büyük altın ödülü (⚙️ `economy.rewards.core_jackpot_gold`). **Yıldızı etkilemez.**
+Zorluk arttıkça küre daha derine gömülür (`docs/03` §4 kural 6).
 
 ### 3.4 Gülle hakkı
 - Her bölümün gülle hakkı vardır ⚙️ `level.shots` (genelde 3; zorlukla değişir).
@@ -245,7 +252,7 @@ Her blok = **şekil (shape)** + **malzeme (material)**. Malzeme fizik ve etkile�
 | `lava_rock` | Koyu, turuncu çatlaklı | Yüksek | Yüksek | thermal_shock (Buz ×2) |
 | `metal` | Perçin, plaka | Çok yüksek | Çok yüksek | conductive |
 | `rope` / `chain` / `vine` | Bağlantı (joint) | — | Düşük/Yüksek/Orta | joint; rope/vine cuttable+flammable |
-| `core_gold` | **Altın Küre** (hedef) | Orta | Kırılmaz | objective |
+| `core_gold` | **Altın Küre** (jackpot; `drop_core` bölümlerinde hedef) | Orta | Kırılmaz | objective |
 
 **Kristal bloklar** (turuncu/turkuaz) kırılınca küçük altın (⚙️ `materials.json → coin_on_break`) ve tatmin edici cam kırılma efekti verir → oyuncuyu "daha çok yık" yönünde ödüllendirir.
 
@@ -273,8 +280,10 @@ flowchart TD
 ---
 
 ## 8. İlk kullanıcı deneyimi (FTUE)
-1. Bölüm 1: el animasyonu "dokun ve at" — 1 gülle bile yeter, kule çok kırılgan → ilk 10 saniyede zafer.
-2. Bölüm 2: "Kemerin altındaki desteğe vur" ipucu (zayıf nokta öğretimi).
+1. Bölüm 1: el animasyonu "dokun ve at" — dar platform, kırılgan kule; 1 gülle bile yeter → **doluluk çubuğu** dolar, ilk 10 saniyede zafer.
+   Kulenin içine gömülü Altın Küre büyük ihtimalle birlikte düşer → ilk **jackpot** kutlaması ("Altın Küre! +N altın").
+2. Bölüm 2: "Kemerin altındaki desteğe vur" ipucu (zayıf nokta = en büyük çöküşü başlatan blok). Küre bu kez daha korunaklı:
+   jackpot kaçarsa "tekrar dene" motivasyonu (yıldız zaten alınmış olabilir).
 3. Bölüm 3: ilk kez 2 atış gerekiyor → gülle göstergesi tanıtımı.
 4. Bölüm 5: ilk yıldız ödülü sonrası mağaza tanıtımı (ama satın alma baskısı yok).
 5. Bölüm 7 sonrası: **Alev Topu açıldı!** sinematik + 3 hediye + Bölüm 8 alev için tasarlanmış.
@@ -340,7 +349,7 @@ Tek risk IAP/reklam eklentileri → `IAPService` / `AdsService` arayüzleriyle s
   1. **Ağırlık merkezinin yatay izdüşümü (x, z) platform üst yüzeyinin dışındaysa** (tolerans: `rules.physics.edge_margin`), **veya**
   2. `y < rules.physics.fall_kill_y` (platformun altına inmişse).
 - Kenarda asılı kalan ama ağırlık merkezi platform dışında olan cisim **düşmüş** sayılır; ağırlık merkezi platform içindeyse **düşmemiş** sayılır. Ara durum yok.
-- Kontrol sürekli yapılır: Altın Küre'nin ağırlık merkezi platform dışına çıktığı an "düştü" sayılır (final ağır çekim başlar). Bloklar için sonuç SETTLING sonunda kesinleşir.
+- Kontrol sürekli yapılır: Altın Küre'nin ağırlık merkezi platform dışına çıktığı an "düştü" sayılır (jackpot ağır çekimi başlar; `drop_core` bölümlerinde kazanma). Bloklar için sonuç SETTLING sonunda kesinleşir; temizlik oranı (`clear_percent`, K-018) bu kesinleşmiş sonuçlardan hesaplanır.
 - Ayrık platformlarda (Gökyüzü Adaları) "platform" = tüm platform üst yüzeylerinin birleşimi.
 - Oyuncuya görünür: kenarda asılı ama düşmüş sayılan cisim hafif gri parıltı alır.
 
@@ -521,6 +530,10 @@ hp <= 0  → kırıl (fracture) ; hp < %50 → çatlak dokusu (decal/overlay)
 Durum makinesi: `AIMING → BALL_IN_FLIGHT → SETTLING → EVALUATE → (AIMING | WON | LOST)`.
 SETTLING: tüm aktif gövdeler uyuyana ya da `settle_timeout_sec` dolana kadar. "Atlama" butonu (hızlı ileri) opsiyonel.
 EVALUATE: her hedef cisim için **kenar kuralı** (§2, `rules.physics.edge_rule`) uygulanır: ağırlık merkezi (x,z) platform dışında veya `fall_kill_y` altında → düştü.
+- `clear_percent` (varsayılan, K-018): düşen blokların hacmi / tüm blokların hacmi (`rules.objective_defaults.clear_measure = volume`; `count` = adet)
+  ≥ `clear_percent_target` (bölümde `objective.target` ile ezilebilir) → WON. Küre ve joint'ler orana katılmaz.
+- Gülle bitti ve oran hedefin altında → LOST. Otomatik final temizliği yok.
+- Küre düşerse (`clear_percent`): `EventBus.core_dropped` → jackpot (ağır çekim, konfeti, altın); yıldızı etkilemez. `drop_core`: küre düşünce WON.
 
 ---
 
@@ -586,7 +599,9 @@ ve şekiller aşamadan aşamaya değişir. Buradan çıkan tasarım ilkeleri:
 4. **Şekil çeşitliliği:** Aynı şablon üst üste gelmemeli (ritim kuralı §6).
 5. **Çift yapı bölümleri:** İki kule = "birini diğerine devir" (domino) veya "kalkanı aş, asıl kuleyi vur" bulmacası.
 
-**Bizim farkımız:** her kulede tasarım gereği **1–3 "anahtar destek" (keystone)** bulunur. Doğru keystone'a tek atış = 3 yıldız.
+**Bizim farkımız:** her kulede tasarım gereği **1–3 "anahtar destek" (keystone)** bulunur. **Keystone = vurulunca en büyük çöküşü başlatan blok.**
+Hedef "masayı temizle"dir (K-018: blok hacminin %80'i platformdan düşmeli); doğru keystone'a tek atış = hedefe tek atışta ulaşmak = 3 yıldız.
+Kuleye gömülü Altın Küre de düşerse **jackpot** (ekstra altın, yıldızı etkilemez).
 Böylece yıldız sistemi "şans" değil "zekâ" ödüllendirir.
 
 ---
@@ -595,6 +610,7 @@ Böylece yıldız sistemi "şans" değil "zekâ" ödüllendirir.
 
 - Birim: **grid birimi (1 = standart küp)**. Eksenler: **x** sağ (+) / sol, **y** yukarı, **z** ön (+, kameraya doğru) / arka.
 - Platform merkezi `x = 0, z = 0`, platform üst yüzeyi `y = 0`. Platform üst yüzeyi `platform.width` (x) × `platform.depth` (z) dikdörtgendir; kenar kuralı (`02` §2) bu yüzeye göre çalışır.
+- **Dar platform (K-018):** `clear_percent` bölümlerinde platform kulenin ayak izine yakın tutulur (her yönde ≈ 0.5–1 birim pay). Geniş platformda bloklar düşemez ve %80 hedefi imkânsızlaşır.
 - Oynanabilir kule alanı: genişlik ≈ **10 birim** (x: −5…+5), derinlik ≈ **6 birim** (z: −3…+3), yükseklik ≈ **12 birim**.
 - **Blok konumu:** `x, z` = bloğun taban merkezi, `y` = alt yüzeyi. **Dönüş:** `rot: [rx, ry, rz]` derece (Euler YXZ).
   Çoğu blok yalnızca `ry` ile (dikey eksen etrafında) döndürülür; eğik/devrik yerleşim için `rx` / `rz`.
@@ -610,7 +626,7 @@ Böylece yıldız sistemi "şans" değil "zekâ" ödüllendirir.
   "difficulty": 14,
   "role": "build_up",
   "shots": 3,
-  "objective": { "type": "drop_core" },
+  "objective": { "type": "clear_percent" },
   "aim_preview_dots": 14,
   "platform": { "width": 9, "depth": 5, "style": "stone_island" },
   "structures": [
@@ -633,6 +649,8 @@ Böylece yıldız sistemi "şans" değil "zekâ" ödüllendirir.
 - **`structures`** = şablon çağrıları (kısa, okunur, değiştirmesi kolay).
 - **`blocks`** = elle eklenen/değiştirilen bloklar (her bloğa otomatik `id`: `b01`, `b02`…).
 - `baked: true` → generator çıktısı "dondurulmuş" tam liste (yayın sürümünde bölümler pişirilmiş olur, böylece şablon kodu değişse de bölüm bozulmaz).
+- **`objective`** (K-018): varsayılan `{ "type": "clear_percent" }`; hedef oranı `rules.objective_defaults.clear_percent_target`, bölüme özel `objective.target` (0–1) ile ezilebilir.
+  `drop_core` / `drop_all_cores` bölümlerinde `cores` zorunlu; `clear_percent` bölümlerinde `cores` **opsiyoneldir** (jackpot küresi). `cores[].y` = kürenin alt yüzeyi.
 
 ---
 
@@ -685,10 +703,17 @@ Düşük zorlukta 1 sıra (okunur, neredeyse düz), yüksek zorlukta 2–3 sıra
    b. Bloğun **ve üstündeki tüm yükün** birleşik ağırlık merkezinin (x, z) izdüşümü bu poligonun içinde ve kenarına en az `rules.physics.support_margin` uzaklıkta olmalı.
    c. Eğik bloklar (`rx`/`rz` ≠ 0) için destek, temas noktalarından hesaplanır.
    d. Son doğrulama fizikle: `pre_settle_sec` simülasyonunda hiçbir blok `rules.physics.max_settle_drift` birimden fazla kaymamalı.
-2. **Keystone garantisi:** Şablon en az 1 keystone işaretler; simülasyon bu bloğa vurulunca hedefin gerçekleştiğini doğrular.
+2. **Keystone garantisi:** Şablon en az 1 keystone işaretler (keystone = en büyük çöküşü başlatan blok); simülasyon bu bloğa vurulunca hedefin
+   (varsayılan: blok hacminin `clear_percent_target` oranı platformdan düşer) gerçekleştiğini doğrular.
 3. **Görüş hattı (S-007):** v1'de kamera sabittir; bu yüzden **her keystone varsayılan kamera açısından (`rules.camera`) görünür olmalı** — en az bir yüzü önden/üstten açıkça görünür, başka bloğun arkasında saklı değil. Ayrıca toptan **doğrudan ya da lob atışla** ulaşılabilir olmalı. Arkada saklı veya önü tamamen kapalı keystone yasak. (Kamera döndürme v2'de gelirse bu kural yeniden değerlendirilir.)
 4. **Simetri ayarı:** `symmetry` parametresi 0–1; düşük zorlukta simetrik (okunur), yüksekte asimetrik (şaşırtıcı).
-5. **Kenar payı:** Bloklar platform kenarından en az 0.3 birim içeride doğar; aksi halde kenar kuralı (`02` §2) bölüm başında yanlış "düştü" sayabilir.
+5. **Kenar payı:** Bloklar platform kenarından en az 0.3 birim (`rules.physics.spawn_edge_inset`) içeride doğar; aksi halde kenar kuralı (`02` §2) bölüm başında yanlış "düştü" sayabilir.
+6. **Altın Küre yerleşimi (K-018):**
+   a. `clear_percent` bölümlerinde küre **jackpot**tır: kulenin **içine** (bloklarla çevrili), **kemer altına** veya **tepeye** gömülür. Keystone çöküşüyle
+      düşebilir ama garanti değildir; zorluk arttıkça daha derine gömülür (`core_protection`). Küre temizlik oranına katılmaz, yıldızı etkilemez.
+   b. `drop_core` bölümleri dünya başına **1–2** tanedir (zincire/halata asılı küre, boss). Bu bölümlerde küre **korunaklıdır: doğrudan tek atışla
+      düşmemelidir** (önünde kalkan blok, zincir/kiriş taşıyıcı, yuva/çukur). Simülasyon küreye doğrudan atışı dener; tek atışta düşüyorsa bölüm reddedilir.
+7. **Dar platform:** `clear_percent` bölümlerinde platform kulenin ayak izine yakın tutulur (§2); blokların %80'i düşebilmeli.
 
 ## 5. Çift kule ve çoklu yapı mantığı
 `structures` dizisinde birden çok şablon → aynı platformda veya **ayrı platformlarda** (Gökyüzü Adaları).
@@ -712,7 +737,7 @@ Her bölüm bir zorluk puanı taşır. Generator bu puanı **parametrelere** çe
 | `height` (birim) | 3 | 7 | 11 | Yüksek küre = zor erişim |
 | `heavy_ratio` (taş/metal oranı) | 0.1 | 0.45 | 0.75 | Ağır malzeme = az yıkım |
 | `redundancy` (yedek destek) | 0 | 1 | 3 | Keystone kırılsa da ayakta kalma |
-| `core_protection` | 0 | 1 | 3 | Küre etrafındaki koruyucu katman |
+| `core_protection` | 0 | 1 | 3 | Küre etrafındaki koruyucu katman / gömülme derinliği (jackpot zorlaşır) |
 | `shots` | 3 | 3 | 4–5 | Zor bölümlerde ekstra hak (oyuncuyu sinirlendirmemek için) |
 | `aim_preview_dots` | 20 | 12 | 6 | Kısa yörünge = tahmin zorlaşır |
 | `symmetry` | 1.0 | 0.6 | 0.2 | |
@@ -721,6 +746,10 @@ Her bölüm bir zorluk puanı taşır. Generator bu puanı **parametrelere** çe
 
 Ara değerler **doğrusal interpolasyon** (veya `difficulty.json`'daki eğri noktaları). Global çarpan: `difficulty.global_multiplier`
 (tüm oyunu bir tıkla %10 kolaylaştır/zorlaştır).
+
+**Zorluk nasıl artar (K-018, mevcut eğrilerle):** daha çok ve daha ağır blok (`block_count`, `heavy_ratio`), dağınık veya ikiz kuleler
+(`structure_count`, `twin_towers`), daha az gülle, kürenin daha derine gömülmesi (`core_protection`).
+> ⚠️ `_TODO_SENA`: K-018 "daha az gülle" diyor; mevcut `curves.shots` ise zorlukla gülleyi **artırıyor** (3 → 5, oyuncuyu sinirlendirmemek için). Eğri değiştirilmedi; karar bekleniyor.
 
 ### 6.2 Bölüm ritmi (dünya başına 10 bölüm) — "testere dişi" eğri
 ```
@@ -775,11 +804,15 @@ flowchart LR
 ```
 
 ### 8.1 Simülasyon metrikleri ve hedefler (`difficulty.json → sim_targets`)
+- **Çözüm** (K-018) = bölüm hedefine ulaşmak. Varsayılan `clear_percent`: blok hacminin `clear_percent_target` (0.8) oranı platformdan düşer; `drop_core`: küre düşer.
 - `one_shot_solve_rate`: rastgele örneklenen 200 atış noktasından kaçı tek atışta çözüyor.
   - intro: %30–60 · build_up: %10–30 · challenge: %2–8 · boss: %0.5–3 (ama 0 olamaz!)
 - `any_solve_rate_within_shots`: verilen atışla çözülebilirlik (açgözlü strateji ile) ≥ %20 olmalı.
 - `keystone_check`: her keystone'a doğrudan atış → hedef gerçekleşmeli (en az birinde).
-- `collapse_ratio`: çözümde platformdan düşen blok oranı (tatmin ölçüsü) ≥ 0.5 tercih edilir.
+- `collapse_ratio`: atış başına platformdan düşen blok hacmi oranı (tatmin ölçüsü); keystone vuruşunda `min_collapse_ratio` (0.5) ve üstü tercih edilir.
+- `jackpot_rate` (`clear_percent`): çözümlerin kaçında Altın Küre de düşüyor. Öneri: intro %50–80 → challenge %10–25. Şimdilik yalnızca raporlanır;
+  `difficulty.json → sim_targets`'a eşik eklemek Sena'nın onayına bağlı (`_TODO_SENA`).
+- `core_direct_hit_check` (`drop_core`): küreye doğrudan tek atış küreyi düşürmemeli (§4 kural 6b).
 
 ### 8.2 Bölüm editörü (Godot editör eklentisi, Faz 3)
 - Sol panel: şablon/blok paleti · Orta: grid üzerinde sürükle-bırak · Sağ: seçili bloğun malzemesi, döndürme, keystone işareti.
@@ -1029,6 +1062,7 @@ Sonra Claude/Sena elemanları kesip `assets/ui/` altına 9-slice ayarlarıyla ko
 | Tekrar oynama (yıldız artırmadan) | ilk değerin %20'si | Altın "farm"ını sınırlar |
 | Yıldız yükseltme (1→3) | `fark` (35−10=25) + tekrar ödülü | Asla eksik/fazla ödeme yok |
 | Kristal blok kırma | +1 / kristal (bölüm başı tavan 8) | Yıkımı ödüllendirir |
+| **Altın Küre jackpot** (K-018) | 20 (taslak, `rewards.core_jackpot_gold`) | `clear_percent` bölümünde kazanırken küre de düştüyse. Bölümdeki **ilk** jackpot tam, sonrakiler `× replay_ratio` (farm önleme). Yıldızı etkilemez |
 | Boss bölüm | yıldız ödülü × 2 | |
 | Dünyayı bitirme | 100 | |
 | Dünyada 30/30 yıldız | 150 + (ileride) özel top görünümü | |
@@ -1039,7 +1073,8 @@ Sonra Claude/Sena elemanları kesip `assets/ui/` altına 9-slice ayarlarıyla ko
 first_clear_reward = rewards.stars[stars]
 replay_reward      = round(rewards.stars[stars] * rewards.replay_ratio)
 upgrade_reward     = rewards.stars[new] - rewards.stars[old]
-total = (ilk geçiş ? first_clear_reward : upgrade_reward + replay_reward) * (boss ? boss_mult : 1) + crystal_coins
+jackpot            = core_dropped ? (ilk jackpot ? rewards.core_jackpot_gold : round(rewards.core_jackpot_gold * rewards.replay_ratio)) : 0
+total = (ilk geçiş ? first_clear_reward : upgrade_reward + replay_reward) * (boss ? boss_mult : 1) + crystal_coins + jackpot
 ```
 
 ## 3. Altın harcama ⚙️
@@ -1138,13 +1173,13 @@ Faz 1'i uygula (docs/02 ve docs/03'e uy):
 - Autoload: EventBus, GameConfig (game_data JSON'larını yükler).
 - block.tscn: RigidBody3D, tam 3D (eksen kilidi yok), uyuyarak doğar, kenar kuralı rules.physics.edge_rule, materials.json'dan yoğunluk/hp okur. Hasar modeli docs/02 §6.3.
 - ball.tscn (ağır top), cannon.tscn (dokun-hedefle ve sürükle-bırak; rules.aim.mode), noktalı yörünge önizlemesi.
-- Basit platform, KillZone, Altın Küre, LevelReferee (drop_core + yıldız: rules.stars).
+- Basit platform, KillZone, Altın Küre, LevelReferee (clear_percent + doluluk çubuğu + jackpot küre + yıldız: rules.stars; K-018).
 - game_data/levels/w01_akdeniz/w01_l01.json'u yükleyip çalıştır.
 - Basit FX: çarpmada küçük kamera sarsıntısı + kıvılcım parçacığı.
 - Dev panel (F1): yerçekimi, top hızı, malzeme hp canlı ayar.
 Bitince bana masaüstünde nasıl çalıştıracağımı ve neyi test etmem gerektiğini Türkçe anlat.
 ```
-**Bitti kriteri:** F5 ile oyun açılıyor; atış hissi iyi; kule ilk atışa kadar kıpırdamıyor; küre düşünce "KAZANDIN ⭐⭐⭐" yazıyor;
+**Bitti kriteri:** F5 ile oyun açılıyor; atış hissi iyi; kule ilk atışa kadar kıpırdamıyor; blokların %80'i düşünce "KAZANDIN ⭐⭐⭐" yazıyor, küre de düşerse jackpot kutlaması;
 Sena 10 kez oynayıp "eğlenceli" diyor. Değilse **Faz 1'de kal** ve hissi düzelt (top hızı, kütle, kamera).
 
 ## FAZ 2 — Veri omurgası ve kayıt (2–3 gün)
@@ -1249,14 +1284,19 @@ Faz 0–1: 1 hafta · Faz 2–4: 2 hafta · Faz 5–6: 1.5 hafta · Faz 7–8: 2
 
 ## 3. Çöküş anı (SATISFACTION)
 - Zincirleme düşüş sayacı: "x5 ZİNCİR!" yazısı (blok-blok kırılmaları sayılır).
-- **Final ağır çekim:** Altın Küre platformdan ayrıldığı an → 0.6 sn `time_scale 0.3`, kamera küreye hafif zoom, sonra normal.
-- Küre yere/düşüşe → altın ışık patlaması + "ding" + konfeti.
+- **Doluluk çubuğu (K-018):** HUD'da (üst orta, gülle göstergesinin altında) temizlenen blok hacmi / hedef. Her düşen blokla yumuşakça dolar,
+  %80 hedef çizgisi işaretli; hedefe yaklaşınca nabız atar, ulaşınca parlar + "TEMİZ!" + yükselen nota. Bloklar ancak durulunca kesinleştiği için
+  çubuk SETTLING boyunca anlık tahmini gösterir, kesin değer sonunda oturur.
+- **Altın Küre jackpot:** küre platformdan ayrıldığı an → ağır çekim (`feel.final_slowmo_scale` 0.3, `final_slowmo_duration_sec` 0.6), kamera küreye
+  hafif zoom, sonra normal → altın ışık patlaması + "ding" + **konfeti** + büyük "JACKPOT! +N 🪙" yazısı, altınlar HUD sayacına uçar. Yıldızı etkilemez.
+- Otomatik final temizliği **yok**: hedef tutunca kalan bloklar platformda kalır (oyuncu kendi yıkımını görür).
 - Platform dışına düşen her blok kısa "whoosh" + düşme sesi (uzakta, düşük ses).
 
 ## 4. Sonuç ekranı
 - Yıldızlar tek tek, her biri büyüyüp "çarparak" yerleşir (scale 1.6 → 1.0, elastic easing), her yıldızda yükselen nota.
 - Altın sayacı: rakamlar yuvarlanarak artar, altın ikonları ekrandan HUD'a yay çizerek uçar.
 - 3 yıldızda ekstra parlama + "MÜKEMMEL!".
+- Jackpot alındıysa ayrı satır: Altın Küre ikonu + "+N" (yıldız altınından sonra sayılır).
 
 ## 5. Özel top efektleri
 | Top | Uçuşta | Çarpmada |
@@ -1305,12 +1345,13 @@ Faz 0–1: 1 hafta · Faz 2–4: 2 hafta · Faz 5–6: 1.5 hafta · Faz 7–8: 2
 | K-007 | 2026-11-18 | Yıldız → altın: 3★ > 2★ > 1★; tekrar oynamada azaltılmış ödül | Sena'nın isteği + farm önleme | Onaylandı (sayılar taslak) |
 | K-008 | 2026-11-18 | Bloklar 3D mesh (Blender scripti) + AI doku; arka planlar/ikonlar/UI AI görsel | Her taş için prompt gereksiz | Onaylandı |
 | K-009 | 2026-11-18 | Bölümler: şablon + generator + simülasyon + elle cila; yayında `baked` | Çeşitlilik + kontrol | Onaylandı |
-| K-010 | 2026-11-18 | Varsayılan kazanma: **Altın Küre'yi düşür** | Görsellerdeki altın küre; net hedef | Onaylandı |
+| K-010 | 2026-11-18 | Varsayılan kazanma: **Altın Küre'yi düşür** | Görsellerdeki altın küre; net hedef | Değişti → K-018 |
 | K-011 | 2026-11-18 | Nişan varsayılanı **tap_target**; sürükleme ince ayar için | Basit "seç ve at" kontrolü (S-002) | Onaylandı |
 | K-012 | 2026-11-18 | v1'de tek para birimi: **altın**; elmas sistemi hazır ama kapalı | Denge sadeliği, casual oyuncu (S-001) | Onaylandı |
 | K-013 | 2026-11-18 | v1'de yalnızca **ödüllü reklam**, interstitial yok | Retention + çocuk oyuncu politikaları (S-003) | Onaylandı |
 | K-014 | 2026-11-18 | İlk sürüm **TR + EN**; tüm metinler baştan çeviri tablosunda | Global mağaza (S-004) | Onaylandı |
 | K-015 | 2026-11-18 | iOS build ve yayın **Codemagic** (bulut macOS) ile | Sena'nın Codemagic hesabı var, Mac gerekmez (S-005) | Onaylandı |
+| K-018 | 2026-11-18 | **Ana hedef "masayı temizle"** (`clear_percent`, K-010'un yerine): blok **hacminin** %80'i platformdan düşünce bölüm kazanılır (`rules.objective_defaults`: `type`, `clear_percent_target = 0.8`, `clear_measure = "volume"` / `"count"`); Altın Küre ve joint'ler orana dahil değil; ekranda doluluk çubuğu; otomatik final temizliği yok. **Altın Küre = jackpot:** `clear_percent` bölümlerinde kule içine/kemer altına/tepeye gömülü; düşerse büyük altın (`economy.rewards.core_jackpot_gold`, taslak 20) + ağır çekim + konfeti; yıldızı etkilemez. `drop_core` yalnızca dünya başına 1–2 bölüm (zincire asılı küre, boss); küre korunaklı, doğrudan tek atışla düşmez. Yıldızlar değişmedi (kalan gülle, `rules.stars`). Zorluk: daha çok/ağır blok, dağınık/ikiz kuleler, daha az gülle, daha derine gömülü küre | Smash Away'in "masayı temizle" tatmini ana döngü olur; küre ustalık ve tekrar oynama motivasyonu veren ikincil hedef | Onaylandı |
 
 ## Açık sorular (Sena karar verecek)
 | No | Soru | Öneri | Durum |
@@ -1505,6 +1546,8 @@ Faz 0–1: 1 hafta · Faz 2–4: 2 hafta · Faz 5–6: 1.5 hafta · Faz 7–8: 2
     "replay_ratio": 0.2,
     "boss_mult": 2.0,
     "crystal_coin_cap_per_level": 8,
+    "core_jackpot_gold": 20,
+    "_doc_jackpot": "K-018: clear_percent bolumunde kazanirken Altin Kure de dustuyse. Bolumdeki ilk jackpot tam, sonrakiler x replay_ratio. Yildizi etkilemez. Deger taslak (economy_sim ile kontrol).",
     "world_complete_bonus": 100,
     "world_perfect_bonus": 150,
     "rewarded_ad_double": { "enabled": true, "daily_limit": 5 }
@@ -1523,6 +1566,9 @@ Faz 0–1: 1 hafta · Faz 2–4: 2 hafta · Faz 5–6: 1.5 hafta · Faz 7–8: 2
     "avg_crystals_per_level": 6,
     "replays_per_level": 0.5,
     "special_balls_used_per_level_after_unlock": 0.4,
+    "core_jackpot_levels_per_world": 8,
+    "avg_core_jackpot_rate": 0.4,
+    "_doc_jackpot": "Dunya basina jackpot kureli (clear_percent) bolum sayisi (10 - 1..2 drop_core) ve ortalama oyuncunun kureyi dusurme orani.",
     "target_packs_affordable_per_world": [2, 3]
   }
 }
@@ -1565,7 +1611,17 @@ Faz 0–1: 1 hafta · Faz 2–4: 2 hafta · Faz 5–6: 1.5 hafta · Faz 7–8: 2
     "default_preview_dots": 14,
     "aim_smoothing": 12.0,
     "min_angle_deg": -75,
-    "max_angle_deg": 75
+    "max_angle_deg": 75,
+    "preview_dot_interval_sec": 0.015,
+    "_doc_preview": "Yorunge noktalari arasi sure (sn). Nokta sayisi bolumun aim_preview_dots degeri (yoksa default_preview_dots); noktalar hedefte biter. Agir top ~0.25 sn'de kuleye ulasir.",
+    "arc": "low",
+    "_doc_arc": "low: sabit launch_speed ile hedefe giden alcak yay | high: yuksek (lob) yay. Menzil disinda 45 derece ile hedef yonune atilir.",
+    "on_miss": "ignore",
+    "_doc_on_miss": "ignore: dokunus hicbir seye isabet etmezse (gokyuzu) atis yapilmaz. Atis parmak kalkinca yapilir."
+  },
+  "cannon": {
+    "position": [0, 0, 6],
+    "_doc": "Top (cannon) konumu [x, y, z]. Faz 1 Adim 3'te ekranda kesinlesecek (docs/03 eski degeri (0,-1,8) kameradan gorunmuyordu)."
   },
   "shots": {
     "default_per_level": 3,
@@ -1582,8 +1638,13 @@ Faz 0–1: 1 hafta · Faz 2–4: 2 hafta · Faz 5–6: 1.5 hafta · Faz 7–8: 2
     "special_ball_reduces_stars": false
   },
   "objective_defaults": {
-    "type": "drop_core",
-    "clear_percent_target": 0.8
+    "type": "clear_percent",
+    "clear_percent_target": 0.8,
+    "clear_measure": "volume",
+    "_doc": "K-018: varsayilan hedef clear_percent (bloklarin clear_percent_target orani platformdan duserse kazanilir). clear_measure: volume (blok hacmi) | count (adet). Altin Kure ve joint'ler orana dahil degil. Bolumde objective.target ile ezilebilir. Otomatik final temizligi yok. clear_percent bolumlerinde kure jackpot'tur (economy.rewards.core_jackpot_gold); drop_core bolumlerinde hedeftir.",
+    "core_shape": "core_sphere",
+    "core_material": "core_gold",
+    "_doc_core": "Bolum JSON'undaki cores[] ogeleri bu sekil + malzemeyle kurulur. cores[].y = kurenin alt yuzeyi (bloklarla ayni kural)."
   },
   "physics": {
     "gravity": 9.8,
@@ -1601,6 +1662,8 @@ Faz 0–1: 1 hafta · Faz 2–4: 2 hafta · Faz 5–6: 1.5 hafta · Faz 7–8: 2
     "edge_rule": "com_outside_platform",
     "_doc_edge_rule": "com_outside_platform: agirlik merkezinin (x,z) izdusumu platform ust yuzeyi disindaysa VEYA y < fall_kill_y ise cisim dustu sayilir",
     "edge_margin": 0.0,
+    "spawn_edge_inset": 0.3,
+    "_doc_spawn_edge_inset": "Bloklar platform kenarindan en az bu kadar iceride dogar (docs/03 4. kural 5)",
     "support_margin": 0.05,
     "max_settle_drift": 0.02,
     "_doc_support": "generator support_check: agirlik merkezi destek poligonu kenarina en az support_margin uzak olmali; pre_settle sonrasi kayma <= max_settle_drift"
@@ -1610,8 +1673,10 @@ Faz 0–1: 1 hafta · Faz 2–4: 2 hafta · Faz 5–6: 1.5 hafta · Faz 7–8: 2
     "fov_deg": 40,
     "pitch_deg": 20,
     "yaw_deg": 0,
-    "distance": 16,
-    "look_at_height": 3.5,
+    "distance": 18,
+    "look_at_height": 4,
+    "keep_aspect": "width",
+    "_doc_keep_aspect": "width: fov_deg yatay aci (portrede kule alani sigar) | height: fov_deg dikey aci (Godot varsayilani)",
     "orbit_enabled": false,
     "orbit_max_yaw_deg": 35,
     "_doc_s007": "S-007 (Onerildi): v1 kamera sabit, capraz ~20 derece yukaridan; her keystone bu acidan gorunur olmali. Orbit v2.",
@@ -1627,7 +1692,25 @@ Faz 0–1: 1 hafta · Faz 2–4: 2 hafta · Faz 5–6: 1.5 hafta · Faz 7–8: 2
     "final_slowmo_scale": 0.3,
     "final_slowmo_duration_sec": 0.6,
     "max_concurrent_bursts": 4,
-    "haptics_default_on": true
+    "haptics_default_on": true,
+    "shake_trauma_per_impulse": 0.005,
+    "spark_min_impulse": 4.0,
+    "_doc_taslak": "shake_trauma_per_impulse ve spark_min_impulse taslak; Faz 1 Adim 10-11'de Dev Panel ile ayarlanacak"
+  },
+  "platform": {
+    "thickness": 1.0,
+    "friction": 0.8,
+    "bounce": 0.05,
+    "_doc": "Platform (kaide) fizik degerleri. Boyut (width x depth) bolum JSON'undan gelir; ust yuzey y=0."
+  },
+  "dev": {
+    "start_level_id": "w01_l01",
+    "play_area_guide": { "min": [-5, 0, -3], "max": [5, 12, 3] },
+    "_doc_dev_guide": "start_level_id: F5 ile acilan bolum. play_area_guide: G tusuyla gosterilen oynanabilir kule alani (docs/03 2).",
+    "stress_block_count": 120,
+    "nudge_impulse": 1.0,
+    "_doc_nudge": "Ok tuslariyla secili cisme (Tab) uygulanan itme impulsu (N*s). Kenar kurali testi icin.",
+    "_doc": "Gelistirici araclari. stress_block_count: P tusuyla kurulan performans test kulesindeki blok sayisi (S-008)."
   },
   "quality": {
     "default": "medium",
@@ -1759,26 +1842,27 @@ Faz 0–1: 1 hafta · Faz 2–4: 2 hafta · Faz 5–6: 1.5 hafta · Faz 7–8: 2
   "difficulty": 2,
   "role": "intro",
   "shots": 3,
-  "objective": { "type": "drop_core" },
+  "objective": { "type": "clear_percent" },
   "aim_preview_dots": 20,
-  "platform": { "width": 7, "depth": 5, "style": "limestone_plinth" },
+  "platform": { "width": 4, "depth": 3, "style": "limestone_plinth" },
   "structures": [],
   "blocks": [
-    { "id": "b01", "shape": "cube", "mat": "stone",         "x": -1.0, "y": 0.0, "z": 0.0, "rot": [0, 0, 0] },
-    { "id": "b02", "shape": "cube", "mat": "crystal_amber", "x":  0.0, "y": 0.0, "z": 0.0, "rot": [0, 0, 0] },
-    { "id": "b03", "shape": "cube", "mat": "stone",         "x":  1.0, "y": 0.0, "z": 0.0, "rot": [0, 0, 0] },
-    { "id": "b04", "shape": "cube", "mat": "crystal_cyan",  "x": -0.5, "y": 1.0, "z": 0.0, "rot": [0, 0, 0] },
-    { "id": "b05", "shape": "cube", "mat": "crystal_cyan",  "x":  0.5, "y": 1.0, "z": 0.0, "rot": [0, 0, 0] },
-    { "id": "b06", "shape": "plank_s", "mat": "wood",       "x":  0.0, "y": 2.0, "z": 0.0, "rot": [0, 0, 0] }
+    { "id": "b01", "shape": "cube",    "mat": "stone",         "x": -1.0, "y": 0.0, "z": 0.0, "rot": [0, 0, 0] },
+    { "id": "b02", "shape": "cube",    "mat": "crystal_amber", "x":  0.0, "y": 0.0, "z": 0.0, "rot": [0, 0, 0] },
+    { "id": "b03", "shape": "cube",    "mat": "stone",         "x":  1.0, "y": 0.0, "z": 0.0, "rot": [0, 0, 0] },
+    { "id": "b04", "shape": "cube",    "mat": "crystal_cyan",  "x": -1.0, "y": 1.0, "z": 0.0, "rot": [0, 0, 0] },
+    { "id": "b05", "shape": "cube",    "mat": "crystal_cyan",  "x":  1.0, "y": 1.0, "z": 0.0, "rot": [0, 0, 0] },
+    { "id": "b06", "shape": "plank_s", "mat": "wood",          "x":  0.0, "y": 2.0, "z": 0.0, "rot": [0, 0, 0] },
+    { "id": "b07", "shape": "cube",    "mat": "crystal_amber", "x":  0.0, "y": 2.4, "z": 0.0, "rot": [0, 0, 0] }
   ],
   "joints": [],
-  "cores": [ { "x": 0.0, "y": 2.4, "z": 0.0, "attach": "rest" } ],
+  "cores": [ { "x": 0.0, "y": 1.0, "z": 0.0, "attach": "rest" } ],
   "keystones": ["b02"],
   "tutorial": { "type": "hand_tap", "target_block": "b02", "text_tr": "Dokun ve ateşle!" },
   "intro_ball": null,
   "free_balls": {},
   "baked": true,
-  "_doc": "FTUE bolumu: kristal ortadaki alt blok kirilinca piramit coker, kure duser. Tek atis cok buyuk ihtimalle yeter. FTUE icin bilerek tek sira (z=0); derinlik W1 B3+ ile gelir."
+  "_doc": "FTUE bolumu (K-018: clear_percent). Dar platform (4x3) ki bloklar dusebilsin. Altin Kure kulenin icine gomulu: alttaki amber kristalin (b02) ustunde, iki turkuaz kristalin (b04, b05) arasinda, kalasin (b06) altinda. Keystone b02: vurulunca ust yapi cokup arkaya/yanlara devrilir, kure de buyuk ihtimalle duser (ilk jackpot). Tek sira (z=0); derinlik W1 B3+ ile gelir. Tek atisla %80 temizlenip temizlenmedigi Faz 1 Adim 9'da oynanarak dogrulanacak (taslak)."
 }
 ```
 

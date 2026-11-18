@@ -43,6 +43,8 @@ VALID_COLLIDERS = {"box", "sphere", "cylinder", "convex"}
 VALID_KEEP_ASPECT = {"width", "height"}
 VALID_ARC = {"low", "high"}
 VALID_ON_MISS = {"ignore"}
+VALID_CLEAR_MEASURE = {"volume", "count"}
+CORE_OBJECTIVES = {"drop_core", "drop_all_cores"}
 
 
 def is_num(v) -> bool:
@@ -82,6 +84,13 @@ if not is_vec3(rules.get("cannon", {}).get("position")):
 if not is_num(phys.get("spawn_edge_inset")) or phys.get("spawn_edge_inset") < 0:
     errors.append("rules.physics.spawn_edge_inset 0 veya pozitif sayi olmali")
 obj_def = rules.get("objective_defaults", {})
+# K-018: varsayilan hedef clear_percent, Altin Kure jackpot
+if obj_def.get("type") not in VALID_OBJECTIVES:
+    errors.append(f"rules.objective_defaults.type gecersiz: {obj_def.get('type')}")
+if not is_num(obj_def.get("clear_percent_target")) or not 0 < obj_def["clear_percent_target"] <= 1:
+    errors.append("rules.objective_defaults.clear_percent_target 0 < x <= 1 olmali")
+if obj_def.get("clear_measure") not in VALID_CLEAR_MEASURE:
+    errors.append(f"rules.objective_defaults.clear_measure gecersiz: {obj_def.get('clear_measure')} ({VALID_CLEAR_MEASURE})")
 if obj_def.get("core_shape") not in shapes:
     errors.append(f"rules.objective_defaults.core_shape '{obj_def.get('core_shape')}' shapes.json'da yok")
 if obj_def.get("core_material") not in materials:
@@ -177,6 +186,14 @@ if "heavy" not in ball_ids:
 stars = economy.get("rewards", {}).get("stars", {})
 if not (stars.get("1", 0) < stars.get("2", 0) < stars.get("3", 0)):
     errors.append("economy.rewards.stars: 1 < 2 < 3 olmali")
+jackpot = economy.get("rewards", {}).get("core_jackpot_gold")
+if not is_num(jackpot) or jackpot < 0:
+    errors.append("economy.rewards.core_jackpot_gold 0 veya pozitif sayi olmali (K-018)")
+eco_sim = economy.get("sim", {})
+if not isinstance(eco_sim.get("core_jackpot_levels_per_world"), int) or eco_sim.get("core_jackpot_levels_per_world", -1) < 0:
+    errors.append("economy.sim.core_jackpot_levels_per_world 0 veya pozitif tam sayi olmali")
+if not is_num(eco_sim.get("avg_core_jackpot_rate")) or not 0 <= eco_sim["avg_core_jackpot_rate"] <= 1:
+    errors.append("economy.sim.avg_core_jackpot_rate 0-1 araliginda olmali")
 
 # --- difficulty ---
 for name, pts in difficulty.get("curves", {}).items():
@@ -199,8 +216,11 @@ for lf in sorted((ROOT / "levels").rglob("*.json")):
         errors.append(f"{rel}: dosya adi id ile ayni olmali ({lid})")
     if lv.get("world") not in world_ids:
         errors.append(f"{rel}: world '{lv.get('world')}' worlds.json'da yok")
-    if lv.get("objective", {}).get("type") not in VALID_OBJECTIVES:
+    objective = lv.get("objective", {})
+    if objective.get("type") not in VALID_OBJECTIVES:
         errors.append(f"{rel}: gecersiz objective.type")
+    if "target" in objective and (not is_num(objective["target"]) or not 0 < objective["target"] <= 1):
+        errors.append(f"{rel}: objective.target 0 < x <= 1 olmali (clear_percent orani)")
     if lv.get("role") not in VALID_ROLES:
         errors.append(f"{rel}: gecersiz role '{lv.get('role')}'")
     if not 1 <= lv.get("shots", 0) <= 10:
@@ -213,9 +233,14 @@ for lf in sorted((ROOT / "levels").rglob("*.json")):
         for key in ("x", "z"):
             if key in st and not is_num(st[key]):
                 errors.append(f"{rel}: structure '{st.get('template')}' {key} sayi olmali")
+    core_size = shapes.get(obj_def.get("core_shape"), {}).get("size", [0, 0, 0])
     for c in lv.get("cores", []):
         if not all(is_num(c.get(k)) for k in ("x", "y", "z")):
             errors.append(f"{rel}: cores ogesi x, y, z icermeli")
+        elif is_num(plat.get("width")) and is_num(plat.get("depth")) and is_vec3(core_size):
+            if (abs(c["x"]) + core_size[0] / 2 > plat["width"] / 2 + 1e-6
+                    or abs(c["z"]) + core_size[2] / 2 > plat["depth"] / 2 + 1e-6):
+                errors.append(f"{rel}: kure ({c['x']}, {c['z']}) platformun disinda doguyor")
     block_ids = set()
     for blk in lv.get("blocks", []):
         if blk.get("shape") not in shapes:
@@ -243,8 +268,9 @@ for lf in sorted((ROOT / "levels").rglob("*.json")):
     if lv.get("baked"):
         if not lv.get("blocks"):
             errors.append(f"{rel}: baked=true ama blocks bos")
-        if lv.get("objective", {}).get("type") in ("drop_core", "drop_all_cores") and not lv.get("cores"):
-            errors.append(f"{rel}: drop_core hedefi ama cores bos")
+        # cores yalnizca drop_core / drop_all_cores icin zorunlu; clear_percent'te opsiyonel jackpot kuresi (K-018)
+        if objective.get("type") in CORE_OBJECTIVES and not lv.get("cores"):
+            errors.append(f"{rel}: {objective.get('type')} hedefi ama cores bos")
         if not lv.get("keystones"):
             warnings.append(f"{rel}: keystone isaretlenmemis")
     for b in lv.get("free_balls", {}):

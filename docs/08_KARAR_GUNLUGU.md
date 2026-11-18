@@ -15,12 +15,13 @@
 | K-007 | 2026-11-18 | Yıldız → altın: 3★ > 2★ > 1★; tekrar oynamada azaltılmış ödül | Sena'nın isteği + farm önleme | Onaylandı (sayılar taslak) |
 | K-008 | 2026-11-18 | Bloklar 3D mesh (Blender scripti) + AI doku; arka planlar/ikonlar/UI AI görsel | Her taş için prompt gereksiz | Onaylandı |
 | K-009 | 2026-11-18 | Bölümler: şablon + generator + simülasyon + elle cila; yayında `baked` | Çeşitlilik + kontrol | Onaylandı |
-| K-010 | 2026-11-18 | Varsayılan kazanma: **Altın Küre'yi düşür** | Görsellerdeki altın küre; net hedef | Onaylandı |
+| K-010 | 2026-11-18 | Varsayılan kazanma: **Altın Küre'yi düşür** | Görsellerdeki altın küre; net hedef | Değişti → K-018 |
 | K-011 | 2026-11-18 | Nişan varsayılanı **tap_target**; sürükleme ince ayar için | Basit "seç ve at" kontrolü (S-002) | Onaylandı |
 | K-012 | 2026-11-18 | v1'de tek para birimi: **altın**; elmas sistemi hazır ama kapalı | Denge sadeliği, casual oyuncu (S-001) | Onaylandı |
 | K-013 | 2026-11-18 | v1'de yalnızca **ödüllü reklam**, interstitial yok | Retention + çocuk oyuncu politikaları (S-003) | Onaylandı |
 | K-014 | 2026-11-18 | İlk sürüm **TR + EN**; tüm metinler baştan çeviri tablosunda | Global mağaza (S-004) | Onaylandı |
 | K-015 | 2026-11-18 | iOS build ve yayın **Codemagic** (bulut macOS) ile | Sena'nın Codemagic hesabı var, Mac gerekmez (S-005) | Onaylandı |
+| K-018 | 2026-11-18 | **Ana hedef "masayı temizle"** (`clear_percent`, K-010'un yerine): blok **hacminin** %80'i platformdan düşünce bölüm kazanılır (`rules.objective_defaults`: `type`, `clear_percent_target = 0.8`, `clear_measure = "volume"` / `"count"`); Altın Küre ve joint'ler orana dahil değil; ekranda doluluk çubuğu; otomatik final temizliği yok. **Altın Küre = jackpot:** `clear_percent` bölümlerinde kule içine/kemer altına/tepeye gömülü; düşerse büyük altın (`economy.rewards.core_jackpot_gold`, taslak 20) + ağır çekim + konfeti; yıldızı etkilemez. `drop_core` yalnızca dünya başına 1–2 bölüm (zincire asılı küre, boss); küre korunaklı, doğrudan tek atışla düşmez. Yıldızlar değişmedi (kalan gülle, `rules.stars`). Zorluk: daha çok/ağır blok, dağınık/ikiz kuleler, daha az gülle, daha derine gömülü küre | Smash Away'in "masayı temizle" tatmini ana döngü olur; küre ustalık ve tekrar oynama motivasyonu veren ikincil hedef | Onaylandı |
 
 ## Açık sorular (Sena karar verecek)
 | No | Soru | Öneri | Durum |

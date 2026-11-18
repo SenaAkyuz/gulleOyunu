@@ -21,6 +21,11 @@ avg_first = sum(star_reward[s] * p for s, p in dist.items())
 avg_replay = sum(round(star_reward[s] * r["replay_ratio"]) * p for s, p in dist.items()) * sim["replays_per_level"]
 crystal = min(sim["avg_crystals_per_level"], r["crystal_coin_cap_per_level"])
 avg_stars = sum(s * p for s, p in dist.items())
+# K-018: Altin Kure jackpot (clear_percent bolumleri). Ilk jackpot tam, tekrarlarda x replay_ratio.
+jackpot = r["core_jackpot_gold"]
+jackpot_rate = sim["avg_core_jackpot_rate"]
+jackpot_per_world = sim["core_jackpot_levels_per_world"] * (
+    jackpot_rate * jackpot + sim["replays_per_level"] * jackpot_rate * round(jackpot * r["replay_ratio"]))
 
 unlock_world = {}
 for b in balls:
@@ -30,13 +35,15 @@ for b in balls:
 
 gold = eco["currencies"]["gold"]["start_amount"]
 lo, hi = sim["target_packs_affordable_per_world"]
-print(f"Ortalama yildiz/bolum: {avg_stars:.2f} | ilk gecis ort. altin: {avg_first:.1f} | tekrar: {avg_replay:.1f} | kristal: {crystal}\n")
+print(f"Ortalama yildiz/bolum: {avg_stars:.2f} | ilk gecis ort. altin: {avg_first:.1f} | tekrar: {avg_replay:.1f} | kristal: {crystal}")
+print(f"Jackpot: {jackpot} altin x oran {jackpot_rate} x {sim['core_jackpot_levels_per_world']} bolum -> dunya basina {jackpot_per_world:.0f} altin\n")
 print(f"{'Dunya':<20}{'Kazanc':>8}{'Birikim':>9}{'Ort. paket':>12}{'Alinabilir':>12}  Durum")
 for w in worlds:
     idx, n = w["index"], w["level_count"]
     earned = (n - 1) * (avg_first + avg_replay + crystal)
     earned += (avg_first * r["boss_mult"]) + crystal  # boss
     earned += r["world_complete_bonus"]
+    earned += jackpot_per_world
     gold += earned
     available = [b for b in balls if b["id"] in unlock_world and unlock_world[b["id"]] <= idx]
     if not available:

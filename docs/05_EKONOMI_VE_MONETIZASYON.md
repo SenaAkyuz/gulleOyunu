@@ -18,6 +18,7 @@
 | Tekrar oynama (yıldız artırmadan) | ilk değerin %20'si | Altın "farm"ını sınırlar |
 | Yıldız yükseltme (1→3) | `fark` (35−10=25) + tekrar ödülü | Asla eksik/fazla ödeme yok |
 | Kristal blok kırma | +1 / kristal (bölüm başı tavan 8) | Yıkımı ödüllendirir |
+| **Altın Küre jackpot** (K-018) | 20 (taslak, `rewards.core_jackpot_gold`) | `clear_percent` bölümünde kazanırken küre de düştüyse. Bölümdeki **ilk** jackpot tam, sonrakiler `× replay_ratio` (farm önleme). Yıldızı etkilemez |
 | Boss bölüm | yıldız ödülü × 2 | |
 | Dünyayı bitirme | 100 | |
 | Dünyada 30/30 yıldız | 150 + (ileride) özel top görünümü | |
@@ -28,7 +29,8 @@
 first_clear_reward = rewards.stars[stars]
 replay_reward      = round(rewards.stars[stars] * rewards.replay_ratio)
 upgrade_reward     = rewards.stars[new] - rewards.stars[old]
-total = (ilk geçiş ? first_clear_reward : upgrade_reward + replay_reward) * (boss ? boss_mult : 1) + crystal_coins
+jackpot            = core_dropped ? (ilk jackpot ? rewards.core_jackpot_gold : round(rewards.core_jackpot_gold * rewards.replay_ratio)) : 0
+total = (ilk geçiş ? first_clear_reward : upgrade_reward + replay_reward) * (boss ? boss_mult : 1) + crystal_coins + jackpot
 ```
 
 ## 3. Altın harcama ⚙️

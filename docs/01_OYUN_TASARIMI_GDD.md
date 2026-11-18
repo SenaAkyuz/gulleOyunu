@@ -24,10 +24,10 @@ flowchart LR
   A[Bölüm seç] --> B[Kuleyi incele<br/>zayıf noktayı bul]
   B --> C[Top seç<br/>Ağır / Özel]
   C --> D[Nişan al ve ateşle]
-  D --> E{Altın Küre<br/>düştü mü?}
+  D --> E{Blokların %80'i<br/>düştü mü?}
   E -- Hayır, gülle var --> B
   E -- Hayır, gülle bitti --> F[Başarısız<br/>Tekrar / +1 gülle]
-  E -- Evet --> G[Yıldız + Altın]
+  E -- Evet --> G[Yıldız + Altın<br/>küre de düştüyse jackpot]
   G --> H[Mağaza: top aç / satın al]
   H --> A
 ```
@@ -52,14 +52,20 @@ flowchart LR
 - Top fiziksel bir mermidir: kütle, hız, yerçekimi etkisi `balls.json` içinde.
 
 ### 3.3 Kazanma koşulu (bölüm bazında seçilir) ⚙️ `level.objective.type`
+✅ Karar (K-018, Sena onayladı — K-010'un yerine): **Ana hedef "masayı temizle", Altın Küre jackpot.**
+
 | Tip | Açıklama | Ne zaman kullanılır |
 |---|---|---|
-| `drop_core` | **Altın Küre** platformdan düşerse kazanırsın | Varsayılan (görsellerdeki altın küre) |
-| `clear_percent` | Blokların %X'i platformdan düşerse | Smash Away tarzı "masayı temizle" bölümleri |
+| `clear_percent` | Blokların **%80'i** (⚙️ `rules.objective_defaults.clear_percent_target`) platformdan düşerse kazanırsın. Oran **blok hacmine** göre (⚙️ `clear_measure = "volume"`, alternatif `"count"`); Altın Küre ve joint'ler (halat/zincir/sarmaşık) orana dahil değil. Ekranda **doluluk çubuğu**. Otomatik final temizliği **yok** | **Varsayılan** (Smash Away tarzı) |
+| `drop_core` | **Altın Küre** platformdan düşerse kazanırsın; küre **korunaklıdır**, doğrudan tek atışla düşmez | Dünya başına **1–2 bölüm** (zincire asılı küre, boss) |
 | `shatter_crystals` | Tüm kristal blokları (turuncu/turkuaz) kır | Kristal ağırlıklı özel bölümler |
 | `drop_all_cores` | Birden fazla küre (çift kule bölümleri) | Boss / çift kule |
 
 Kazanma kontrolü: son atıştan sonra fizik **durulana kadar** (tüm cisimler uyuyana veya ⚙️ `rules.settle_timeout_sec` dolana kadar) beklenir.
+
+**Altın Küre jackpot (K-018):** `clear_percent` bölümlerinde küre kulenin içine, kemer altına veya tepeye **gömülü** durur.
+Bölüm sırasında düşerse: ağır çekim + konfeti + büyük altın ödülü (⚙️ `economy.rewards.core_jackpot_gold`). **Yıldızı etkilemez.**
+Zorluk arttıkça küre daha derine gömülür (`docs/03` §4 kural 6).
 
 ### 3.4 Gülle hakkı
 - Her bölümün gülle hakkı vardır ⚙️ `level.shots` (genelde 3; zorlukla değişir).
@@ -155,7 +161,7 @@ Her blok = **şekil (shape)** + **malzeme (material)**. Malzeme fizik ve etkile�
 | `lava_rock` | Koyu, turuncu çatlaklı | Yüksek | Yüksek | thermal_shock (Buz ×2) |
 | `metal` | Perçin, plaka | Çok yüksek | Çok yüksek | conductive |
 | `rope` / `chain` / `vine` | Bağlantı (joint) | — | Düşük/Yüksek/Orta | joint; rope/vine cuttable+flammable |
-| `core_gold` | **Altın Küre** (hedef) | Orta | Kırılmaz | objective |
+| `core_gold` | **Altın Küre** (jackpot; `drop_core` bölümlerinde hedef) | Orta | Kırılmaz | objective |
 
 **Kristal bloklar** (turuncu/turkuaz) kırılınca küçük altın (⚙️ `materials.json → coin_on_break`) ve tatmin edici cam kırılma efekti verir → oyuncuyu "daha çok yık" yönünde ödüllendirir.
 
@@ -183,8 +189,10 @@ flowchart TD
 ---
 
 ## 8. İlk kullanıcı deneyimi (FTUE)
-1. Bölüm 1: el animasyonu "dokun ve at" — 1 gülle bile yeter, kule çok kırılgan → ilk 10 saniyede zafer.
-2. Bölüm 2: "Kemerin altındaki desteğe vur" ipucu (zayıf nokta öğretimi).
+1. Bölüm 1: el animasyonu "dokun ve at" — dar platform, kırılgan kule; 1 gülle bile yeter → **doluluk çubuğu** dolar, ilk 10 saniyede zafer.
+   Kulenin içine gömülü Altın Küre büyük ihtimalle birlikte düşer → ilk **jackpot** kutlaması ("Altın Küre! +N altın").
+2. Bölüm 2: "Kemerin altındaki desteğe vur" ipucu (zayıf nokta = en büyük çöküşü başlatan blok). Küre bu kez daha korunaklı:
+   jackpot kaçarsa "tekrar dene" motivasyonu (yıldız zaten alınmış olabilir).
 3. Bölüm 3: ilk kez 2 atış gerekiyor → gülle göstergesi tanıtımı.
 4. Bölüm 5: ilk yıldız ödülü sonrası mağaza tanıtımı (ama satın alma baskısı yok).
 5. Bölüm 7 sonrası: **Alev Topu açıldı!** sinematik + 3 hediye + Bölüm 8 alev için tasarlanmış.
