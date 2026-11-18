@@ -3,7 +3,7 @@ extends Node3D
 ## The full referee state machine (Step 9) comes later.
 ## Play: left mouse / touch = aim at a surface, release = fire.
 ## Dev keys: G = play-area guide, Space = wake every body, Tab = select body,
-## arrows = push selected body (rules.dev.nudge_impulse), R = restart level.
+## arrows = push selected body (rules.dev.nudge_impulse), H = hp labels, R = restart level.
 
 ## Empty = rules.dev.start_level_id
 @export var level_id: String = ""
@@ -12,6 +12,7 @@ var level_data: Dictionary = {}
 var _info_static: String = ""
 var _selected: int = -1
 var _shots_fired: int = 0
+var _hp_visible: bool = false
 
 @onready var _camera: LevelCamera = $Camera3D
 @onready var _platform: Platform = $Platform
@@ -49,16 +50,16 @@ func _ready() -> void:
 	_result.visible = false
 	EventBus.core_dropped.connect(_on_core_dropped)
 	EventBus.ball_fired.connect(_on_ball_fired)
-	_info_static = "%s · %d blok + %d küre · top: %s\nSol tık: nişan · bırak: ateş   G alan · Boşluk uyandır · Tab seç · Oklar it · R baştan · F12" % [
+	_info_static = "%s · %d blok + %d küre · top: %s\nSol tık: nişan · bırak: ateş   H hp · G alan · Boşluk · Tab seç · Oklar it · R baştan · F12" % [
 		level_id, _tower.blocks.size(), _tower.cores.size(), _cannon.ball_id]
 
 
 func _physics_process(_delta: float) -> void:
 	var bodies := _tower.all_bodies()
 	var sel := bodies[_selected].block_id if _selected >= 0 and _selected < bodies.size() else "-"
-	_info.text = "%s\nUyuyan: %d/%d   Kayma: %.3f m   Seçili: %s   Düşen blok: %d   Atış: %d" % [
-		_info_static, _tower.sleeping_count(), bodies.size(), _tower.max_drift(), sel,
-		_referee.fallen_block_count(), _shots_fired]
+	_info.text = "%s\nDuran: %d/%d  Seçili: %s  Düşen: %d  Kırılan: %d  Atış: %d" % [
+		_info_static, _tower.sleeping_count(), bodies.size(), sel,
+		_referee.fallen_block_count(), _tower.broken_count(), _shots_fired]
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -80,6 +81,9 @@ func _unhandled_input(event: InputEvent) -> void:
 	match key.keycode:
 		KEY_G:
 			_area_guide.visible = not _area_guide.visible
+		KEY_H:
+			_hp_visible = not _hp_visible
+			_tower.show_hp(_hp_visible)
 		KEY_SPACE:
 			_tower.wake_all()
 		KEY_TAB:

@@ -69,10 +69,11 @@ func wake_all() -> void:
 		b.sleeping = false
 
 
+## Bodies that are at rest or out of play (broken / retired below fall_kill_y count as resting).
 func sleeping_count() -> int:
 	var n := 0
 	for b in all_bodies():
-		if b.sleeping:
+		if b.sleeping or not b.visible:
 			n += 1
 	return n
 
@@ -80,8 +81,22 @@ func sleeping_count() -> int:
 func max_drift() -> float:
 	var d := 0.0
 	for b in all_bodies():
-		d = maxf(d, b.drift())
+		if b.visible:
+			d = maxf(d, b.drift())
 	return d
+
+
+func broken_count() -> int:
+	var n := 0
+	for b in blocks:
+		if b.is_broken:
+			n += 1
+	return n
+
+
+func show_hp(on: bool) -> void:
+	for b in all_bodies():
+		b.show_hp(on)
 
 
 func _spawn(id: String, shape_name: String, mat: String, pos: Vector3, rot_deg: Vector3) -> Block:

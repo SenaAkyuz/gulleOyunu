@@ -83,6 +83,9 @@ if not is_vec3(rules.get("cannon", {}).get("position")):
     errors.append("rules.cannon.position [x, y, z] olmali")
 if not is_num(phys.get("spawn_edge_inset")) or phys.get("spawn_edge_inset") < 0:
     errors.append("rules.physics.spawn_edge_inset 0 veya pozitif sayi olmali")
+crack = rules.get("feel", {}).get("crack_hp_ratio")
+if not is_num(crack) or not 0 < crack < 1:
+    errors.append("rules.feel.crack_hp_ratio 0 < x < 1 olmali")
 obj_def = rules.get("objective_defaults", {})
 # K-018: varsayilan hedef clear_percent, Altin Kure jackpot
 if obj_def.get("type") not in VALID_OBJECTIVES:

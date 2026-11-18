@@ -41,6 +41,8 @@ func _physics_process(_delta: float) -> void:
 				core_dropped = true
 				EventBus.core_dropped.emit(c)
 	for b in _tower.blocks:
+		if b.is_broken:
+			continue
 		# A block's verdict is only final once it has settled (or left the world).
 		if b.sleeping or b.world_center_of_mass().y < _kill_y:
 			b.set_fallen(_check(b))

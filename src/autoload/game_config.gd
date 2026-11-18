@@ -21,6 +21,7 @@ const REQUIRED_RULES: PackedStringArray = [
 	"camera.look_at_height", "camera.keep_aspect",
 	"feel.shake_max_offset", "feel.shake_max_rotation_deg", "feel.shake_decay",
 	"feel.max_concurrent_bursts", "feel.shake_trauma_per_impulse", "feel.spark_min_impulse",
+	"feel.crack_hp_ratio",
 	"platform.thickness", "platform.friction", "platform.bounce",
 	"dev.start_level_id", "dev.play_area_guide", "dev.stress_block_count", "dev.nudge_impulse",
 ]
