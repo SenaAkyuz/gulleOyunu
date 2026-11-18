@@ -1,0 +1,32 @@
+{
+  "_doc": "Ekonomi. rewards.stars: ilk geciste yildiz basina altin (index 1,2,3). replay_ratio: tekrar oynamada odul orani. Top fiyatlari balls.json'da. IAP fiyatlari magazadan gelir; price_fallback yalnizca gosterim yedegidir.",
+  "currencies": {
+    "gold": { "enabled": true, "start_amount": 100 },
+    "gem":  { "enabled": false, "start_amount": 0 }
+  },
+  "rewards": {
+    "stars": { "1": 10, "2": 20, "3": 35 },
+    "replay_ratio": 0.2,
+    "boss_mult": 2.0,
+    "crystal_coin_cap_per_level": 8,
+    "world_complete_bonus": 100,
+    "world_perfect_bonus": 150,
+    "rewarded_ad_double": { "enabled": true, "daily_limit": 5 }
+  },
+  "iap_products": [
+    { "id": "gold_s",   "type": "consumable",     "gold": 500,   "badge": "",            "price_fallback": "$0.99" },
+    { "id": "gold_m",   "type": "consumable",     "gold": 1300,  "badge": "+30%",        "price_fallback": "$1.99" },
+    { "id": "gold_l",   "type": "consumable",     "gold": 3500,  "badge": "+40%",        "price_fallback": "$4.99" },
+    { "id": "gold_xl",  "type": "consumable",     "gold": 8000,  "badge": "En Popüler",  "price_fallback": "$9.99" },
+    { "id": "gold_xxl", "type": "consumable",     "gold": 18000, "badge": "En İyi Değer","price_fallback": "$19.99" },
+    { "id": "starter_pack", "type": "non_consumable", "gold": 1000, "balls": { "fire": 2, "saw": 2, "ice": 2, "electric": 2, "gravity": 2 }, "show_from_world": 3, "badge": "Tek Seferlik", "price_fallback": "$2.99" }
+  ],
+  "sim": {
+    "_doc": "tools/economy_sim.py varsayimlari",
+    "avg_stars_distribution": { "1": 0.2, "2": 0.4, "3": 0.4 },
+    "avg_crystals_per_level": 6,
+    "replays_per_level": 0.5,
+    "special_balls_used_per_level_after_unlock": 0.4,
+    "target_packs_affordable_per_world": [2, 3]
+  }
+}

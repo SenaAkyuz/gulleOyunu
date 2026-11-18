@@ -1,0 +1,89 @@
+{
+  "_doc": "Genel oyun kurallari. '_' ile baslayan anahtarlar aciklamadir, kod okumaz. Degistirdikten sonra: python3 tools/validate_game_data.py",
+  "version": 1,
+  "aim": {
+    "mode": "tap_target",
+    "_doc_mode": "tap_target | drag_release",
+    "default_preview_dots": 14,
+    "aim_smoothing": 12.0,
+    "min_angle_deg": -75,
+    "max_angle_deg": 75
+  },
+  "shots": {
+    "default_per_level": 3,
+    "extra_shot_price_gold": 50,
+    "extra_shot_via_rewarded_ad": true,
+    "max_extra_shots_per_attempt": 2
+  },
+  "stars": {
+    "mode": "shots_left",
+    "_doc_mode": "shots_left: kalan gulleye gore | score: bolum JSON'undaki skor esiklerine gore",
+    "three_star_min_shots_left_offset": 1,
+    "two_star_min_shots_left_offset": 2,
+    "_doc_offsets": "3 yildiz: kalan >= shots - 1 ; 2 yildiz: kalan >= shots - 2",
+    "special_ball_reduces_stars": false
+  },
+  "objective_defaults": {
+    "type": "drop_core",
+    "clear_percent_target": 0.8
+  },
+  "physics": {
+    "gravity": 9.8,
+    "tick_rate": 60,
+    "settle_timeout_sec": 4.0,
+    "settle_linear_velocity_threshold": 0.05,
+    "fall_kill_y": -3.0,
+    "spawn_sleeping": true,
+    "pre_settle_sec": 0.3,
+    "max_active_bodies": 120,
+    "debris_lifetime_sec": 2.5,
+    "debris_min_physical_size": 0.4,
+    "axis_locks": false,
+    "_doc_axis_locks": "K-002: tam 3D, bloklarda ve topta eksen kilidi yok",
+    "edge_rule": "com_outside_platform",
+    "_doc_edge_rule": "com_outside_platform: agirlik merkezinin (x,z) izdusumu platform ust yuzeyi disindaysa VEYA y < fall_kill_y ise cisim dustu sayilir",
+    "edge_margin": 0.0,
+    "support_margin": 0.05,
+    "max_settle_drift": 0.02,
+    "_doc_support": "generator support_check: agirlik merkezi destek poligonu kenarina en az support_margin uzak olmali; pre_settle sonrasi kayma <= max_settle_drift"
+  },
+  "camera": {
+    "projection": "perspective",
+    "fov_deg": 40,
+    "pitch_deg": 20,
+    "yaw_deg": 0,
+    "distance": 16,
+    "look_at_height": 3.5,
+    "orbit_enabled": false,
+    "orbit_max_yaw_deg": 35,
+    "_doc_s007": "S-007 (Onerildi): v1 kamera sabit, capraz ~20 derece yukaridan; her keystone bu acidan gorunur olmali. Orbit v2.",
+    "_doc": "Tam 3D kamera. Bolum JSON'unda camera_override ile ezilebilir."
+  },
+  "feel": {
+    "hitstop_threshold_impulse": 18.0,
+    "hitstop_duration_ms": 55,
+    "hitstop_time_scale": 0.05,
+    "shake_max_offset": 0.25,
+    "shake_max_rotation_deg": 1.5,
+    "shake_decay": 1.8,
+    "final_slowmo_scale": 0.3,
+    "final_slowmo_duration_sec": 0.6,
+    "max_concurrent_bursts": 4,
+    "haptics_default_on": true
+  },
+  "quality": {
+    "default": "medium",
+    "levels": {
+      "low": { "particles_mult": 0.5, "shadows": false, "debris_physics": false, "glow": false },
+      "medium": { "particles_mult": 0.8, "shadows": true, "debris_physics": true, "glow": true },
+      "high": { "particles_mult": 1.0, "shadows": true, "debris_physics": true, "glow": true }
+    }
+  },
+  "features": {
+    "ball_upgrades": false,
+    "gems_currency": false,
+    "rewarded_ads": true,
+    "interstitial_ads": false,
+    "dev_panel_in_debug": true
+  }
+}

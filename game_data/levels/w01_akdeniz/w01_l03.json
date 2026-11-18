@@ -1,0 +1,24 @@
+{
+  "id": "w01_l03",
+  "world": "akdeniz",
+  "index": 3,
+  "name_tr": "Üç Kemer",
+  "difficulty": 10,
+  "role": "build_up",
+  "shots": 3,
+  "objective": { "type": "drop_core" },
+  "aim_preview_dots": 17,
+  "platform": { "width": 9, "depth": 5, "style": "limestone_plinth" },
+  "structures": [
+    { "template": "arch_shrine", "x": 0, "z": 0, "ry": 0, "seed": 1031, "params": { "floors": 2, "depth_layers": 1, "side_towers": true, "core": "hanging_center", "symmetry": 0.95 } }
+  ],
+  "blocks": [],
+  "joints": [],
+  "cores": [],
+  "keystones": [],
+  "tutorial": { "type": "hint", "text_tr": "Kemeri taşıyan desteğe nişan al!" },
+  "intro_ball": null,
+  "free_balls": {},
+  "baked": false,
+  "_doc": "Sablon tabanli ornek: blocks/cores/keystones generator tarafindan doldurulur; Faz 3 sonunda baked=true olarak dondurulur."
+}

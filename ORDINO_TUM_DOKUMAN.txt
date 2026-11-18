@@ -1,0 +1,1811 @@
+# ORDINO GAMES — TÜM PROJE DOKÜMANI (tek dosya)
+
+> Claude uygulamasındaki Proje bilgisine eklemek için birleştirilmiş sürüm. Asıl kaynak: repodaki ayrı dosyalar.
+
+
+---
+
+<!-- DOSYA: CLAUDE.md -->
+
+# CLAUDE.md — Ordino Games: "Physics. Impact. Satisfaction."
+
+> Bu dosya Claude Code'un bu repoda her oturumda otomatik okuduğu ana talimat dosyasıdır.
+> Kısa tutulur; ayrıntılar `docs/` altındadır. Bir işe başlamadan önce ilgili dokümanı oku.
+
+## 1. Proje tek cümlede
+Mobil (iOS + Android), fizik tabanlı bir **top atarak kule yıkma** bulmaca oyunu. Oyuncu ekranın altındaki
+**topla (cannon)** nişan alır, sınırlı sayıda gülle ile kuleyi yıkar ve **Altın Küre**'yi platformdan düşürür.
+8 dünya × 10 bölüm (şimdilik), 6 özel top, yıldız → altın ekonomisi, altın → top satın alma, gerçek para → altın.
+Rakip referansı: *Smash Away!* (Oakever). Hedefimiz: görsel olarak çok daha zengin, "juicy", tatmin edici yıkım.
+
+## 2. Kullanıcı (proje sahibi) hakkında
+- Proje sahibi: **Sena** (Ordino). Türkçe konuşur → **Sena ile her zaman Türkçe konuş.**
+- Kod, değişken adları, JSON anahtarları, commit mesajları **İngilizce**; oyuncuya görünen metinler **TR** (sonra EN).
+- Sena yazılımcı olmayabilir: her adım sonunda **ne yaptığını, nasıl test edeceğini (hangi tuş / hangi sahne)** sade Türkçe ile anlat.
+- Tasarım kararlarında **öneri sun, gerekçesini söyle, karar Sena'nın.** Kararlar `docs/08_KARAR_GUNLUGU.md`'ye yazılır.
+
+## 3. Teknik temel (karar verildi — değiştirmek için Sena'ya sor)
+| Konu | Karar |
+|---|---|
+| Motor | **Godot 4.7.x stable** (beta sürüm kullanma) |
+| Dil | **GDScript** (statik tipli: `var hp: float`, `func f() -> void`) — C# kullanma (iOS export riski) |
+| Görünüm | **Tam 3D** (K-002): 3D bloklar + 3D fizik, **eksen kilidi yok**; bloklar her eksende döner/devrilir, kuleler x-y-z derinlikli kurulur (Smash Away tarzı). Arka plan AI ile üretilmiş 2D katmanlar |
+| Fizik | Jolt (Godot 4.6+ varsayılan 3D). Bloklarda `axis_lock_*` **kullanılmaz**. "Düştü" kuralı: ağırlık merkezinin (x,z) izdüşümü platform dışında **veya** `fall_kill_y` altında (`rules.physics.edge_rule`) |
+| Kamera | Perspektif, kuleye yukarıdan eğik, varsayılan **sabit**; değerler `rules.camera`. v1 sabit, kamera döndürme v2 (S-007); her keystone bu açıdan görünür olmalı |
+| Renderer | Mobile renderer |
+| Ekran | **Portre 1080×1920** (bkz. karar günlüğü K-003) |
+| Veri | Tüm oyun kuralları `game_data/*.json` içinde. **Koda sayı gömme (magic number yasak).** |
+| Test | GUT (Godot Unit Test) + `tools/` altında Python doğrulayıcılar |
+| Sürüm kontrolü | git; görseller/ses için Git LFS |
+
+## 4. Altın kurallar (her zaman uy)
+1. **Veri odaklı tasarım:** Top özellikleri, açılma koşulları, fiyatlar, yıldız ödülleri, zorluk eğrisi, malzeme dayanıklılığı
+   → hepsi `game_data/` JSON'larında. Kod sadece okur. Yeni bir ayar gerekiyorsa önce JSON'a anahtar ekle, sonra kodu yaz.
+2. **JSON'u değiştirdikten sonra** `python3 tools/validate_game_data.py` çalıştır. Hata varsa düzeltmeden bitirme.
+3. **Küçük adım:** Her görev = çalışan, test edilebilir küçük bir artım. Büyük işte önce **plan modu** ile plan çıkar, Sena onaylasın.
+4. **Mimariyi koru:** Sistemler birbirini doğrudan çağırmaz; `EventBus` sinyalleri ve autoload servisleri üzerinden konuşur (bkz. `docs/02_TEKNIK_MIMARI.md`).
+5. **Fizik kuralları:** Bloklar uyuyarak (sleeping) doğar; ilk atışa kadar kule kıpırdamaz. Top CCD (continuous collision) kullanır.
+6. **Performans bütçesi (S-008):** Ekranda aynı anda ≤ 120 aktif RigidBody (Faz 1'de orta segment Android'de ölçülür), ≤ 4 aktif GPUParticles emitter patlaması. Parçalar havuzdan (pool) gelir.
+7. **Juice her şeydir:** Her darbe = ses + parçacık + (gerekirse) ekran sarsıntısı + titreşim. Bkz. `docs/07_OYUN_HISSI_JUICE.md`.
+8. **Dokümanı güncel tut:** Mimari/kural değiştiyse ilgili `docs/` dosyasını da aynı committe güncelle.
+9. **Asla** gerçek ödeme/IAP kodunu test anahtarı olmadan çalıştırma; IAP her zaman `IAPService` arayüzünün arkasında.
+10. Emin olmadığında **sor**. Tahminle oyun kuralı uydurma; uydurman gerekiyorsa `"_TODO_SENA"` notu bırak.
+
+## 5. Doküman haritası (ilgili işe başlamadan oku)
+| Dosya | Ne zaman okunur |
+|---|---|
+| `docs/01_OYUN_TASARIMI_GDD.md` | Oyun kuralları, dünyalar, toplar, yıldız, akış |
+| `docs/02_TEKNIK_MIMARI.md` | Kod yazmadan önce: klasör yapısı, autoload'lar, sahneler, fizik, kayıt |
+| `docs/03_KULE_VE_BOLUM_TASARIMI.md` | Bölüm/kule üretirken veya zorluk ayarlarken |
+| `docs/04_GORSEL_URETIM_VE_PROMPTLAR.md` | Görsel/prompt üretirken, asset entegre ederken |
+| `docs/05_EKONOMI_VE_MONETIZASYON.md` | Altın, mağaza, IAP, reklam |
+| `docs/06_YOL_HARITASI.md` | Şu an hangi fazdayız, sıradaki adım ne |
+| `docs/07_OYUN_HISSI_JUICE.md` | VFX, ses, kamera, titreşim, animasyon |
+| `docs/08_KARAR_GUNLUGU.md` | Alınmış/açık kararlar |
+| `docs/referans/` | Sena'nın temsili konsept görselleri (stil referansı) |
+| `game_data/` | Tüm ayarlanabilir oyun verisi |
+
+## 6. Proje skill'leri (`.claude/skills/`)
+- `/ordino-level-designer` — yeni bölüm/kule tasarla, JSON yaz, doğrula.
+- `/ordino-art-prompts` — stil kılavuzuna uygun görsel üretim promptları yaz.
+- `/ordino-balance` — ekonomi/zorluk dengesini analiz et ve ayarla.
+- `/ordino-game-feel` — bir özelliğin "juice" kontrol listesini uygula/denetle.
+
+## 7. Komutlar
+```bash
+# Oyun verisini doğrula
+python3 tools/validate_game_data.py
+# Ekonomi simülasyonu (kaç bölümde kaç altın kazanılıyor, top fiyatları erişilebilir mi)
+python3 tools/economy_sim.py
+# Godot testleri (Godot kurulu ve PATH'te ise)
+godot --headless -s addons/gut/gut_cmdln.gd -gdir=res://tests -gexit
+```
+
+## 8. Mevcut durum
+- **Faz:** 0 — Kurulum (bkz. `docs/06_YOL_HARITASI.md`). Her faz bitince bu satırı güncelle.
+
+---
+
+<!-- DOSYA: docs/01_OYUN_TASARIMI_GDD.md -->
+
+# 01 — Oyun Tasarım Dokümanı (GDD)
+
+> Sürüm 0.1 · Sahip: Sena · Durum: taslak. `⚙️` işaretli her değer `game_data/` içinden değiştirilebilir.
+> `💡 Claude önerisi` ile işaretli kısımlar öneridir; Sena onaylayana kadar kesin değildir.
+
+---
+
+## 1. Vizyon
+**"Physics. Impact. Satisfaction."** — Tek parmakla nişan al, at, kulenin muhteşem şekilde çöküşünü izle.
+Rakiplerden farkımız:
+1. **Görsel kalite:** Her dünya sinematik, ışıklı, canlı bir sahne (bkz. `referans/`). Bloklar parlak, kristaller ışık saçar.
+2. **Tatmin hissi (juice):** Her çarpışma ses + parçacık + titreşim; son blok düşerken ağır çekim.
+3. **Özel toplar:** Her top fiziği farklı şekilde büker (yakar, keser, dondurur, elektrik yayar, çeker).
+4. **Akıllı kule tasarımı:** Her kulede "zayıf nokta" vardır; zeki atış 1 güllede kuleyi yıkar → 3 yıldız.
+
+Hedef kitle: 8–60 yaş, casual/hyper-casual + puzzle oyuncuları. Oturum: 2–5 dk. Bölüm: 20–60 sn.
+
+---
+
+## 2. Çekirdek döngü (core loop)
+
+```mermaid
+flowchart LR
+  A[Bölüm seç] --> B[Kuleyi incele<br/>zayıf noktayı bul]
+  B --> C[Top seç<br/>Ağır / Özel]
+  C --> D[Nişan al ve ateşle]
+  D --> E{Altın Küre<br/>düştü mü?}
+  E -- Hayır, gülle var --> B
+  E -- Hayır, gülle bitti --> F[Başarısız<br/>Tekrar / +1 gülle]
+  E -- Evet --> G[Yıldız + Altın]
+  G --> H[Mağaza: top aç / satın al]
+  H --> A
+```
+
+**Meta döngü:** Yıldız topla → dünyaların kilidini aç → yeni toplar açılır → toplar altınla yenilenir → zor bölümleri geç.
+
+---
+
+## 3. Oynanış kuralları
+
+### 3.1 Ekran düzeni (portre, bkz. referans görseller)
+- Üst sol: `LEVEL 24` etiketi · Üst orta: **kalan gülle göstergesi** (●●●) · Üst sağ: ayarlar ⚙.
+- Orta: kule + platform, arka planda dünya sahnesi.
+- Alt orta: **top (cannon)**, önünde nişan çizgisi (beyaz noktalı yörünge).
+- Alt şerit (yeni): **top seçici** — Ağır Top (sınırsız) + sahip olunan özel topların ikonları ve adetleri.
+
+### 3.2 Nişan ve atış
+- Oyuncu ekrana dokunup sürükler → top o yöne döner, yörünge önizlemesi çizilir.
+- Parmağı bırakınca atış. ⚙️ `rules.aim.mode`: `"tap_target"` (**varsayılan**; dokunulan noktaya atış, Smash Away tarzı) | `"drag_release"`.
+- ✅ Karar (S-002, Sena onayladı): Varsayılan **tap_target** + ince ayar için sürükleme. Tam 3D'de dokunulan noktadan ışın (raycast) atılır, isabet eden blok yüzeyi hedef olur. Smash Away'in başarısı kontrolün çok basit olması; bu "noktayı seç, at" hissini koruyalım.
+- Yörünge önizleme uzunluğu ⚙️ `rules.aim.preview_dots` (zor bölümlerde kısalabilir — zorluk parametresi).
+- Top fiziksel bir mermidir: kütle, hız, yerçekimi etkisi `balls.json` içinde.
+
+### 3.3 Kazanma koşulu (bölüm bazında seçilir) ⚙️ `level.objective.type`
+| Tip | Açıklama | Ne zaman kullanılır |
+|---|---|---|
+| `drop_core` | **Altın Küre** platformdan düşerse kazanırsın | Varsayılan (görsellerdeki altın küre) |
+| `clear_percent` | Blokların %X'i platformdan düşerse | Smash Away tarzı "masayı temizle" bölümleri |
+| `shatter_crystals` | Tüm kristal blokları (turuncu/turkuaz) kır | Kristal ağırlıklı özel bölümler |
+| `drop_all_cores` | Birden fazla küre (çift kule bölümleri) | Boss / çift kule |
+
+Kazanma kontrolü: son atıştan sonra fizik **durulana kadar** (tüm cisimler uyuyana veya ⚙️ `rules.settle_timeout_sec` dolana kadar) beklenir.
+
+### 3.4 Gülle hakkı
+- Her bölümün gülle hakkı vardır ⚙️ `level.shots` (genelde 3; zorlukla değişir).
+- Özel top kullanmak bir gülle hakkını harcar (yani özel top ekstra hak değil, **daha güçlü bir hak**).
+- Gülle bitince: "Başarısız" ekranı → **Tekrar dene** (ücretsiz) veya **+1 Gülle** (⚙️ altın fiyatı veya ödüllü reklam).
+
+### 3.5 Yıldız sistemi ⚙️ `rules.stars`
+💡 Claude önerisi (varsayılan, değiştirilebilir):
+| Yıldız | Koşul (`stars.mode = "shots_left"`) |
+|---|---|
+| ⭐⭐⭐ | Kalan gülle ≥ `shots - 1` (yani 3 haklık bölümü 1 atışta bitir) |
+| ⭐⭐ | Kalan gülle ≥ `shots - 2` |
+| ⭐ | Bölüm geçildi |
+
+Alternatif mod `stars.mode = "score"`: skor = yıkım puanı + kalan gülle bonusu; eşikler bölüm JSON'unda. Önce basit mod.
+Özel top kullanımı yıldızı **düşürmez** (oyuncuyu özel top kullanmaya teşvik ederiz → altın harcaması).
+
+Level map'teki "24/30" = dünyadaki 10 bölüm × 3 yıldız. Dünya kilidi ⚙️ `worlds[i].unlock_stars_required`.
+
+---
+
+## 4. Dünyalar (8 adet, sırayla)
+
+Her dünyanın: **arka planı**, **imza malzemesi**, **çevresel kuralı (modifier)** ve **müzik/ambiyans** paketi olur.
+Modifier'lar dünyalar arasında oyun hissini değiştirir — sadece "deri değişimi" olmasın diye. Hepsi ⚙️ `worlds.json`.
+
+| # | Dünya | İmza malzemeler | 💡 Çevresel kural (modifier) | Tanıtılan top |
+|---|---|---|---|---|
+| 1 | **Akdeniz Sahili** | Kireçtaşı kemer, ahşap, kristal | Yok (öğretici dünya) | Ağır Top (başlangıç), Alev Topu (B7 geçilince açılır, B8 tanıtım bölümü) |
+| 2 | **Korsan Gemisi** | Ahşap, sandık, halat, fıçı | **Sallanan güverte:** platform hafifçe yalpalar (`platform_sway`) | Kesici Çark (B5) |
+| 3 | **Yanardağ** | Lav taşı (çatlak), obsidyen, zincir | **Lav zemini:** düşen blok anında erir (yıkım bonusu), sıcak bloklar Buz ile çatlar | Buz Topu (B5) |
+| 4 | **Buz Mağarası** | Buz blok, karlı taş, buz sarkıtı | **Kaygan:** düşük sürtünme (`friction_mult 0.4`) | — (pekiştirme) |
+| 5 | **Çöl Vadisi** | Kumtaşı, altın süslemeli taş, sandık | **Kum fırtınası:** yatay rüzgâr topu saptırır (`wind`) | Elektrik Topu (B5) |
+| 6 | **Büyülü Orman** | Yosunlu taş, sarmaşık (bağlantı), mor kristal | **Sarmaşık bağları:** bloklar birbirine joint ile bağlı; Kesici/Alev koparır | — |
+| 7 | **Gökyüzü Adaları** | Kemerli taş köprü, bulut taşı, mavi kristal | **Düşük yerçekimi** (`gravity_mult 0.7`) + platformlar arası boşluk | Çekim Topu (B3) |
+| 8 | **Sualtı Harabeleri** | Mercan taş, antik sütun, deniz kristali | **Su direnci:** top ve parçalar yavaş (`linear_damp`), kaldırma kuvveti | — (final dünya) |
+
+Her dünya içi kart (level map) → dünyaya girince **dünyaya özel bölüm seçim ekranı**: arka planda dünyanın sahnesi,
+10 bölüm düğümü (yol/patika üzerinde), her düğümde yıldızlar. Bölüm 10 = **Boss** (büyük ikonlu).
+
+---
+
+## 5. Toplar (gülleler) ⚙️ `balls.json`
+
+Görseldeki "Özel Top Seti" ile birebir. Her topun: fiziksel özellikleri + **davranış (behavior)** + **malzeme etkileşim çarpanları**.
+
+| Top | Görseldeki açıklama | Oyun mekaniği (uygulama) | Güçlü olduğu | Zayıf olduğu |
+|---|---|---|---|---|
+| **Ağır Top** | Yüksek kütlesiyle blokları ezer, kırar, yıkar | Standart fiziksel top. Sınırsız. | Taş, genel | — |
+| **Alev Topu** | Ahşap blokları tutuşturur, yakar, ortadan kaldırır | Çarptığı yanıcı (`flammable`) bloğu tutuşturur; ateş komşu yanıcılara yayılır (`spread_radius`, `spread_chance`); yanan blok `burn_time` sonra kül olur | Ahşap, sandık, halat, sarmaşık | Taş, buz (söner) |
+| **Kesici Çark** | Ahşap, ip ve benzeri yapıları keserek parçalar | Delip geçer (`pierce_count`): kesilebilir (`cuttable`) blokları ikiye böler, halat/zincir joint'lerini koparır, yavaşlayarak ilerler | Ahşap, halat, sarmaşık | Taş, metal (seker) |
+| **Buz Topu** | Yapıları dondurur, kırılgan hale getirir, darbe ile parçalanmayı kolaylaştırır | Çarpma noktası çevresindeki (`freeze_radius`) blokları dondurur: `hp × brittle_mult`, sürtünme düşer; dondurulmuş blok sonraki darbede kristal gibi parçalanır | Sonraki atışı hazırlar; Yanardağ lav taşı (termal şok ×2) | Tek başına zayıf |
+| **Elektrik Topu** | Temas ettiği bloklara elektrik yayar, çevresindeki yapıları etkileyip zayıflatır | Zincirleme şimşek: iletken (`conductive`) ve temas eden bloklar arasında `chain_count` atlama, her atlamada hasar + küçük itme | Metal, kristal, ıslak (sualtı) | Ahşap (yalıtkan) |
+| **Çekim Topu** | Çevresindeki nesneleri kendine çeker, birleştirir ve büyük bir yıkım oluşturur | Çarpınca `pull_duration` süre kara delik: `pull_radius` içindeki bloklara merkeze kuvvet; sonunda `implode_impulse` ile dışa patlama | Dağınık, geniş kuleler; çift kule | Tek dar kule (gereksiz) |
+
+### 5.1 Top açılma ve sahiplik (TAMAMEN AYARLANABİLİR) ⚙️ `balls.json → unlock` + `economy.json`
+Her top için:
+```json
+"unlock": { "type": "level_cleared", "level_id": "w01_l07" },   // veya "levels_cleared_count": 12, "world_completed": 2, "stars_total": 40
+"tutorial_level_id": "w01_l07",                                 // top bu bölümde tanıtılır, bölüm o topla çözülecek şekilde tasarlanır
+"gift_on_unlock": 3,                                            // açılınca hediye adet
+"price_gold": 150, "pack_size": 3                               // sonra: 150 altına 3 adet
+```
+💡 Claude önerisi (başlangıç değerleri `balls.json`'da hazır):
+| Top | Açılma | Hediye | Paket fiyatı |
+|---|---|---|---|
+| Ağır | Baştan | ∞ | — |
+| Alev | Dünya 1 Bölüm 7 geçilince | 3 | 120 altın / 3 adet |
+| Kesici Çark | Dünya 2 Bölüm 5 | 3 | 150 / 3 |
+| Buz | Dünya 3 Bölüm 5 | 3 | 180 / 3 |
+| Elektrik | Dünya 5 Bölüm 5 | 3 | 220 / 3 |
+| Çekim | Dünya 7 Bölüm 3 | 2 | 300 / 2 |
+
+**Tanıtım bölümü kuralı:** Topun açıldığı bölümün **hemen sonraki bölümü** o topun en iyi çözüm olduğu şekilde tasarlanır
+ve o bölümde top ücretsiz +1 verilir (oyuncu "vay!" desin). Tasarım: `docs/03` §7.
+
+### 5.2 Top yükseltmeleri (v2 — şimdilik kapalı) ⚙️ `rules.features.ball_upgrades = false`
+Altınla seviye: Alev yayılma +%, Elektrik zincir +1… Altın harcama derinliği için ileride.
+
+---
+
+## 6. Malzemeler (bloklar) ⚙️ `materials.json`
+Her blok = **şekil (shape)** + **malzeme (material)**. Malzeme fizik ve etkileşimi belirler.
+
+| Malzeme | Görünüm | Yoğunluk | Dayanıklılık | Bayraklar |
+|---|---|---|---|---|
+| `stone` kireçtaşı | Krem, kemer/blok | Yüksek | Yüksek | — |
+| `wood` | Kahverengi kalas, vidalı | Orta | Orta | flammable, cuttable |
+| `crate` sandık | X çaprazlı kutu | Düşük | Düşük | flammable, cuttable |
+| `crystal_amber` | Turuncu parlak cam | Orta | **Kırılgan** | conductive, shatter, bonus altın |
+| `crystal_cyan` | Turkuaz parlak cam | Orta | **Kırılgan** | conductive, shatter, bonus altın |
+| `ice` | Saydam mavi | Orta | Orta, kaygan | freezable(zaten), meltable |
+| `lava_rock` | Koyu, turuncu çatlaklı | Yüksek | Yüksek | thermal_shock (Buz ×2) |
+| `metal` | Perçin, plaka | Çok yüksek | Çok yüksek | conductive |
+| `rope` / `chain` / `vine` | Bağlantı (joint) | — | Düşük/Yüksek/Orta | joint; rope/vine cuttable+flammable |
+| `core_gold` | **Altın Küre** (hedef) | Orta | Kırılmaz | objective |
+
+**Kristal bloklar** (turuncu/turkuaz) kırılınca küçük altın (⚙️ `materials.json → coin_on_break`) ve tatmin edici cam kırılma efekti verir → oyuncuyu "daha çok yık" yönünde ödüllendirir.
+
+---
+
+## 7. Ekranlar ve akış
+
+```mermaid
+flowchart TD
+  S[Splash / Ordino logo] --> M[Ana Menü]
+  M --> W[Dünya Haritası<br/>8 kart, 2 sayfa x 4]
+  W --> L[Dünya içi bölüm seçimi<br/>10 düğüm + Boss]
+  L --> G[Oyun ekranı]
+  G --> R[Sonuç: Yıldız + Altın animasyonu]
+  R --> L
+  R --> G
+  M --> SH[Mağaza<br/>Toplar / Altın paketleri]
+  G --> P[Duraklat / Ayarlar]
+  M --> ST[Ayarlar: ses, müzik, titreşim, dil]
+```
+- **Dünya Haritası:** referans `05_level_map_8_dunya.png` → portrede 2 sütun × 4 satır kaydırmalı liste; üstte toplam yıldız, altın, (ileride elmas).
+- **Sonuç ekranı:** yıldızlar tek tek "çarparak" gelir, altınlar HUD'daki sayaca uçar, sayı yuvarlanarak artar.
+- **Mağaza:** sekmeler: *Toplar* (her top kartı: görsel, açıklama, adet, "150 🪙 / 3 adet") · *Altın* (IAP paketleri) · (ileride) *Reklamsız*.
+
+---
+
+## 8. İlk kullanıcı deneyimi (FTUE)
+1. Bölüm 1: el animasyonu "dokun ve at" — 1 gülle bile yeter, kule çok kırılgan → ilk 10 saniyede zafer.
+2. Bölüm 2: "Kemerin altındaki desteğe vur" ipucu (zayıf nokta öğretimi).
+3. Bölüm 3: ilk kez 2 atış gerekiyor → gülle göstergesi tanıtımı.
+4. Bölüm 5: ilk yıldız ödülü sonrası mağaza tanıtımı (ama satın alma baskısı yok).
+5. Bölüm 7 sonrası: **Alev Topu açıldı!** sinematik + 3 hediye + Bölüm 8 alev için tasarlanmış.
+
+---
+
+## 9. Açık tasarım soruları (Sena karar verecek → `08_KARAR_GUNLUGU.md`)
+- İkinci para birimi (Elmas) olacak mı? Referans level map'te 💎 var. Öneri: v1'de **sadece altın**, sistem çoklu para birimine hazır.
+- Can/enerji sistemi olacak mı? Öneri: **Hayır** (casual oyuncuyu kaçırır); gelir = altın paketleri + opsiyonel ödüllü reklam.
+- Reklam (interstitial) olacak mı? Öneri: v1'de yalnızca **ödüllü reklam** (oyuncu isteyerek izler), + "Reklamları kaldır" paketi.
+- Bölüm sayısı: şimdilik 80 (8×10). Sistem dünya başına bölüm sayısını JSON'dan okur.
+
+---
+
+<!-- DOSYA: docs/02_TEKNIK_MIMARI.md -->
+
+# 02 — Teknik Mimari
+
+> Kod yazmadan önce bu dosyayı oku. Buradaki yapıdan sapmak gerekiyorsa önce gerekçeyle Sena'ya öner, onaylanırsa bu dosyayı güncelle.
+
+---
+
+## 1. Motor kararı: Godot 4.7 (Unity değil) — gerekçe
+
+| Kriter | Godot 4.7 | Unity 6 |
+|---|---|---|
+| Claude Code ile çalışma | ✅ Sahneler (`.tscn`), kaynaklar (`.tres`), kod (`.gd`) **düz metin** → Claude doğrudan okuyup yazabilir | ⚠️ Sahne/prefab YAML'ları büyük ve kırılgan; çoğu iş editörde elle |
+| Lisans / ücret | ✅ MIT, tamamen ücretsiz, gelir payı yok | Ücretsiz katman var ama gelir eşikleri/koşullar şirket politikasına bağlı |
+| 3D fizik | ✅ Jolt (4.6'dan beri varsayılan 3D fizik) | ✅ PhysX, olgun |
+| Mobil IAP / reklam | ⚠️ Topluluk + resmi eklentiler (Google Play Billing, iOS StoreKit eklentileri) — 4.5.2/4.6 ile mobil ekosistem ciddi iyileşti | ✅ Çok olgun (Unity IAP, LevelPlay) |
+| Proje boyutu / hız | ✅ Editör ~150 MB, açılış saniyeler | ⚠️ Ağır |
+| Görsel tavan | Bu oyun için yeterli (glow, PBR, parçacık, shader) | Daha yüksek ama gerek yok |
+
+**Sonuç:** Bu oyun küçük-orta ölçekli, fizik + görsel efekt ağırlıklı ve **Claude ile metin tabanlı geliştirileceği için Godot** daha verimli.
+Tek risk IAP/reklam eklentileri → `IAPService` / `AdsService` arayüzleriyle soyutlanır; eklenti değişse oyun kodu değişmez.
+
+- Sürüm: **Godot 4.7.x stable** (4.8 beta çıkmış olsa da stable'da kal; Faz 10'dan önce güncellemeyi değerlendir).
+- Dil: **GDScript, statik tipli.** C# kullanma (iOS dışa aktarımında ek risk ve karmaşıklık).
+
+---
+
+## 2. 2D mi 3D mi? → **Tam 3D** (K-002, Smash Away tarzı)
+
+**Karar (K-002 — değişti):** Sena tam 3D görünümü istiyor. Önceki öneri (XY düzlemine kilitli 2.5D) kaldırıldı.
+- Bloklar ve toplar gerçek **3D model + 3D fizik**; **hiçbir eksen kilidi yok** (`axis_lock_*` hepsi `false`, Godot varsayılanı).
+- Bloklar her eksende serbestçe döner, devrilir, platformdan **her yöne** (sağa, sola, öne, arkaya) düşer.
+- Kuleler **derinlikli** kurulur: x (sağ–sol), y (yukarı), z (ön–arka). Koordinatlar ve bölüm formatı: `03` §2.
+- Arka yüzler de görünebilir → bloklar **6 yüzü de dokulu** modellenir (Blender scripti buna göre).
+
+**Kamera** ⚙️ `rules.camera`:
+- **Perspektif**, FOV ≈ 40°, kuleye **yukarıdan ≈ 20° eğik** (pitch) bakar, kule odağına uzaklık ≈ 16 birim.
+  Kulenin ön, üst ve kısmen yan yüzleri görünür → derinlik ve hacim okunur (referans görsellerdeki premium 3D his).
+- **v1'de kamera sabit** (S-007, Önerildi): çapraz, ≈20° yukarıdan. Kule etrafında döndürme (orbit) **v2'de** değerlendirilir → `rules.camera.orbit_enabled = false`.
+- Bölüm bazında `camera_override` (yaw/pitch/distance) ile geniş veya ikiz kulelerde kadraj ayarlanabilir.
+
+**Okunabilirlik (tam 3D'nin riski) — önlemler:**
+- Arkada kalan bloklar önden görünmeyebilir → **keystone kameradan görünür olmak zorunda** (`03` §4 kural 3).
+- Nişan `tap_target`: ekrana dokunulan noktadan ışın atılır, isabet eden yüzey hedef olur; yörünge önizlemesi 3D noktalarla çizilir.
+- Platform kenarı net, blok gölgeleri platforma düşer → oyuncu derinliği gölgeden okur.
+
+**Kenarda kalan blok kuralı** ⚙️ `rules.physics.edge_rule = "com_outside_platform"` — "tam düştü mü?" belirsizliğini bitirir:
+- Bir cisim (blok veya Altın Küre) **düşmüş sayılır**, eğer:
+  1. **Ağırlık merkezinin yatay izdüşümü (x, z) platform üst yüzeyinin dışındaysa** (tolerans: `rules.physics.edge_margin`), **veya**
+  2. `y < rules.physics.fall_kill_y` (platformun altına inmişse).
+- Kenarda asılı kalan ama ağırlık merkezi platform dışında olan cisim **düşmüş** sayılır; ağırlık merkezi platform içindeyse **düşmemiş** sayılır. Ara durum yok.
+- Kontrol sürekli yapılır: Altın Küre'nin ağırlık merkezi platform dışına çıktığı an "düştü" sayılır (final ağır çekim başlar). Bloklar için sonuç SETTLING sonunda kesinleşir.
+- Ayrık platformlarda (Gökyüzü Adaları) "platform" = tüm platform üst yüzeylerinin birleşimi.
+- Oyuncuya görünür: kenarda asılı ama düşmüş sayılan cisim hafif gri parıltı alır.
+
+**Kozmetik parçalar** (kırık cam kıymıkları, toz, kül) fiziğe etki etmez (collision layer: debris).
+
+**Arka plan:** 2D AI görselleri, 3 katman (uzak / orta / ön dekor) → hafif paralaks + ışık animasyonu (şelale, lav, balıklar = shader/animasyonlu sprite).
+
+### Blender gerekli mi?
+**Evet ama elle modelleme yapmayacaksın.** Bloklar basit geometriler (küp, kalas, sütun, kemer, üçgen kafes, sandık).
+- Claude, `tools/blender/` altında **Blender Python (bpy) scriptleri** yazar → komutla çalıştırırsın → `.glb` çıkar → Godot'a girer.
+  ```bash
+  blender -b -P tools/blender/generate_blocks.py -- --out assets/models/blocks/
+  ```
+- Kırılan bloklar (kristal, buz, taş) için Blender'ın **Cell Fracture** eklentisiyle önceden parçalanmış sürümler aynı scriptle üretilir.
+- Dokular (taş, ahşap, kristal) → AI ile **dikişsiz (tileable) doku** promptları (bkz. `04`), Godot'da `StandardMaterial3D` üstüne.
+- MVP'de (Faz 1) Blender bile gerekmez: Godot'un `BoxMesh` vb. primitifleri + basit materyallerle "gri kutu" prototip.
+
+---
+
+## 3. Klasör yapısı
+
+```
+ordino-games/
+├── CLAUDE.md
+├── project.godot
+├── docs/                         # tasarım dokümanları (bu klasör)
+├── game_data/                    # ⚙️ TÜM AYARLANABİLİR VERİ (JSON)
+│   ├── rules.json                # yıldız, atış, kazanma, genel kurallar, özellik bayrakları
+│   ├── balls.json                # 6 top: fizik, davranış, açılma, fiyat
+│   ├── materials.json            # malzemeler: yoğunluk, hp, bayraklar, efekt anahtarları
+│   ├── shapes.json               # blok şekilleri: boyut, kütle çarpanı, mesh yolu
+│   ├── worlds.json               # 8 dünya: arka plan, modifier, kilit, müzik
+│   ├── difficulty.json           # zorluk eğrisi ve bölüm ritmi
+│   ├── economy.json              # altın ödülleri, fiyatlar, IAP paketleri
+│   └── levels/
+│       ├── w01_akdeniz/w01_l01.json ... w01_l10.json
+│       └── w02_korsan/ ...
+├── assets/
+│   ├── backgrounds/<world_id>/{far,mid,front}.webp
+│   ├── models/blocks/*.glb  models/fractured/*.glb  models/cannon.glb
+│   ├── textures/materials/<material>/{albedo,normal,roughness}.png
+│   ├── balls/<ball_id>/{icon.png, mesh.glb}
+│   ├── ui/  vfx/  audio/{sfx,music}/  fonts/
+├── src/
+│   ├── autoload/                 # singleton servisler
+│   │   ├── event_bus.gd  game_config.gd  save_manager.gd  progress.gd
+│   │   ├── economy.gd  inventory.gd  audio_manager.gd  scene_router.gd
+│   │   ├── haptics.gd  analytics.gd  iap_service.gd  ads_service.gd
+│   ├── gameplay/
+│   │   ├── level/      level.tscn  level_loader.gd  level_referee.gd  tower_builder.gd
+│   │   ├── blocks/     block.tscn  block.gd  block_damage.gd  fracture.gd  joint_link.gd
+│   │   ├── balls/      ball.tscn  ball.gd  behaviors/{heavy,fire,saw,ice,electric,gravity}_behavior.gd
+│   │   ├── cannon/     cannon.tscn  cannon.gd  aim_input.gd  trajectory_preview.gd
+│   │   ├── world/      world_modifiers.gd  background_parallax.gd  platform.gd
+│   │   └── fx/         camera_shake.gd  hit_stop.gd  fx_pool.gd  slowmo.gd
+│   ├── ui/             hud/  world_map/  level_select/  results/  shop/  settings/  dev_panel/
+│   └── tools/          level_editor/ (Godot editör eklentisi)  sim/ (headless doğrulama)
+├── tests/              # GUT testleri
+├── tools/              # Python: validate_game_data.py, economy_sim.py, blender/
+└── .claude/skills/     # proje skill'leri
+```
+
+---
+
+## 4. Sistem mimarisi
+
+```mermaid
+flowchart TB
+  subgraph DATA[game_data JSON]
+    R[rules] --- B[balls] --- MAT[materials] --- WO[worlds] --- D[difficulty] --- E[economy] --- LV[levels/*]
+  end
+  DATA --> GC[GameConfig autoload<br/>yükler + doğrular + remote override]
+  GC --> PR[Progress]
+  GC --> EC[Economy]
+  GC --> INV[Inventory]
+  GC --> LVL[Level sahnesi]
+  SM[SaveManager<br/>user://save.json] <--> PR & EC & INV
+  LVL --> TB[TowerBuilder] --> BLK[Block x N]
+  LVL --> CAN[Cannon] --> BALL[Ball + Behavior]
+  LVL --> REF[LevelReferee<br/>kazanma/yıldız]
+  BUS((EventBus sinyalleri))
+  BLK -. block_broken .-> BUS
+  BALL -. ball_impact .-> BUS
+  REF -. level_completed .-> BUS
+  BUS -. dinler .-> FX[FX: shake, hitstop, particles]
+  BUS -. dinler .-> AU[AudioManager] & HAP[Haptics] & AN[Analytics] & EC & PR
+  IAP[IAPService arayüzü] --> EC
+```
+
+### 4.1 Autoload'lar (singleton)
+| Autoload | Sorumluluk | Kural |
+|---|---|---|
+| `EventBus` | Global sinyaller: `ball_fired`, `ball_impact(pos, impulse, material)`, `block_damaged`, `block_broken`, `core_dropped`, `level_completed(stars, shots_left)`, `level_failed`, `currency_changed`, `ball_unlocked` | Sistemler birbirini doğrudan çağırmaz |
+| `GameConfig` | Tüm JSON'ları açılışta yükler, şema doğrular, tipli erişim verir: `GameConfig.ball("fire").price_gold` | Yalnızca okunur. Remote config override katmanı (Faz 10) |
+| `SaveManager` | `user://save.json`, **sürümlü** (`save_version`), migrasyon fonksiyonları, atomik yazma (önce `.tmp`) | Bulut kaydı ileride |
+| `Progress` | Bölüm yıldızları, en iyi skor, açık dünyalar, toplam yıldız | Açılma koşullarını `GameConfig`'ten değerlendirir |
+| `Economy` | Altın bakiyesi, `earn(amount, reason)`, `spend(amount, reason) -> bool` | Her işlem `reason` ile loglanır (analytics + hata ayıklama) |
+| `Inventory` | Top adetleri, `consume(ball_id)`, `grant(ball_id, n)` | Ağır top sınırsız |
+| `AudioManager` | SFX havuzu, pitch varyasyonu, müzik geçişleri, ses grupları | |
+| `Haptics` | `Input.vibrate_handheld(ms, amplitude)` sarmalayıcı, ayardan kapatılabilir | |
+| `SceneRouter` | Sahne geçişleri + geçiş animasyonu + yükleme | |
+| `Analytics` | Olay kaydı (önce konsola/dosyaya; Faz 10'da gerçek SDK) | |
+| `IAPService` / `AdsService` | **Arayüz** + platform implementasyonları + `MockIAP` (editörde test) | |
+
+### 4.2 Gameplay sahnesi (`level.tscn`)
+```
+Level (Node3D)  ← level_loader.gd: JSON okur, world'ü kurar
+├── WorldEnvironment (dünya başına .tres: glow, tonemap, ambient)
+├── DirectionalLight3D (dünya başına renk/açı)
+├── Background (paralaks katmanları: Sprite3D veya CanvasLayer)
+├── Camera3D (+ camera_shake.gd)
+├── Platform (StaticBody3D, dünya başına görünüm)
+├── Tower (TowerBuilder → Block örnekleri)
+├── Cannon (aim_input, trajectory_preview)
+├── KillZone (Area3D, fall_kill_y)
+├── LevelReferee
+├── FxPool (parçacık/parça havuzu)
+└── HUD (CanvasLayer)
+```
+
+---
+
+## 5. Veri akışı ve "kolay değiştirme" prensibi
+
+1. **Tek doğruluk kaynağı:** `game_data/*.json`. JSON'da yorum olmadığı için her nesnede açıklama alanı `"_doc"` kullanılır (kod `_` ile başlayan anahtarları yok sayar).
+2. **Doğrulama:** `tools/validate_game_data.py` (CI/commit öncesi) + `GameConfig` açılışta tekrar doğrular, hata varsa **dev build'de kırmızı ekran**, release'te güvenli varsayılan.
+3. **Canlı ayar (dev):** Oyun içinde gizli **Dev Panel** (5 parmak dokunuş veya F1): yerçekimi, top hızı, malzeme hp, yıldız eşikleri canlı değiştir, "JSON'a kaydet" butonu.
+4. **Uzaktan ayar (Faz 10):** Firebase Remote Config (veya benzeri) → yalnızca `rules`, `economy`, `difficulty` alanlarında **override**. Mağaza güncellemesi olmadan fiyat/ödül değiştirme.
+5. **Bölüm dosyaları** ayrı ayrı JSON → bir bölümü düzeltmek diğerlerini etkilemez; git geçmişinde net görünür.
+
+Örnek erişim:
+```gdscript
+var fire := GameConfig.ball("fire")
+if Progress.is_unlocked(fire.unlock) and Inventory.count("fire") > 0:
+    cannon.load_ball("fire")
+```
+
+---
+
+## 6. Fizik detayları
+
+### 6.1 Ölçek ve birimler
+- **1 grid birimi = 1 metre = standart küp blok.** Bölüm JSON'ları grid biriminde (bkz. `03`).
+- Eksenler (Godot): **x** sağ (+), **y** yukarı (+), **z** kameraya doğru / ön (+). Platform merkezi `(0, 0, 0)`, üst yüzeyi `y = 0`.
+- Yerçekimi 9.8 × dünya `gravity_mult`. Fizik tick: 60 Hz (mobilde gerekirse 50).
+- Solver iterasyonu ve uyku eşikleri `rules.physics` altında.
+
+### 6.2 Blok (`block.gd`, RigidBody3D)
+- Doğarken: `sleeping = true`, `can_sleep = true`. Kule ilk darbeye kadar **kesinlikle hareketsiz**.
+  - Ayrıca bölüm yüklenince 0.3 sn "settle" simülasyonu yapılıp blok konumları sabitlenir (üst üste binme hatalarını önler); bu
+    `tools/sim` ile **önceden pişirilip** JSON'a yazılabilir (`baked: true`).
+- Konum/dönüş JSON'dan: `x, z` = taban merkezi, `y` = alt yüzey; `rot: [rx, ry, rz]` derece (Godot varsayılan Euler sırası YXZ).
+- Kütle = collider hacimleri toplamı (`shapes.json`, 3D boyutlar) × `material.density`. Sürtünme/zıplama `PhysicsMaterial` ile malzemeden.
+- **Eksen kilidi yok** (bkz. §2). Kemerler gibi içbükey şekiller: **birden çok BoxShape3D** (compound) — asla concave/trimesh dinamik gövde.
+- `contact_monitor = true`, `max_contacts_reported = 4`. Hasar `_integrate_forces` içinde `state.get_contact_impulse(i)` ile.
+
+### 6.3 Hasar modeli
+```
+hasar = max(0, darbe_impulsu - material.impact_threshold) × ball.damage_mult[material] × dünya/efekt çarpanları
+hp -= hasar
+hp <= 0  → kırıl (fracture) ; hp < %50 → çatlak dokusu (decal/overlay)
+```
+- Sadece topun değil **bloğun bloğa çarpması** da hasar verir (zincirleme yıkım = tatmin).
+- Kırılma: blok sahnesi kaldırılır → önceden parçalanmış `fractured/<shape>.glb` havuzdan alınır, parçalar mevcut hız/dönüşü miras alır.
+  Parçalar `debris_lifetime` sonra küçülüp kaybolur. Büyük parçalar (≥ 0.4 birim) fiziksel ve hasar verebilir; küçükler kozmetik.
+
+### 6.4 Top (`ball.gd`)
+- RigidBody3D, `continuous_cd = true`, eksen kilidi yok; atış yönü 3D (top namlusundan hedef noktaya). Hız = `ball.launch_speed`.
+- Davranış **strateji deseni**: `BallBehavior` (Resource) alt sınıfları `on_launch`, `on_impact(body, impulse)`, `on_physics(delta)`, `on_expire`.
+  Yeni top eklemek = `balls.json` girişi + yeni behavior dosyası. Mevcut kod değişmez.
+- Top `max_life_sec` sonra veya durunca yok olur → bir sonraki atışa geçilir.
+
+### 6.5 Bağlantılar (halat, zincir, sarmaşık)
+- `Generic6DOFJoint3D` / `PinJoint3D`; `joint_link.gd` kopma eşiği ve kesilebilirlik bayrakları. Görsel: segmentli mesh veya `Path3D` boyunca.
+- Kesici Çark ve Alev joint'i koparabilir → asılı **Altın Küre** düşer (zincire asılı küre görseldeki Yanardağ kulesi).
+
+### 6.6 Kazanma kontrolü (`level_referee.gd`)
+Durum makinesi: `AIMING → BALL_IN_FLIGHT → SETTLING → EVALUATE → (AIMING | WON | LOST)`.
+SETTLING: tüm aktif gövdeler uyuyana ya da `settle_timeout_sec` dolana kadar. "Atlama" butonu (hızlı ileri) opsiyonel.
+EVALUATE: her hedef cisim için **kenar kuralı** (§2, `rules.physics.edge_rule`) uygulanır: ağırlık merkezi (x,z) platform dışında veya `fall_kill_y` altında → düştü.
+
+---
+
+## 7. Görsel/render teknik notları
+- **Mobile renderer**, MSAA 2x, glow açık (kristaller ve küre için), tonemap ACES/AgX, dünya başına `Environment.tres`.
+- Kristal bloklar: emissive + fresnel shader (cam parlaması), gerçek kırılma (refraction) yok → performans.
+- Gölge: tek yönlü ışık, yumuşak gölge, düşük çözünürlük; platform altında baked AO decal.
+- Arka plan katmanları WebP, maksimum 2048 px kenar; dokular ASTC/ETC2.
+- Parçacıklar: `GPUParticles3D` (düşük cihazda `CPUParticles3D` fallback, ayar: `rules.quality`).
+- Kalite seviyeleri: `low / medium / high` → gölge, parçacık sayısı, debris sayısı, glow.
+
+## 8. Kayıt (save) şeması
+```json
+{
+  "save_version": 1,
+  "gold": 0,
+  "inventory": { "heavy": -1, "fire": 3 },
+  "levels": { "w01_l01": { "stars": 3, "best_shots_left": 2, "cleared": true } },
+  "unlocked_balls": ["heavy", "fire"],
+  "settings": { "sfx": 1.0, "music": 0.7, "haptics": true, "lang": "tr" },
+  "flags": { "tutorial_done": true, "seen_ball_intro_fire": true }
+}
+```
+Kural: Alan eklenince `save_version` artar ve `SaveManager._migrate_vN_to_vN1()` yazılır. Testi zorunlu.
+
+## 9. Test stratejisi
+- **GUT birim testleri:** Economy (harca/kazan/yetersiz bakiye), Inventory, Progress açılma koşulları, yıldız hesabı, save migrasyonu, GameConfig doğrulama.
+- **Headless bölüm simülasyonu** (`src/tools/sim`): her bölüm için örnek atış noktaları dener → "çözülebilir mi, kaç atışta" raporu (bkz. `03` §8).
+- **Python doğrulayıcı:** JSON şema, referans bütünlüğü (level'daki malzeme `materials.json`'da var mı, top id'leri geçerli mi).
+- **Cihaz testi:** Her faz sonunda en az 1 orta segment Android + 1 iPhone'da 60 FPS kontrolü.
+
+## 10. Mobil yayın notları
+- Android: Godot Android export şablonu, Google Play Billing eklentisi (resmi `GodotGooglePlayBilling` veya güncel topluluk eklentisi), AAB.
+- iOS: **Codemagic** (bulut macOS + Xcode) ile build ve TestFlight yüklemesi (K-015); yerel Mac gerekmez. StoreKit eklentisi. Sena'nın Ordino App Store Connect hesabında Admin rolü var → TestFlight dağıtımı yapılabilir.
+- Eklenti seçimi Faz 10'da güncel duruma göre yapılır; arayüz soyutlaması sayesinde değiştirilebilir.
+
+## 11. Opsiyonel: Godot MCP (Claude'un Godot'u çalıştırıp hata okuması)
+Claude Code'a bir Godot MCP sunucusu eklenirse Claude projeyi çalıştırıp hata çıktısını kendisi okuyabilir. Örnek (topluluk projesi, üçüncü taraf):
+```bash
+claude mcp add godot -e GODOT_PATH=/path/to/godot -- npx @coding-solo/godot-mcp
+```
+Faz 1'den sonra, işler oturunca değerlendir. Zorunlu değil.
+
+---
+
+<!-- DOSYA: docs/03_KULE_VE_BOLUM_TASARIMI.md -->
+
+# 03 — Kule ve Bölüm Tasarım Sistemi
+
+> Amaç: Her bölümde **farklı** bir kule; kule blokları **malzeme mantığına** ve **artan zorluğa** göre seçilir;
+> zorluğu tek bir yerden (`game_data/difficulty.json`) yönetmek. Bölümler **yarı otomatik** üretilir: generator önerir → simülasyon doğrular → Sena/Claude seçip ince ayar yapar.
+
+---
+
+## 1. Türün dersleri (Smash Away ve benzerleri)
+Smash Away mağaza sayfası oyunun özünü şöyle anlatıyor: yapıda bir nokta seç, topu at, gerisini fizik halleder; her aşamada belli sayıda top var;
+yapıyı **bir arada tutan parçayı** ara (alttaki blok, kalabalık bir köşe, kenara yakın bir parça); yığınlar teneke, blok ve karışık malzemelerden oluşur
+ve şekiller aşamadan aşamaya değişir. Buradan çıkan tasarım ilkeleri:
+
+1. **Yük taşıyan katmanlar:** Kule katmanlardan oluşur; destek katmanını vurmak zincirleme çöküş başlatır. Yüzey bloğunu vurmak az iş görür.
+2. **Okunabilirlik:** Oyuncu 2 saniyede "zayıf nokta şurası olabilir" diye tahmin edebilmeli.
+3. **Malzeme = strateji:** Farklı malzemeler farklı top/atış ister.
+4. **Şekil çeşitliliği:** Aynı şablon üst üste gelmemeli (ritim kuralı §6).
+5. **Çift yapı bölümleri:** İki kule = "birini diğerine devir" (domino) veya "kalkanı aş, asıl kuleyi vur" bulmacası.
+
+**Bizim farkımız:** her kulede tasarım gereği **1–3 "anahtar destek" (keystone)** bulunur. Doğru keystone'a tek atış = 3 yıldız.
+Böylece yıldız sistemi "şans" değil "zekâ" ödüllendirir.
+
+---
+
+## 2. Koordinat sistemi ve bölüm dosyası
+
+- Birim: **grid birimi (1 = standart küp)**. Eksenler: **x** sağ (+) / sol, **y** yukarı, **z** ön (+, kameraya doğru) / arka.
+- Platform merkezi `x = 0, z = 0`, platform üst yüzeyi `y = 0`. Platform üst yüzeyi `platform.width` (x) × `platform.depth` (z) dikdörtgendir; kenar kuralı (`02` §2) bu yüzeye göre çalışır.
+- Oynanabilir kule alanı: genişlik ≈ **10 birim** (x: −5…+5), derinlik ≈ **6 birim** (z: −3…+3), yükseklik ≈ **12 birim**.
+- **Blok konumu:** `x, z` = bloğun taban merkezi, `y` = alt yüzeyi. **Dönüş:** `rot: [rx, ry, rz]` derece (Euler YXZ).
+  Çoğu blok yalnızca `ry` ile (dikey eksen etrafında) döndürülür; eğik/devrik yerleşim için `rx` / `rz`.
+- Top (cannon): platformun önünde ve biraz aşağıda, ≈ `(0, -1, +8)`; dünya bazında JSON'dan. Atış yönü 3D.
+
+### 2.1 Bölüm JSON formatı (`game_data/levels/w01_akdeniz/w01_l03.json`)
+```json
+{
+  "id": "w01_l03",
+  "world": "akdeniz",
+  "index": 3,
+  "name_tr": "Üç Kemer",
+  "difficulty": 14,
+  "role": "build_up",
+  "shots": 3,
+  "objective": { "type": "drop_core" },
+  "aim_preview_dots": 14,
+  "platform": { "width": 9, "depth": 5, "style": "stone_island" },
+  "structures": [
+    { "template": "arch_shrine", "x": 0, "z": 0, "ry": 0, "params": { "floors": 2, "depth_layers": 2, "core": "hanging_center" } }
+  ],
+  "blocks": [
+    { "shape": "cube", "mat": "crystal_amber", "x": -3, "y": 0, "z": 1, "rot": [0, 45, 0] }
+  ],
+  "joints": [],
+  "cores": [ { "x": 0, "y": 3.2, "z": 0, "attach": "chain", "attach_to": "b12" } ],
+  "keystones": ["b04", "b07"],
+  "camera_override": null,
+  "modifiers_override": {},
+  "intro_ball": null,
+  "free_balls": {},
+  "baked": false,
+  "_doc": "structures şablondan blok üretir; blocks elle ek/override bloklardır. baked=true ise blocks tam listedir ve şablon yok sayılır. Konum x,y,z (y = alt yüzey), rot = [rx, ry, rz] derece."
+}
+```
+- **`structures`** = şablon çağrıları (kısa, okunur, değiştirmesi kolay).
+- **`blocks`** = elle eklenen/değiştirilen bloklar (her bloğa otomatik `id`: `b01`, `b02`…).
+- `baked: true` → generator çıktısı "dondurulmuş" tam liste (yayın sürümünde bölümler pişirilmiş olur, böylece şablon kodu değişse de bölüm bozulmaz).
+
+---
+
+## 3. Blok şekilleri (`game_data/shapes.json`)
+| id | Boyut (g×y×d) | Kullanım |
+|---|---|---|
+| `cube` | 1×1×1 | Temel blok, kristal, sandık (malzeme `crate`) |
+| `half` | 1×0.5×1 | Döşeme, ince katman |
+| `plank_s` / `plank_l` | 2×0.4×0.9 / 4×0.4×0.9 | Kalas, köprü, kiriş (ry=90 ile derinlik yönünde) |
+| `beam` | 6×0.5×0.9 | Uzun kiriş (çift kule köprüsü) |
+| `pillar_2` / `pillar_3` | 0.6×2×0.6 / 0.6×3×0.6 | Sütun |
+| `slab_2x2` / `slab_3x3` | 2×0.3×2 / 3×0.3×3 | **Yeni:** kat döşemesi — derinlikli kulelerde sütun ızgarasının üstüne kat |
+| `arch` | 3×2×1 (2 ayak + kemer) | Kemer — 3 kutu çarpışma şekli |
+| `half_arch` | 1.5×2×1 | Yarım kemer (asimetrik) |
+| `truss` | 3×1.5×0.8 | Ahşap üçgen kafes (görsel 03) |
+| `wedge` | 1×1×1 üçgen prizma | Rampa, kama |
+| `barrel` | ø0.8×1 | Fıçı (Korsan) — yuvarlanabilir, her yöne |
+| `ring_hanger` | 1.5×1.5×1 | Altın Küre yuvası (U şekli) |
+| `core_sphere` | ø0.9 | Altın Küre |
+
+## 4. Yapı şablonları (template) — kule "dil bilgisi"
+Her şablon parametreli bir fonksiyondur (`src/gameplay/level/templates/*.gd`), blok listesi döndürür.
+
+| Şablon | Tanım | Keystone nerede | Zorluk aralığı |
+|---|---|---|---|
+| `stack_pyramid` | Kristal/küp piramit, tepede küre | Alt orta blok | 1–25 |
+| `arch_shrine` | Ortada kemer, içinde asılı küre, iki yanda kule | Kemer ayakları, kiriş | 5–60 |
+| `twin_pillars` | İki sütun + üstte kalas + üstünde yük | Sütunlardan biri | 1–30 |
+| `truss_bridge` | Üçgen ahşap kafes + üstünde taş katlar (görsel 03 sol) | Kafesin orta dikmesi | 20–70 |
+| `staircase` | Bir yana yaslanan basamak kule | Alt basamak | 10–50 |
+| `cantilever` | Tek taraftan taşan kiriş, ucunda karşı ağırlık | Karşı ağırlık / mesnet | 30–80 |
+| `fortress_wall` | Önde alçak kalkan duvar, arkada asıl kule | Duvarın üstünden lob atış | 40–90 |
+| `hanging_core` | Küre zincire/halata asılı (görsel 02 sağ) | Zincir (Kesici/Alev), taşıyıcı kiriş | 30–90 |
+| `seesaw_ramp` | Eğik kalas + mafsal (görsel 02 sol) | Rampanın ucu | 25–70 |
+| `tall_needle` | Dar ve yüksek kule, yüksek küre | Üst üçte bir | 20–60 |
+| `domino_row` | Yan yana dizili ince bloklar → zincirleme | İlk blok | 5–50 |
+| `twin_towers` | İki ayrı kule (bkz. §5); yan yana veya önde–arkada | Biri diğerine devrilir | 35–100 |
+| `grid_tower` | **Derinlikli:** 2×2 / 3×3 sütun ızgarası, her katta `slab` döşeme (Smash Away'in klasik kat kat kulesi) | Alt kattaki bir köşe/ön sütun | 1–70 |
+| `ziggurat` | **Derinlikli:** her yöne daralan 3D basamaklı piramit, tepede küre | Alt kat ön-orta blok | 5–40 |
+| `ring_fort` | **Derinlikli:** kare planlı 4 duvar, iç avluda yükseltilmiş küre | Ön duvarın orta-altı veya lob atış | 40–90 |
+| `l_tower` | **Derinlikli:** L planlı asimetrik kule, yük tek kola binmiş | Kolların birleştiği köşe | 30–80 |
+
+Her şablon ayrıca `depth_layers` (1–3) parametresi alır: kulenin z yönünde kaç sıra olduğu (`difficulty.json → curves.depth_layers`).
+Düşük zorlukta 1 sıra (okunur, neredeyse düz), yüksek zorlukta 2–3 sıra (arkadaki destekler bulmacayı derinleştirir).
+
+**Kurallar (her şablon uymak zorunda):**
+1. **3D statik denge** (generator `support_check`):
+   a. Her blok için taban ayak izinin altındaki destek yüzeyleriyle (platform veya alttaki bloklar) **kesişimi** bulunur; dönüşler (`rot`) hesaba katılır.
+      Kesişimlerin xz düzlemindeki dışbükey zarfı = **destek poligonu**.
+   b. Bloğun **ve üstündeki tüm yükün** birleşik ağırlık merkezinin (x, z) izdüşümü bu poligonun içinde ve kenarına en az `rules.physics.support_margin` uzaklıkta olmalı.
+   c. Eğik bloklar (`rx`/`rz` ≠ 0) için destek, temas noktalarından hesaplanır.
+   d. Son doğrulama fizikle: `pre_settle_sec` simülasyonunda hiçbir blok `rules.physics.max_settle_drift` birimden fazla kaymamalı.
+2. **Keystone garantisi:** Şablon en az 1 keystone işaretler; simülasyon bu bloğa vurulunca hedefin gerçekleştiğini doğrular.
+3. **Görüş hattı (S-007):** v1'de kamera sabittir; bu yüzden **her keystone varsayılan kamera açısından (`rules.camera`) görünür olmalı** — en az bir yüzü önden/üstten açıkça görünür, başka bloğun arkasında saklı değil. Ayrıca toptan **doğrudan ya da lob atışla** ulaşılabilir olmalı. Arkada saklı veya önü tamamen kapalı keystone yasak. (Kamera döndürme v2'de gelirse bu kural yeniden değerlendirilir.)
+4. **Simetri ayarı:** `symmetry` parametresi 0–1; düşük zorlukta simetrik (okunur), yüksekte asimetrik (şaşırtıcı).
+5. **Kenar payı:** Bloklar platform kenarından en az 0.3 birim içeride doğar; aksi halde kenar kuralı (`02` §2) bölüm başında yanlış "düştü" sayabilir.
+
+## 5. Çift kule ve çoklu yapı mantığı
+`structures` dizisinde birden çok şablon → aynı platformda veya **ayrı platformlarda** (Gökyüzü Adaları).
+
+| Desen | Kurgu | Oyuncunun keşfi |
+|---|---|---|
+| **Domino ikilisi** | Uzun ince kule A (küresiz) + yanında asıl kule B (küreli). Gülle sayısı az. | "A'yı B'nin üstüne devirirsem ikisini birden yıkarım" |
+| **Kalkan + hedef** | Önde (+z) ağır taş kalkan, arkada (−z) kırılgan kule | "Kalkanı değil, üstünden lob at" veya Çekim Topu |
+| **Köprülü ikiz** | İki kule arasında `beam` köprü, küre köprünün ortasında | "Köprüyü taşıyan bir kuleyi yık" |
+| **İki küre** (`drop_all_cores`) | Her kulede bir küre | Atış ekonomisi: tek atışla ikisini düşürecek açı |
+| **Boss** | 3 yapı, 5 gülle, karışık malzeme, dünya modifier'ı maksimum | Dünyada öğrenilen her şey |
+
+## 6. Zorluk sistemi (`game_data/difficulty.json`)
+
+### 6.1 Tek sayı: `difficulty` (1–100)
+Her bölüm bir zorluk puanı taşır. Generator bu puanı **parametrelere** çevirir; tablolar `difficulty.json`'da, **elle değiştirilebilir**:
+
+| Parametre | d=1 | d=50 | d=100 | Etki |
+|---|---|---|---|---|
+| `block_count` | 6 | 28 | 60 | Daha çok blok = daha çok kütle |
+| `height` (birim) | 3 | 7 | 11 | Yüksek küre = zor erişim |
+| `heavy_ratio` (taş/metal oranı) | 0.1 | 0.45 | 0.75 | Ağır malzeme = az yıkım |
+| `redundancy` (yedek destek) | 0 | 1 | 3 | Keystone kırılsa da ayakta kalma |
+| `core_protection` | 0 | 1 | 3 | Küre etrafındaki koruyucu katman |
+| `shots` | 3 | 3 | 4–5 | Zor bölümlerde ekstra hak (oyuncuyu sinirlendirmemek için) |
+| `aim_preview_dots` | 20 | 12 | 6 | Kısa yörünge = tahmin zorlaşır |
+| `symmetry` | 1.0 | 0.6 | 0.2 | |
+| `depth_layers` | 1 | 1–2 | 3 | Kulenin z yönünde kaç sıra olduğu (derinlik) |
+| `modifier_strength` | 0 | 0.6 | 1.0 | Dünya kuralının şiddeti (rüzgâr, kayganlık…) |
+
+Ara değerler **doğrusal interpolasyon** (veya `difficulty.json`'daki eğri noktaları). Global çarpan: `difficulty.global_multiplier`
+(tüm oyunu bir tıkla %10 kolaylaştır/zorlaştır).
+
+### 6.2 Bölüm ritmi (dünya başına 10 bölüm) — "testere dişi" eğri
+```
+zorluk
+ ^                                   ▲B10 (boss)
+ |                          ▲8
+ |              ▲6    ▲7          ▼9
+ |        ▲3 ▼4    ▲5
+ |  ▲1 ▲2
+ +---------------------------------------> bölüm
+```
+| Bölüm | Rol (`role`) | Açıklama |
+|---|---|---|
+| 1 | `intro` | Dünyaya giriş, kolay, yeni arka planı göster |
+| 2–3 | `build_up` | Dünyanın imza malzemesi ve modifier'ı tanıtılır |
+| 4 | `breather` | Kolay ama **çok tatmin edici** (bol kristal, büyük çöküş) |
+| 5 | `new_mechanic` | Yeni top/mekanik tanıtımı (varsa) |
+| 6–7 | `combine` | Mekanikleri birleştir |
+| 8 | `challenge` | Zor |
+| 9 | `breather` / `spectacle` | Görsel şov, nefes alma |
+| 10 | `boss` | Çoklu yapı, en zor, büyük ödül |
+
+Dünya başlangıç zorluğu bir önceki dünyanın ortası civarı: `world_base = 8 + (world_index-1) * 10`, bölüm ofsetleri `difficulty.json → rhythm`.
+
+### 6.3 Malzeme mantığı (dünya paleti)
+Generator blok malzemesini rastgele değil **dünya paleti + zorluk** ile seçer:
+- `worlds.json → palette`: `{ "stone": 0.4, "wood": 0.3, "crystal_amber": 0.15, "crystal_cyan": 0.15 }`
+- Zorluk arttıkça `heavy_ratio`'ya göre taş/metal payı artar, kristal payı azalır (ama asla 0 olmaz — her kulede kırılacak parlak şey olmalı).
+- **Rol kuralları:** Sütunlar/temeller ağır malzeme; üst katlar hafif; keystone'lar **görsel olarak ayırt edilebilir** (ör. ahşap kiriş taş kulede).
+- Top tanıtım bölümünde paletin ağırlığı o topun güçlü olduğu malzemeye kayar (Alev → ahşap %60).
+
+## 7. Top tanıtım bölümü tarifi
+Örnek — Alev Topu (W1 B8):
+- Kule: ahşap kafes + sandıklar ağırlıklı, küre ahşap kiriş üstünde, taş kalkan önde.
+- Ağır topla 3 atışta **zor**, Alev topuyla **tek atışta** muhteşem yanma zinciri.
+- Bölüme girerken: "Yeni! Alev Topu" kartı + 1 bedava top (`free_balls: {"fire": 1}`), top seçicide yanıp söner.
+
+## 8. Üretim hattı (pipeline)
+
+```mermaid
+flowchart LR
+  A[difficulty + world + role] --> G[Generator<br/>şablon seç + parametreler]
+  G --> C1{support_check<br/>statik denge}
+  C1 -- hata --> G
+  C1 --> S[Headless Sim<br/>N örnek atış]
+  S --> M[Metrikler:<br/>1-atış çözüm oranı,<br/>ortalama atış,<br/>yıkım %]
+  M --> F{Hedef aralıkta mı?}
+  F -- hayır --> G
+  F -- evet --> V[Aday bölüm x5]
+  V --> H[Sena / Claude seçer<br/>editörde ince ayar]
+  H --> J[baked JSON<br/>git commit]
+```
+
+### 8.1 Simülasyon metrikleri ve hedefler (`difficulty.json → sim_targets`)
+- `one_shot_solve_rate`: rastgele örneklenen 200 atış noktasından kaçı tek atışta çözüyor.
+  - intro: %30–60 · build_up: %10–30 · challenge: %2–8 · boss: %0.5–3 (ama 0 olamaz!)
+- `any_solve_rate_within_shots`: verilen atışla çözülebilirlik (açgözlü strateji ile) ≥ %20 olmalı.
+- `keystone_check`: her keystone'a doğrudan atış → hedef gerçekleşmeli (en az birinde).
+- `collapse_ratio`: çözümde platformdan düşen blok oranı (tatmin ölçüsü) ≥ 0.5 tercih edilir.
+
+### 8.2 Bölüm editörü (Godot editör eklentisi, Faz 3)
+- Sol panel: şablon/blok paleti · Orta: grid üzerinde sürükle-bırak · Sağ: seçili bloğun malzemesi, döndürme, keystone işareti.
+- Butonlar: **Test Et** (oyunu bu bölümle başlat) · **Simüle Et** (metrikleri göster) · **Kaydet (JSON)** · **Yeniden Üret (seed)**.
+- Claude'a da yaptırılabilir: `/ordino-level-designer w02 bölüm 6'yı daha zor yap, halat ekle`.
+
+## 9. 80 bölüm için başlangıç planı
+- Her dünya için `difficulty.json → rhythm` ile 10 bölümün zorluk ve rolü otomatik belirlenir.
+- Faz 9'da generator her bölüm için 5 aday üretir → en iyiler seçilir → elle cilalanır.
+- Bölümlerin %20'si (her dünyada 1, 4, 9, 10) **elle tasarlanır** (imza anlar); geri kalanı generator + ince ayar.
+
+---
+
+<!-- DOSYA: docs/04_GORSEL_URETIM_VE_PROMPTLAR.md -->
+
+# 04 — Görsel Üretim Rehberi ve Prompt Kütüphanesi
+
+> `docs/referans/` içindeki 6 görsel **temsilidir**: stil, renk ve his referansıdır; doğrudan oyuna konmaz.
+> Bu doküman neyin **AI görseli**, neyin **3D model**, neyin **shader/efekt** olacağını ve hazır promptları içerir.
+> Yeni prompt gerektiğinde: `/ordino-art-prompts` skill'i bu dosyadaki stil kılavuzunu kullanarak üretir.
+
+---
+
+## 1. Neyi nasıl üretiyoruz? (en önemli karar tablosu)
+
+| Varlık | Yöntem | Neden | Ne zaman |
+|---|---|---|---|
+| Dünya arka planları (8) | **AI görsel** (GPT image vb.) | Resimsel, sinematik sahne; 3D'de yapmak çok pahalı | Faz 7 (MVP'de düz renk gradyan) |
+| Arka plan hareketli öğeler (şelale, lav akışı, balık, bulut) | AI görsel (ayrı, şeffaf PNG) + shader/animasyon | Canlılık | Faz 7–8 |
+| Dünya kartları (level map, 8) | **AI görsel** | Pazarlama kalitesinde kart | Faz 7 |
+| **Bloklar** (taş, ahşap, kristal…) | **3D mesh (Blender scripti)** + **AI dikişsiz doku** | Fizikte dönen/kırılan nesne 2D resim olamaz | Faz 1'de primitif, Faz 7'de final |
+| Kırık parçalar | Blender Cell Fracture (scriptle) | Gerçekçi kırılma | Faz 7 |
+| Kaide / platform (dünya başına) | 3D mesh + AI doku | Blokların kenardan düşüşü 3D görünmeli | Faz 7 |
+| Top (cannon) | 3D mesh (Blender) + AI doku, ya da 2D katmanlı sprite | Referanstaki kırmızı-altın top; sadece döner | Faz 7 |
+| Gülleler – oyun içi | 3D küre + **shader** (alev, elektrik, girdap) + parçacık | Hareketli efekt resimle olmaz | Faz 5/8 |
+| Gülleler – UI ikonları (6) | **AI görsel** (şeffaf PNG) | Mağaza ve seçici ikonları | Faz 6–7 |
+| Altın Küre | 3D küre + altın PBR + glow | | Faz 1 |
+| UI kiti (buton, panel, yıldız, altın, rozet) | **AI görsel** + 9-slice düzenleme | Tutarlı premium UI | Faz 7 |
+| VFX dokuları (kıvılcım, duman, cam kıymığı, ateş) | AI görsel (siyah zeminde) veya hazır ücretsiz paketler | | Faz 8 |
+| Uygulama ikonu, mağaza görselleri, tanıtım videosu | AI görsel + oyun içi ekran görüntüsü; video için (ör. Higgsfield gibi video araçları) | | Faz 11 |
+
+**Cevap: "Her taş için GPT promptu gerekir mi?"** → **Hayır.** Bloklar 3D model olacak; her **malzeme** için 1 dikişsiz doku promptu yeter
+(taş, ahşap, kristal, buz, lav taşı, metal…  ~12 doku). Arka planlar, kartlar, ikonlar ve UI için prompt gerekir (~60 görsel toplam).
+
+---
+
+## 2. Stil kılavuzu (Style Bible) — her promptun başına eklenir
+
+```
+[ORDINO STYLE BIBLE]
+Premium stylized 3D mobile game art, semi-realistic hand-painted look, rendered like a high-end casual puzzle game.
+Vibrant saturated colors, warm golden accents, soft global illumination, gentle bloom on light sources,
+crisp readable silhouettes, glossy highlights on stone and crystal, painterly sky and clouds,
+rich depth with atmospheric perspective. Friendly, magical, inviting mood. No characters, no text, no logos, no UI.
+Clean composition with a clear empty central stage.
+```
+
+**Renk kuralları:**
+- Oyunun "imza" renkleri: **altın sarısı** (küre, top süslemeleri, UI çerçeveleri), **turkuaz** ve **amber** kristaller, **kırmızı** top.
+- Arka plan **oyun alanından daha düşük kontrastlı** olmalı: kule ve bloklar her zaman öne çıkar. Arka planı %10–15 bulanık/yumuşak tutun.
+- Her dünya bir **baskın renk ailesi**: Akdeniz=turkuaz/krem, Korsan=sıcak turuncu/kahve, Yanardağ=kırmızı/turuncu/siyah, Buz=mavi/beyaz,
+  Çöl=altın/kum, Orman=mor/yeşil, Gökyüzü=pastel mavi/pembe, Sualtı=derin mavi/turkuaz.
+
+## 3. Arka plan kompozisyon kuralları (çok önemli)
+
+```
+ ┌──────────────────────┐  1080 x 1920 (portre). Üretim: 1024x1536 → 2x upscale.
+ │  ÜST %12: sakin gök   │  ← HUD buraya gelir (level, gülle, ayar). Detay az.
+ │                      │
+ │   ARKA SAHNE         │  ← dünyanın kimliği: uzak yapılar, dağlar, gemi direği…
+ │   (yanlarda yoğun)    │
+ │ ┌────────────────┐   │
+ │ │  BOŞ MERKEZ    │   │  ← %25–70 dikey: KULE ALANI. Burada hiçbir nesne olmamalı,
+ │ │  (kule alanı)  │   │     sadece yumuşak arka plan. Kaide 3D olarak Godot'ta eklenir.
+ │ └────────────────┘   │
+ │  ZEMİN / ÖN DEKOR     │  ← %72–100: zemin, köşelerde dekor (vazo, fıçı, mercan…)
+ │  (orta alt boş: top)  │     alt ortada top (cannon) için boşluk.
+ └──────────────────────┘
+```
+Her arka plan promptuna eklenecek kompozisyon bloğu:
+```
+[COMPOSITION]
+Vertical portrait 2:3 composition. Keep the central area (from 25% to 70% of the height, middle 70% of the width) completely empty and calm —
+no objects, no structures, no towers in the center; this is where gameplay happens.
+Decorative elements only along the left and right edges and in the bottom corners. Keep the bottom-center area clear for a cannon.
+Keep the top 12% simple sky/ceiling for UI. Slightly soft focus on the background for depth. Eye-level camera, slight low angle.
+```
+**Negatif kısıtlar (her zaman ekle):** `Do not include: towers, blocks, cannon, balls, characters, people, text, letters, numbers, logos, UI, frames, watermarks.`
+
+**Referans görsel kullanımı:** GPT görsel üretiminde ilgili referans görselini (örn. `02_gameplay_col_yanardag.png`) ekleyip şunu yaz:
+`Use the attached image ONLY as a style and color reference for the environment. Do not copy the tower, the cannon or the UI.`
+
+### 3.1 Katmanlama (paralaks için)
+1. **Tam sahne** (yukarıdaki prompt) → `far.webp` olarak kullanılabilir.
+2. Ön dekor (sol/sağ köşe öğeleri) ayrı: `transparent background PNG, isolated foreground props for the left/right corners` → `front.png` (hafif paralaks + titreşimle kımıldar).
+3. Animasyonlu öğe (şelale akışı, lav, balık sürüsü) ayrı şeffaf PNG veya Godot shader'ı ile.
+
+---
+
+## 4. Dünya arka plan promptları (8) — kopyala-yapıştır
+
+> Her birinin önüne **[ORDINO STYLE BIBLE]**, sonuna **[COMPOSITION]** + negatif kısıtları ekle.
+
+**1. Akdeniz Sahili (`akdeniz`)**
+```
+A sunny Mediterranean coastal cove at golden afternoon. Turquoise crystal-clear shallow water, white limestone cliffs,
+ancient Greek-style stone arches and columns on the left and right edges, magenta bougainvillea flowers draping over ruins,
+distant small white island with an old temple, soft fluffy clouds, sparkling sea reflections. Foreground: sunlit pale stone tiles,
+terracotta amphora vases and flowers in the bottom corners.
+```
+**2. Korsan Gemisi (`korsan`)**
+```
+The open main deck of a grand wooden pirate ship at sunset. Warm orange and pink sky over the ocean, tropical cliffs with a waterfall in the distance,
+ship's wheel on the left edge, rigging ropes and a tattered black flag with a skull on the right edge, glowing brass lanterns,
+polished wooden deck planks in the foreground, barrels, coiled rope, treasure chest with gold coins, spyglass and compass in the bottom corners.
+```
+**3. Yanardağ (`yanardag`)**
+```
+A dramatic volcanic landscape at dusk. An erupting volcano in the far background with glowing lava rivers running down,
+dark basalt rock formations with glowing orange cracks on both edges, rising embers and ash particles in the air, smoky red-purple sky,
+glowing orange-red crystals growing from rocks in the bottom corners, cracked obsidian ground with thin lava veins in the foreground.
+```
+**4. Buz Mağarası (`buz`)**
+```
+A magical ice cave interior. Huge translucent blue icicles hanging from the ceiling, glowing cyan crystal clusters on the left and right walls,
+a bright icy tunnel opening glowing in the far background, frozen lake floor with mirror reflections in the foreground,
+snow-covered rocks and ice crystals in the bottom corners, floating sparkles, cool blue and white palette with soft cyan glow.
+```
+**5. Çöl Vadisi (`col`)**
+```
+A golden desert valley under a bright blue sky. Rolling sand dunes, an ancient sandstone fortress and arched aqueduct ruins on the edges,
+a caravan of camels small in the far distance, palm trees on the left edge, a colorful market tent awning on the right,
+warm sand ground with ornate clay pots and desert plants in the bottom corners, heat haze, warm golden light.
+```
+**6. Büyülü Orman (`orman`)**
+```
+An enchanted mystical forest at twilight. Giant ancient trees with twisting roots, glowing purple and teal mushrooms,
+floating fireflies and magical particles, soft beams of light through the canopy, hanging vines on both edges,
+mossy stones and glowing violet crystals in the bottom corners, a calm reflective stream in the foreground, purple-green palette.
+```
+**7. Gökyüzü Adaları (`gokyuzu`)**
+```
+Floating sky islands high above the clouds at dawn. Small grassy floating islands with waterfalls pouring into the clouds,
+ancient stone arches and a distant white fairytale castle on a floating island, rope bridges between islands at the edges,
+pastel pink and blue sky, sea of soft clouds below, pink flowers and grassy rock ledge in the bottom corners.
+```
+**8. Sualtı Harabeleri (`sualti`)**
+```
+Sunken ancient ruins deep underwater. Shafts of sunlight streaming down from the surface, broken marble columns and a giant stone statue head on the edges,
+colorful pink and purple coral reefs, swaying seaweed, schools of small tropical fish and a sea turtle in the distance, rising bubbles,
+sandy sea floor with starfish, an anchor and an open treasure chest with gold coins in the bottom corners, deep blue and turquoise palette.
+```
+
+## 5. Dünya kartları (level map) — 8 adet
+Kart, o dünyanın **ikonik bir kulesini** gösterir (kartta kule olabilir, oyunda olmaz).
+```
+[ORDINO STYLE BIBLE]
+Square 1:1 hero illustration card for the world "<DÜNYA ADI EN>". In the center, an iconic stacked tower made of
+<dünyanın malzemeleri: e.g. limestone arches, wooden planks and glowing amber and turquoise glass cubes>, with a shiny golden sphere hanging inside a stone arch.
+Background: <dünya arka plan özeti, 1 cümle>. Strong rim light, cinematic, very readable at small size. No text, no frame, no UI.
+```
+Kart çerçevesi, isim şeridi ve yıldız rozeti **UI'da** (Godot) eklenir → görselde yazı **olmamalı** (Türkçe karakterleri AI bozar).
+
+## 6. Top ikonları (6) — şeffaf arka plan
+```
+[ORDINO STYLE BIBLE]
+Game item icon, a single <TOP TANIMI> centered, 3/4 view, isolated on a fully transparent background, soft drop glow,
+strong readable silhouette, 1024x1024. No pedestal, no text.
+```
+| Top | `<TOP TANIMI>` |
+|---|---|
+| Ağır | `heavy dark iron cannonball with hammered metal texture and subtle scratches, cool steel highlights` |
+| Alev | `molten fireball with cracked glowing lava crust, bright orange-yellow flames wrapping around it` |
+| Kesici Çark | `spinning circular steel saw blade with sharp teeth and a golden center hub, motion sparks` |
+| Buz | `faceted ice crystal sphere, translucent pale blue, frost mist and tiny snowflakes around it` |
+| Elektrik | `dark blue energy orb with crackling violet lightning arcs over its surface` |
+| Çekim | `swirling purple vortex sphere like a tiny black hole, small rock fragments orbiting it` |
+
+(Referans: `06_ozel_top_seti.png` — kaideler olmadan, sadece top.)
+
+## 7. Malzeme dokuları (dikişsiz) — 3D bloklar için
+```
+Seamless tileable PBR texture, flat orthographic top-down view, even diffuse lighting, no shadows, no perspective, no objects,
+stylized hand-painted game texture matching a vibrant premium mobile game, 1024x1024, <MALZEME TANIMI>.
+```
+| Malzeme | `<MALZEME TANIMI>` |
+|---|---|
+| stone | `warm cream limestone blocks, soft worn edges, subtle cracks, light beige` |
+| wood | `rich brown wooden planks with visible grain, slightly painted, iron bolt holes` |
+| crate | `light wooden crate boards with an X brace pattern` (yüz dokusu, dikişsiz değil) |
+| crystal_amber | `glowing amber glass with inner light and subtle internal facets` |
+| crystal_cyan | `glowing turquoise glass with inner light and subtle internal facets` |
+| ice | `translucent blue ice with frost and trapped bubbles` |
+| lava_rock | `dark basalt rock with glowing orange lava cracks` (+ ayrı emissive maske iste) |
+| metal | `riveted dark steel plates with brass rivets` |
+| snow_stone | `grey stone covered with soft snow on top edges` |
+| sandstone | `golden sandstone with carved ornamental patterns` |
+| mossy_stone | `grey stone with green moss and tiny glowing spores` |
+| coral_stone | `pale marble stone with barnacles and small coral growth` |
+
+Normal/roughness haritaları: albedo'dan türet (ör. Materialize / Godot içi araç / Blender scripti) — Claude script yazabilir.
+
+## 8. UI kiti promptu
+```
+[ORDINO STYLE BIBLE]
+Mobile game UI kit sprite sheet on a transparent background: rounded dark navy glossy panels with thin golden borders,
+large golden buttons with soft bevel (normal and pressed states), circular gear settings button, back arrow button,
+three golden stars (filled and empty), gold coin icon, purple gem icon, plus button, lock icon, shot indicator pearls (white glowing and empty),
+laurel decorations. Evenly spaced, each element separated. No text.
+```
+Sonra Claude/Sena elemanları kesip `assets/ui/` altına 9-slice ayarlarıyla koyar. Yazılar Godot'ta font ile (ör. kalın, yuvarlak, Türkçe karakter destekli bir font).
+
+## 9. Kalite kontrol listesi (her görsel için)
+- [ ] Merkez kule alanı boş mu? Kule/yazı/karakter yok mu?
+- [ ] Arka plan, oyun bloklarından daha az kontrastlı mı? (Üstüne gri kutu koyup test et.)
+- [ ] Dünyanın renk ailesine uyuyor mu? Diğer 7 dünya ile yan yana tutarlı mı?
+- [ ] Alt orta (top) ve üst şerit (HUD) sakin mi?
+- [ ] Çözünürlük ≥ 1024×1536; upscale sonrası artefakt yok mu?
+- [ ] Dosya adı kuralı: `assets/backgrounds/<world_id>/far.webp`
+
+## 10. Prompt üretme kararı — ne zaman?
+- **Şimdi (Faz 0–1):** Stil kılavuzu sabit. Görsel üretme; gri kutu prototiple oyunun eğlenceli olduğunu kanıtla.
+- **Faz 7'de:** Claude, `/ordino-art-prompts` ile her dünyaya özel tam prompt setini (arka plan + ön dekor + kart + platform dokusu) üretir;
+  Sena görselleri üretip `incoming_art/` klasörüne atar; Claude isimlendirip doğru yerlere yerleştirir ve kalite kontrol listesini uygular.
+
+---
+
+<!-- DOSYA: docs/05_EKONOMI_VE_MONETIZASYON.md -->
+
+# 05 — Ekonomi ve Monetizasyon
+
+> Tüm sayılar `game_data/economy.json` ve `game_data/balls.json` içindedir. Buradaki tablolar **başlangıç önerisidir**.
+> Değiştirdikten sonra `python3 tools/economy_sim.py` çalıştır → oyuncunun hangi bölümde ne kadar altını olduğunu görürsün.
+
+## 1. Para birimleri
+| Birim | Kazanım | Harcama | v1? |
+|---|---|---|---|
+| **Altın** 🪙 | Bölüm yıldızları, kristal kırma, dünya bitirme, ödüllü reklam, IAP | Özel top paketleri, +1 gülle | ✅ |
+| Elmas 💎 | IAP, nadir ödüller | Premium içerik, kostümler (top görünümleri) | ⏸ (sistem hazır, kapalı: `economy.currencies.gem.enabled=false`) |
+
+## 2. Altın kazanımı ⚙️ `economy.json → rewards`
+| Kaynak | Değer (öneri) | Not |
+|---|---|---|
+| ⭐ 1 yıldız (ilk geçiş) | 10 | |
+| ⭐⭐ 2 yıldız (ilk geçiş) | 20 | |
+| ⭐⭐⭐ 3 yıldız (ilk geçiş) | 35 | Fark büyük → 3 yıldız için tekrar oynama motivasyonu |
+| Tekrar oynama (yıldız artırmadan) | ilk değerin %20'si | Altın "farm"ını sınırlar |
+| Yıldız yükseltme (1→3) | `fark` (35−10=25) + tekrar ödülü | Asla eksik/fazla ödeme yok |
+| Kristal blok kırma | +1 / kristal (bölüm başı tavan 8) | Yıkımı ödüllendirir |
+| Boss bölüm | yıldız ödülü × 2 | |
+| Dünyayı bitirme | 100 | |
+| Dünyada 30/30 yıldız | 150 + (ileride) özel top görünümü | |
+| Ödüllü reklam: "ödülü 2x yap" | ×2 | Günlük limit ⚙️ |
+
+**Formül (kod):**
+```
+first_clear_reward = rewards.stars[stars]
+replay_reward      = round(rewards.stars[stars] * rewards.replay_ratio)
+upgrade_reward     = rewards.stars[new] - rewards.stars[old]
+total = (ilk geçiş ? first_clear_reward : upgrade_reward + replay_reward) * (boss ? boss_mult : 1) + crystal_coins
+```
+
+## 3. Altın harcama ⚙️
+| Ürün | Fiyat (öneri) |
+|---|---|
+| Alev Topu ×3 | 120 |
+| Kesici Çark ×3 | 150 |
+| Buz Topu ×3 | 180 |
+| Elektrik Topu ×3 | 220 |
+| Çekim Topu ×2 | 300 |
+| +1 Gülle (başarısız ekranında) | 50 (veya ödüllü reklam) |
+
+**Denge hedefi (sim ile kontrol):** Ortalama oyuncu (ortalama 2.2 yıldız) her dünya sonunda **2–3 özel top paketi** alabilecek kadar altın biriktirmeli.
+Çok cömert → IAP satmaz; çok cimri → oyuncu sıkılır. Hedef: oyuncuların ~%3–5'i IAP yapsın, kalanlar özgürce oynayabilsin.
+
+## 4. Gerçek parayla altın (IAP) ⚙️ `economy.json → iap_products`
+| Ürün id | İçerik | Fiyat kademesi (öneri) |
+|---|---|---|
+| `gold_s` | 500 altın | ~$0.99 |
+| `gold_m` | 1.300 altın (+%30) | ~$1.99 |
+| `gold_l` | 3.500 altın (+%40) | ~$4.99 |
+| `gold_xl` | 8.000 altın (+%60) "En popüler" | ~$9.99 |
+| `gold_xxl` | 18.000 altın (+%80) "En iyi değer" | ~$19.99 |
+| `starter_pack` | 1.000 altın + her özel toptan 2 adet (tek seferlik, 3. dünyada gösterilir) | ~$2.99 |
+| `remove_ads` | Zorunlu reklam yok (v1'de zaten yok → ileride) | ~$3.99 |
+
+- Gerçek fiyatlar App Store Connect / Google Play Console'da **fiyat kademesi** olarak ayarlanır; JSON'daki fiyat yalnızca yedek gösterimdir, ekranda **mağazadan gelen yerelleştirilmiş fiyat** gösterilir (₺ dahil).
+- Altın = **tüketilebilir (consumable)** ürün. Satın alma doğrulaması: v1'de istemci taraflı; ileride sunucu doğrulaması.
+
+## 5. Reklam (opsiyonel, v1 sınırlı)
+- Yalnızca **ödüllü reklam**: "+1 gülle", "ödülü 2x", "günlük bedava top". Zorla gösterilen (interstitial) reklam **yok** (v1).
+- `AdsService` arayüzü; sağlayıcı (AdMob vb.) Faz 10'da güncel Godot eklentisine göre seçilir.
+
+## 6. Etik ve mağaza kuralları
+- Gerçek para ile satın alma ekranında içerik net yazılır; "loot box" (rastgele ödül) **yok**.
+- Çocuk oyuncu ihtimali yüksek → ebeveyn kapısı (yaş kapısı) ve mağaza politikalarına uyum (Faz 11 kontrol listesi).
+- Satın alma işlemleri iade/geri yükleme (restore) desteklemeli (iOS zorunlu, tüketilebilirde "remove_ads" için).
+
+## 7. Analitik olaylar (denge için şart)
+`level_start`, `level_complete(stars, shots_used, ball_used)`, `level_fail(attempt)`, `ball_purchase(id, price)`, `gold_earn(reason, amount)`,
+`gold_spend(reason, amount)`, `iap_purchase(product)`, `shop_open(source)`, `ad_reward(placement)`.
+Bunlarla: hangi bölümde oyuncu takılıyor (fail oranı), ekonomi enflasyonu, hangi top popüler → JSON'u güncelle.
+
+---
+
+<!-- DOSYA: docs/06_YOL_HARITASI.md -->
+
+# 06 — Yol Haritası (adım adım, Claude ile)
+
+> Her faz: **Amaç → Claude Code'a yapıştırılacak prompt → Bitti kriteri (Sena test eder)**.
+> Kural: Bir faz bitmeden sonrakine geçme. Her faz sonunda `git commit` ve `CLAUDE.md §8 Mevcut durum` güncellenir.
+> Büyük fazlarda önce **plan modu** (Claude Code'da Shift+Tab ile) → planı oku → onayla → uygulat.
+
+---
+
+## Nerede hangi Claude?
+| İş | Araç | Neden |
+|---|---|---|
+| Kod yazma, dosya oluşturma, test çalıştırma | **Claude Code — VS Code eklentisi** (veya terminal) | Repo'daki dosyaları doğrudan görür/değiştirir, `CLAUDE.md` ve skill'leri otomatik yükler |
+| Tasarım tartışması, görsel değerlendirme, prompt üretimi, ekran görüntüsü yorumlama | **Claude uygulaması** (claude.ai / masaüstü) — bir **Proje** aç, `ORDINO_TUM_DOKUMAN.md`'yi proje bilgisine ekle | Uzun sohbet, görsel analizi, karar verme |
+| Bölüm tasarlama, denge, prompt | İkisinde de: Claude Code'da `/ordino-level-designer`, `/ordino-balance`, `/ordino-art-prompts` | Skill'ler repo içinde |
+
+**Altın ipuçları (Claude Code):**
+- Her yeni büyük işte yeni oturum aç; bağlam şişince `/compact`.
+- "Önce planla, kod yazma" de → plan modunu kullan.
+- Bir şey bozulursa: hata mesajını ve Godot çıktısını **olduğu gibi** yapıştır.
+- Her adımdan sonra: "Değişiklikleri özetle ve nasıl test edeceğimi söyle."
+- Commit'i Claude'a yaptırabilirsin: "Testler geçtiyse commit at."
+
+---
+
+## FAZ 0 — Kurulum (1 gün)
+**Sena yapar:**
+1. Godot **4.7.x stable** indir (godotengine.org) → standart sürüm (GDScript, .NET değil).
+2. VS Code + Claude Code eklentisi (var). Git kurulu olsun; GitHub'da özel (private) repo aç: `ordino-games`.
+3. Bu paketi repo köküne kopyala (`CLAUDE.md`, `docs/`, `game_data/`, `tools/`, `.claude/`).
+4. Blender 4.x indir (Faz 7'ye kadar şart değil).
+5. Python 3 kurulu mu kontrol et: `python3 --version`.
+
+**Claude Code'a ilk prompt:**
+```
+CLAUDE.md'yi ve docs/ altındaki tüm dokümanları oku. Sonra:
+1) Anladığın oyunu 10 maddede özetle,
+2) Dokümanlar arasında çelişki veya eksik gördüğün yerleri listele,
+3) Faz 1 için plan modu ile bir uygulama planı çıkar. Henüz kod yazma.
+```
+**Bitti kriteri:** Claude'un özeti doğru, çelişkiler `08_KARAR_GUNLUGU.md`'ye işlendi, `python3 tools/validate_game_data.py` → OK.
+
+---
+
+## FAZ 1 — Fizik prototipi "Gri Kutu" (3–5 gün) ⭐ en kritik faz
+**Amaç:** Görsel yok. Sadece: top + ağır gülle + 3 malzeme (taş, ahşap, kristal) + 1 kule + Altın Küre. **Eğlenceli mi?**
+```
+Faz 1'i uygula (docs/02 ve docs/03'e uy):
+- Godot 4.7 projesi oluştur (Mobile renderer, portre 1080x1920, Jolt).
+- Autoload: EventBus, GameConfig (game_data JSON'larını yükler).
+- block.tscn: RigidBody3D, tam 3D (eksen kilidi yok), uyuyarak doğar, kenar kuralı rules.physics.edge_rule, materials.json'dan yoğunluk/hp okur. Hasar modeli docs/02 §6.3.
+- ball.tscn (ağır top), cannon.tscn (dokun-hedefle ve sürükle-bırak; rules.aim.mode), noktalı yörünge önizlemesi.
+- Basit platform, KillZone, Altın Küre, LevelReferee (drop_core + yıldız: rules.stars).
+- game_data/levels/w01_akdeniz/w01_l01.json'u yükleyip çalıştır.
+- Basit FX: çarpmada küçük kamera sarsıntısı + kıvılcım parçacığı.
+- Dev panel (F1): yerçekimi, top hızı, malzeme hp canlı ayar.
+Bitince bana masaüstünde nasıl çalıştıracağımı ve neyi test etmem gerektiğini Türkçe anlat.
+```
+**Bitti kriteri:** F5 ile oyun açılıyor; atış hissi iyi; kule ilk atışa kadar kıpırdamıyor; küre düşünce "KAZANDIN ⭐⭐⭐" yazıyor;
+Sena 10 kez oynayıp "eğlenceli" diyor. Değilse **Faz 1'de kal** ve hissi düzelt (top hızı, kütle, kamera).
+
+## FAZ 2 — Veri omurgası ve kayıt (2–3 gün)
+```
+Faz 2: GameConfig'i tam şema doğrulamalı yap, Progress/Economy/Inventory/SaveManager autoload'larını yaz (docs/02 §4.1, §8),
+GUT kur ve bu servisler için birim testleri yaz. tools/validate_game_data.py ile uyumlu kal.
+```
+**Bitti:** Testler yeşil; oyunu kapat-aç → ilerleme ve altın korunuyor.
+
+## FAZ 3 — Kule şablonları, generator, bölüm editörü (5–7 gün)
+```
+Faz 3: docs/03'e göre shapes.json şekillerini (kemer compound collider dahil) ve 6 temel şablonu
+(stack_pyramid, twin_pillars, arch_shrine, staircase, domino_row, truss_bridge) uygula. Generator'ı difficulty.json'a bağla,
+support_check yaz. Headless simülasyon aracını (one_shot_solve_rate vb.) yaz. Basit bir Godot editör eklentisi ile bölüm editörü yap.
+```
+**Bitti:** Editörde "Üret" → farklı ama dengeli kuleler; "Simüle Et" → metrikler; Dünya 1'in 10 bölümü JSON olarak hazır.
+
+## FAZ 4 — Oyun döngüsü ve menüler (4–5 gün)
+```
+Faz 4: Ana menü, dünya haritası (8 kart, kilit/yıldız), dünya içi bölüm seçimi (10 düğüm + boss), HUD (level, gülle göstergesi, ayar),
+sonuç ekranı (yıldız + altın uçuş animasyonu), başarısız ekranı (+1 gülle), ayarlar. SceneRouter ile geçişler. Görseller placeholder.
+```
+**Bitti:** Uçtan uca: menü → dünya 1 → 10 bölüm → yıldız/altın kaydediliyor → dünya 2 kilidi yıldızla açılıyor.
+
+## FAZ 5 — Özel toplar (5–7 gün)
+```
+Faz 5: BallBehavior strateji desenini kur ve 5 özel topu uygula (fire, saw, ice, electric, gravity) — balls.json parametreleriyle.
+materials.json bayrakları (flammable, cuttable, conductive, freezable, thermal_shock) ile etkileşim. Joint'li bloklar (halat/zincir/sarmaşık).
+Top seçici UI, açılma koşulları, tanıtım kartı, hediye adetleri. Her top için 1 test bölümü.
+```
+**Bitti:** Her top görselde yazan işi yapıyor ve "vay!" dedirtiyor; açılma kuralı JSON'dan değişince oyunda değişiyor.
+
+## FAZ 6 — Ekonomi ve mağaza (3 gün)
+```
+Faz 6: economy.json ödül formülü (docs/05 §2), mağaza ekranı (Toplar sekmesi, Altın sekmesi MockIAP ile), +1 gülle,
+tools/economy_sim.py çıktısını kontrol et ve raporla.
+```
+**Bitti:** Altın kazan → top al → kullan döngüsü çalışıyor; sim raporu hedef aralıkta.
+
+## FAZ 7 — Görsel üretim ve entegrasyon (1–2 hafta, paralel ilerleyebilir)
+```
+/ordino-art-prompts ile Dünya 1 (Akdeniz) için tam prompt setini üret: arka plan (far/front), kart, kaide dokusu, gerekli malzeme dokuları.
+Ayrıca tools/blender/generate_blocks.py yaz: shapes.json'daki tüm şekiller için bevel'li mesh + Cell Fracture kırık sürümleri, .glb export.
+```
+Sena görselleri üretir → `incoming_art/` → Claude yerleştirir. Önce **1 dünyayı tam bitir** (dikey dilim / vertical slice), sonra diğer 7.
+**Bitti:** Dünya 1 referans görseller kalitesinde görünüyor, 60 FPS (orta Android).
+
+## FAZ 8 — Oyun hissi (juice), ses, VFX (1 hafta)
+```
+/ordino-game-feel ile docs/07 kontrol listesini tüm sistemlere uygula: hit-stop, kamera sarsıntısı, ağır çekim final, parçacıklar,
+malzeme bazlı sesler, titreşim, UI animasyonları, altın sayacı. Kalite seviyeleri (low/medium/high).
+```
+
+## FAZ 9 — 80 bölüm üretimi ve denge (2 hafta)
+```
+/ordino-level-designer ile Dünya N'nin 10 bölümünü docs/03 ritmine göre üret: her bölüm için 5 aday, sim metrikleri tablosu, en iyiyi öner.
+```
+Sena her dünyayı oynar, notlar → Claude düzeltir. Arkadaşlarla **playtest** (en az 5 kişi, hiç yardım etmeden izle).
+
+## FAZ 10 — IAP, reklam, analitik, uzaktan ayar (1 hafta)
+```
+Faz 10: IAPService için Android (Google Play Billing) ve iOS (StoreKit) eklentilerini güncel Godot 4.7 uyumlu sürümlerle araştır, öner,
+kur. AdsService (ödüllü reklam). Analytics olayları (docs/05 §7). Remote config override (rules/economy/difficulty).
+```
+
+## FAZ 11 — Yayın (1 hafta)
+- Android: Play Console → iç test (internal testing) → kapalı test → üretim.
+- iOS: Codemagic (bulut macOS, K-015) → App Store Connect (Sena: Admin) → TestFlight → inceleme.
+- Mağaza görselleri, tanıtım videosu, gizlilik politikası, yaş derecelendirmesi, veri güvenliği formu.
+
+---
+
+## Zaman özeti (tek kişi + Claude, tahmini)
+Faz 0–1: 1 hafta · Faz 2–4: 2 hafta · Faz 5–6: 1.5 hafta · Faz 7–8: 2–3 hafta · Faz 9: 2 hafta · Faz 10–11: 2 hafta → **~10–12 hafta** ilk sürüm.
+
+---
+
+<!-- DOSYA: docs/07_OYUN_HISSI_JUICE.md -->
+
+# 07 — Oyun Hissi (Juice): "Physics. Impact. Satisfaction."
+
+> Bu oyunun ürünü **tatmin hissidir**. Aynı fizik, juice olmadan sıkıcı; juice ile bağımlılık yapar.
+> Tüm şiddet değerleri `game_data/rules.json → feel` altında ayarlanabilir. Ayarlar ekranında "Titreşim" ve "Ekran sarsıntısı" kapatılabilir.
+
+## 1. Atış anı
+| Öğe | Detay |
+|---|---|
+| Nişan | Top namlusu parmağı yumuşak takip eder (lerp), yörünge noktaları hafif nabız atar |
+| Ateşleme | Namlu geri teper (recoil, 0.12 sn), ağızdan duman + kıvılcım, kısa kamera itme (punch) geriye, `Haptics.light` |
+| Ses | Derin "BOOM" + metalik çınlama, pitch ±%5 rastgele |
+| Gülle göstergesi | Kullanılan inci (●) söner ve küçülür |
+
+## 2. Çarpma anı (IMPACT)
+| Öğe | Detay |
+|---|---|
+| **Hit-stop** | Büyük darbede (impulse > `feel.hitstop_threshold`) zaman 40–70 ms neredeyse durur (`Engine.time_scale = 0.05`) |
+| Kamera sarsıntısı | "Trauma" modeli: `shake = trauma²`, trauma darbe büyüklüğüyle artar, zamanla söner; maks. ofset 0.25 birim, maks. rotasyon 1.5° |
+| Parçacık | Malzemeye göre: taş → toz + taş kırıntısı; ahşap → kıymık; kristal → parlak cam kıymıkları + ışık patlaması; buz → kar tozu |
+| Ses | Malzeme × şiddet katmanı: `impact_<material>_<light|heavy>`, aynı karede çok ses → sınırla (voice limit 8) |
+| Titreşim | Hafif/orta/ağır (darbe şiddetine göre), kristal kırılmada kısa çift titreşim |
+| Kırılma | Blok → parçalar + flaş, kristal kırılınca küçük altın 🪙 uçar (HUD'a) |
+
+## 3. Çöküş anı (SATISFACTION)
+- Zincirleme düşüş sayacı: "x5 ZİNCİR!" yazısı (blok-blok kırılmaları sayılır).
+- **Final ağır çekim:** Altın Küre platformdan ayrıldığı an → 0.6 sn `time_scale 0.3`, kamera küreye hafif zoom, sonra normal.
+- Küre yere/düşüşe → altın ışık patlaması + "ding" + konfeti.
+- Platform dışına düşen her blok kısa "whoosh" + düşme sesi (uzakta, düşük ses).
+
+## 4. Sonuç ekranı
+- Yıldızlar tek tek, her biri büyüyüp "çarparak" yerleşir (scale 1.6 → 1.0, elastic easing), her yıldızda yükselen nota.
+- Altın sayacı: rakamlar yuvarlanarak artar, altın ikonları ekrandan HUD'a yay çizerek uçar.
+- 3 yıldızda ekstra parlama + "MÜKEMMEL!".
+
+## 5. Özel top efektleri
+| Top | Uçuşta | Çarpmada |
+|---|---|---|
+| Alev | Ateş izi (trail), ısı dalgası shader | Tutuşma: blok üzerinde alev parçacıkları, kararma (char) shader'ı, yayılma |
+| Kesici Çark | Dönen bıçak, metal kıvılcım izi | Kesme çizgisi parlaması, blok iki parçaya ayrılır |
+| Buz | Soğuk sis izi | Don dalgası halkası, bloklar mavi buz kaplaması (shader), "çıtırdama" sesi |
+| Elektrik | Çatırdayan şimşek | Bloklar arası zincir şimşek (Line3D/mesh), mor flaş, kısa titreşim dizisi |
+| Çekim | Girdap distorsiyon shader | Kara delik: çevre bükülmesi, parçalar spiral çekilir, sonra patlama dalgası |
+
+## 6. UI hissi
+- Tüm butonlar: basınca %92'ye küçül, bırakınca %105 → %100 (spring). Tıklama sesi.
+- Kilitli dünya kartına dokununca sallanma + kilit sesi.
+- Yeni top açılınca: tam ekran sinematik kart, ışın arka planı, top dönerek gelir.
+
+## 7. Performans güvenliği
+- Aynı anda maks. parçacık patlaması `feel.max_concurrent_bursts`. Fazlası birleştirilir.
+- Kalite `low`'da: hit-stop ve sarsıntı kalır (ucuz), parçacıklar %50, debris fiziği yok.
+
+## 8. Kontrol listesi (her yeni özellik için `/ordino-game-feel` uygular)
+- [ ] Görsel geri bildirim var mı (parçacık/animasyon)?
+- [ ] Ses var mı, pitch varyasyonu var mı?
+- [ ] Titreşim uygun mu (ve ayardan kapatılabilir mi)?
+- [ ] Zamanlama: tepki ≤ 1 kare gecikmeli mi?
+- [ ] Abartılı mı? (Ekran sarsıntısı oyuncuyu yormamalı)
+- [ ] Değerler `rules.json → feel` altında mı?
+
+---
+
+<!-- DOSYA: docs/08_KARAR_GUNLUGU.md -->
+
+# 08 — Karar Günlüğü
+
+> Her önemli karar buraya yazılır: kim, ne zaman, neden. Açık sorular da burada tutulur.
+> Format: `K-NNN | Tarih | Karar | Gerekçe | Durum (Önerildi / Onaylandı / Değişti)`
+
+## Alınan / önerilen kararlar
+| No | Tarih | Karar | Gerekçe | Durum |
+|---|---|---|---|---|
+| K-001 | 2026-11-18 | Motor: **Godot 4.7.x stable**, GDScript | Metin tabanlı sahneler Claude ile verimli; ücretsiz; mobil IAP eklentileri 4.5.2/4.6 ile iyileşti | Onaylandı |
+| K-002 | 2026-11-18 | **Tam 3D**: eksen kilidi yok; bloklar her eksende döner/devrilir, platformdan her yöne düşer; kuleler x-y-z derinlikli (Smash Away tarzı); arka plan AI 2D. Kenar kuralı: ağırlık merkezi platform dışında → düştü | Sena tam 3D görünümü istiyor (önceki öneri: XY'ye kilitli 2.5D) | Değişti |
+| K-003 | 2026-11-18 | Ekran **portre 1080×1920** | Tek elle oynanış, tür standardı; level map 2×4 kaydırmalı listeye uyarlanır | Onaylandı |
+| K-004 | 2026-11-18 | Tüm kurallar `game_data/*.json`; koda sayı gömülmez | Sena kuralları kolayca değiştirebilsin | Onaylandı (Sena'nın isteği) |
+| K-005 | 2026-11-18 | Başlangıç topu **Ağır Top**, sınırsız | Sena'nın isteği | Onaylandı |
+| K-006 | 2026-11-18 | Özel toplar: açılınca hediye (öneri 3), sonra altınla paket | Sena'nın isteği; sayılar `balls.json` | Onaylandı (sayılar taslak) |
+| K-007 | 2026-11-18 | Yıldız → altın: 3★ > 2★ > 1★; tekrar oynamada azaltılmış ödül | Sena'nın isteği + farm önleme | Onaylandı (sayılar taslak) |
+| K-008 | 2026-11-18 | Bloklar 3D mesh (Blender scripti) + AI doku; arka planlar/ikonlar/UI AI görsel | Her taş için prompt gereksiz | Onaylandı |
+| K-009 | 2026-11-18 | Bölümler: şablon + generator + simülasyon + elle cila; yayında `baked` | Çeşitlilik + kontrol | Onaylandı |
+| K-010 | 2026-11-18 | Varsayılan kazanma: **Altın Küre'yi düşür** | Görsellerdeki altın küre; net hedef | Onaylandı |
+| K-011 | 2026-11-18 | Nişan varsayılanı **tap_target**; sürükleme ince ayar için | Basit "seç ve at" kontrolü (S-002) | Onaylandı |
+| K-012 | 2026-11-18 | v1'de tek para birimi: **altın**; elmas sistemi hazır ama kapalı | Denge sadeliği, casual oyuncu (S-001) | Onaylandı |
+| K-013 | 2026-11-18 | v1'de yalnızca **ödüllü reklam**, interstitial yok | Retention + çocuk oyuncu politikaları (S-003) | Onaylandı |
+| K-014 | 2026-11-18 | İlk sürüm **TR + EN**; tüm metinler baştan çeviri tablosunda | Global mağaza (S-004) | Onaylandı |
+| K-015 | 2026-11-18 | iOS build ve yayın **Codemagic** (bulut macOS) ile | Sena'nın Codemagic hesabı var, Mac gerekmez (S-005) | Onaylandı |
+
+## Açık sorular (Sena karar verecek)
+| No | Soru | Öneri | Durum |
+|---|---|---|---|
+| S-001 | Elmas (ikinci para) olacak mı? | v1'de hayır, sistem hazır | Kapandı → K-012 |
+| S-002 | Nişan modu: dokun-hedefle mi, sürükle-bırak mı? | tap_target varsayılan | Kapandı → K-011 |
+| S-003 | Zorla gösterilen reklam? | v1'de yok, sadece ödüllü | Kapandı → K-013 |
+| S-004 | Oyun dili: TR + EN ilk sürümde mi? | Evet | Kapandı → K-014 |
+| S-005 | Mac erişimi var mı? (iOS build için şart) | Codemagic bulut build | Kapandı → K-015 |
+| S-006 | Oyun adı: "Ordino Games" yayıncı adı mı, oyun adı mı? | Faz 11'e kadar çalışma adı kullanılır | Ertelendi |
+| S-007 | Kamera: oyuncu kuleyi döndürebilsin mi? | **Sena:** v1'de kamera sabit (çapraz, ~20° yukarıdan, `rules.camera`). Tasarım kuralı: her keystone varsayılan kamera açısından görünür olmalı (`docs/03` §4 kural 3). Kamera döndürme v2'de değerlendirilir. | Önerildi |
+| S-008 | Performans bütçesi tam 3D'de aynı mı kalsın? | **Sena:** ≤120 aktif gövde olarak kalır; Faz 1'de orta segment Android cihazda ölçülür, gerekirse revize edilir. | Önerildi |
+
+---
+<!-- EK: game_data JSON dosyaları -->
+
+### game_data/balls.json
+```json
+{
+  "_doc": "Toplar (gulleler). unlock.type: start | level_cleared | levels_cleared_count | world_completed | stars_total. price_gold / pack_size: magazada kac altina kac adet. gift_on_unlock: acilinca hediye adet (-1 = sinirsiz). damage_mult: malzeme bazli hasar carpani (yoksa 1.0).",
+  "balls": [
+    {
+      "id": "heavy",
+      "name_tr": "Ağır Top",
+      "desc_tr": "Yüksek kütlesiyle blokları ezer, kırar ve yıkar.",
+      "behavior": "heavy",
+      "mass": 6.0,
+      "radius": 0.35,
+      "launch_speed": 22.0,
+      "max_life_sec": 6.0,
+      "damage_mult": { "stone": 1.0, "wood": 1.0, "metal": 0.6 },
+      "params": {},
+      "unlock": { "type": "start" },
+      "gift_on_unlock": -1,
+      "price_gold": 0,
+      "pack_size": 0,
+      "icon": "res://assets/balls/heavy/icon.png"
+    },
+    {
+      "id": "fire",
+      "name_tr": "Alev Topu",
+      "desc_tr": "Ahşap blokları tutuşturur, yakar ve ortadan kaldırır.",
+      "behavior": "fire",
+      "mass": 4.0,
+      "radius": 0.35,
+      "launch_speed": 22.0,
+      "max_life_sec": 6.0,
+      "damage_mult": { "wood": 2.0, "crate": 2.5, "rope": 3.0, "vine": 3.0, "stone": 0.7, "ice": 1.5 },
+      "params": { "burn_time_sec": 2.5, "burn_dps": 12.0, "spread_radius": 1.3, "spread_chance": 0.6, "max_burning": 20 },
+      "unlock": { "type": "level_cleared", "level_id": "w01_l07" },
+      "tutorial_level_id": "w01_l08",
+      "gift_on_unlock": 3,
+      "price_gold": 120,
+      "pack_size": 3,
+      "icon": "res://assets/balls/fire/icon.png"
+    },
+    {
+      "id": "saw",
+      "name_tr": "Kesici Çark",
+      "desc_tr": "Ahşap, ip ve benzeri yapıları keserek parçalar.",
+      "behavior": "saw",
+      "mass": 3.5,
+      "radius": 0.4,
+      "launch_speed": 24.0,
+      "max_life_sec": 5.0,
+      "damage_mult": { "wood": 2.5, "crate": 2.5, "rope": 10.0, "vine": 10.0, "stone": 0.5, "metal": 0.2 },
+      "params": { "pierce_count": 3, "speed_loss_per_pierce": 0.25, "cuts_joints": true },
+      "unlock": { "type": "level_cleared", "level_id": "w02_l05" },
+      "tutorial_level_id": "w02_l06",
+      "gift_on_unlock": 3,
+      "price_gold": 150,
+      "pack_size": 3,
+      "icon": "res://assets/balls/saw/icon.png"
+    },
+    {
+      "id": "ice",
+      "name_tr": "Buz Topu",
+      "desc_tr": "Yapıları dondurur, kırılgan hale getirir ve darbe ile parçalanmasını kolaylaştırır.",
+      "behavior": "ice",
+      "mass": 4.0,
+      "radius": 0.35,
+      "launch_speed": 22.0,
+      "max_life_sec": 6.0,
+      "damage_mult": { "lava_rock": 2.0, "crystal_amber": 1.5, "crystal_cyan": 1.5 },
+      "params": { "freeze_radius": 2.0, "freeze_duration_sec": 6.0, "brittle_hp_mult": 0.35, "frozen_friction_mult": 0.5, "thermal_shock_mult": 2.0 },
+      "unlock": { "type": "level_cleared", "level_id": "w03_l05" },
+      "tutorial_level_id": "w03_l06",
+      "gift_on_unlock": 3,
+      "price_gold": 180,
+      "pack_size": 3,
+      "icon": "res://assets/balls/ice/icon.png"
+    },
+    {
+      "id": "electric",
+      "name_tr": "Elektrik Topu",
+      "desc_tr": "Temas ettiği bloklara elektrik yayar, çevresindeki yapıları etkileyip zayıflatır.",
+      "behavior": "electric",
+      "mass": 4.0,
+      "radius": 0.35,
+      "launch_speed": 23.0,
+      "max_life_sec": 6.0,
+      "damage_mult": { "metal": 2.5, "crystal_amber": 2.0, "crystal_cyan": 2.0, "wood": 0.5 },
+      "params": { "chain_count": 6, "chain_range": 1.6, "chain_damage": 25.0, "chain_push_impulse": 2.0, "conductive_bonus_jumps": 3 },
+      "unlock": { "type": "level_cleared", "level_id": "w05_l05" },
+      "tutorial_level_id": "w05_l06",
+      "gift_on_unlock": 3,
+      "price_gold": 220,
+      "pack_size": 3,
+      "icon": "res://assets/balls/electric/icon.png"
+    },
+    {
+      "id": "gravity",
+      "name_tr": "Çekim Topu",
+      "desc_tr": "Çevresindeki nesneleri kendine çeker, birleştirir ve büyük bir yıkım oluşturur.",
+      "behavior": "gravity",
+      "mass": 5.0,
+      "radius": 0.4,
+      "launch_speed": 21.0,
+      "max_life_sec": 7.0,
+      "damage_mult": {},
+      "params": { "pull_radius": 3.5, "pull_force": 40.0, "pull_duration_sec": 1.2, "implode_impulse": 25.0 },
+      "unlock": { "type": "level_cleared", "level_id": "w07_l03" },
+      "tutorial_level_id": "w07_l04",
+      "gift_on_unlock": 2,
+      "price_gold": 300,
+      "pack_size": 2,
+      "icon": "res://assets/balls/gravity/icon.png"
+    }
+  ]
+}
+```
+
+### game_data/difficulty.json
+```json
+{
+  "_doc": "Zorluk yonetimi. Her bolumun difficulty degeri (1-100) = world_base + rhythm offset, sonra global_multiplier ile carpilir. curves: zorluk -> generator parametresi (noktalar arasi dogrusal interpolasyon). Tum oyunu kolaylastirmak icin global_multiplier'i 0.9 yap.",
+  "global_multiplier": 1.0,
+  "world_base": { "start": 8, "step_per_world": 10 },
+  "rhythm": [
+    { "level": 1,  "role": "intro",        "offset": -6 },
+    { "level": 2,  "role": "build_up",     "offset": -2 },
+    { "level": 3,  "role": "build_up",     "offset": 2 },
+    { "level": 4,  "role": "breather",     "offset": -3 },
+    { "level": 5,  "role": "new_mechanic", "offset": 3 },
+    { "level": 6,  "role": "combine",      "offset": 7 },
+    { "level": 7,  "role": "combine",      "offset": 10 },
+    { "level": 8,  "role": "challenge",    "offset": 15 },
+    { "level": 9,  "role": "breather",     "offset": 6 },
+    { "level": 10, "role": "boss",         "offset": 20 }
+  ],
+  "curves": {
+    "block_count":       [[1, 6],   [50, 28],  [100, 60]],
+    "height":            [[1, 3],   [50, 7],   [100, 11]],
+    "heavy_ratio":       [[1, 0.1], [50, 0.45],[100, 0.75]],
+    "redundancy":        [[1, 0],   [50, 1],   [100, 3]],
+    "core_protection":   [[1, 0],   [50, 1],   [100, 3]],
+    "shots":             [[1, 3],   [70, 3],   [85, 4],  [100, 5]],
+    "aim_preview_dots":  [[1, 20],  [50, 12],  [100, 6]],
+    "symmetry":          [[1, 1.0], [50, 0.6], [100, 0.2]],
+    "modifier_strength": [[1, 0.0], [50, 0.6], [100, 1.0]],
+    "structure_count":   [[1, 1],   [40, 1],   [60, 2],  [100, 3]],
+    "depth_layers":      [[1, 1],   [40, 1],   [60, 2],  [100, 3]]
+  },
+  "role_overrides": {
+    "breather": { "crystal_ratio_min": 0.35, "collapse_bias": 1.5 },
+    "boss":     { "structure_count_min": 2, "shots_bonus": 1 },
+    "new_mechanic": { "favor_intro_ball_materials": true }
+  },
+  "sim_targets": {
+    "samples": 200,
+    "one_shot_solve_rate": {
+      "intro": [0.30, 0.60], "build_up": [0.10, 0.30], "breather": [0.25, 0.55], "new_mechanic": [0.10, 0.35],
+      "combine": [0.06, 0.20], "challenge": [0.02, 0.08], "boss": [0.005, 0.03]
+    },
+    "min_solve_rate_within_shots": 0.20,
+    "min_collapse_ratio": 0.5,
+    "require_keystone_success": true
+  }
+}
+```
+
+### game_data/economy.json
+```json
+{
+  "_doc": "Ekonomi. rewards.stars: ilk geciste yildiz basina altin (index 1,2,3). replay_ratio: tekrar oynamada odul orani. Top fiyatlari balls.json'da. IAP fiyatlari magazadan gelir; price_fallback yalnizca gosterim yedegidir.",
+  "currencies": {
+    "gold": { "enabled": true, "start_amount": 100 },
+    "gem":  { "enabled": false, "start_amount": 0 }
+  },
+  "rewards": {
+    "stars": { "1": 10, "2": 20, "3": 35 },
+    "replay_ratio": 0.2,
+    "boss_mult": 2.0,
+    "crystal_coin_cap_per_level": 8,
+    "world_complete_bonus": 100,
+    "world_perfect_bonus": 150,
+    "rewarded_ad_double": { "enabled": true, "daily_limit": 5 }
+  },
+  "iap_products": [
+    { "id": "gold_s",   "type": "consumable",     "gold": 500,   "badge": "",            "price_fallback": "$0.99" },
+    { "id": "gold_m",   "type": "consumable",     "gold": 1300,  "badge": "+30%",        "price_fallback": "$1.99" },
+    { "id": "gold_l",   "type": "consumable",     "gold": 3500,  "badge": "+40%",        "price_fallback": "$4.99" },
+    { "id": "gold_xl",  "type": "consumable",     "gold": 8000,  "badge": "En Popüler",  "price_fallback": "$9.99" },
+    { "id": "gold_xxl", "type": "consumable",     "gold": 18000, "badge": "En İyi Değer","price_fallback": "$19.99" },
+    { "id": "starter_pack", "type": "non_consumable", "gold": 1000, "balls": { "fire": 2, "saw": 2, "ice": 2, "electric": 2, "gravity": 2 }, "show_from_world": 3, "badge": "Tek Seferlik", "price_fallback": "$2.99" }
+  ],
+  "sim": {
+    "_doc": "tools/economy_sim.py varsayimlari",
+    "avg_stars_distribution": { "1": 0.2, "2": 0.4, "3": 0.4 },
+    "avg_crystals_per_level": 6,
+    "replays_per_level": 0.5,
+    "special_balls_used_per_level_after_unlock": 0.4,
+    "target_packs_affordable_per_world": [2, 3]
+  }
+}
+```
+
+### game_data/materials.json
+```json
+{
+  "_doc": "Malzemeler. density: kg/birim^3 (kutle = sekil hacmi x density). hp: dayaniklilik. impact_threshold: bu impulsun alti hasar vermez. flags: flammable, cuttable, conductive, freezable, shatter, thermal_shock, objective, joint, unbreakable. coin_on_break: kirilinca verilen altin. fx/sfx: efekt anahtarlari.",
+  "materials": {
+    "stone":         { "name_tr": "Kireçtaşı",     "density": 2.4, "hp": 120, "impact_threshold": 6.0, "friction": 0.8, "bounce": 0.05, "flags": [], "coin_on_break": 0, "fx": "dust_stone", "sfx": "stone", "texture": "stone" },
+    "sandstone":     { "name_tr": "Kumtaşı",       "density": 2.1, "hp": 100, "impact_threshold": 5.0, "friction": 0.85, "bounce": 0.05, "flags": [], "coin_on_break": 0, "fx": "dust_sand", "sfx": "stone", "texture": "sandstone" },
+    "snow_stone":    { "name_tr": "Karlı Taş",     "density": 2.3, "hp": 110, "impact_threshold": 6.0, "friction": 0.5, "bounce": 0.05, "flags": ["freezable"], "coin_on_break": 0, "fx": "dust_snow", "sfx": "stone", "texture": "snow_stone" },
+    "mossy_stone":   { "name_tr": "Yosunlu Taş",   "density": 2.3, "hp": 110, "impact_threshold": 6.0, "friction": 0.75, "bounce": 0.05, "flags": [], "coin_on_break": 0, "fx": "dust_moss", "sfx": "stone", "texture": "mossy_stone" },
+    "coral_stone":   { "name_tr": "Mercan Taşı",   "density": 2.0, "hp": 90,  "impact_threshold": 5.0, "friction": 0.8, "bounce": 0.05, "flags": ["conductive"], "coin_on_break": 0, "fx": "dust_coral", "sfx": "stone", "texture": "coral_stone" },
+    "lava_rock":     { "name_tr": "Lav Taşı",      "density": 2.8, "hp": 150, "impact_threshold": 7.0, "friction": 0.8, "bounce": 0.03, "flags": ["thermal_shock"], "coin_on_break": 0, "fx": "embers", "sfx": "stone_heavy", "texture": "lava_rock" },
+    "wood":          { "name_tr": "Ahşap",         "density": 0.8, "hp": 60,  "impact_threshold": 3.0, "friction": 0.7, "bounce": 0.1, "flags": ["flammable", "cuttable"], "coin_on_break": 0, "fx": "splinters", "sfx": "wood", "texture": "wood" },
+    "crate":         { "name_tr": "Sandık",        "density": 0.5, "hp": 35,  "impact_threshold": 2.0, "friction": 0.7, "bounce": 0.1, "flags": ["flammable", "cuttable"], "coin_on_break": 0, "fx": "splinters", "sfx": "crate", "texture": "crate" },
+    "crystal_amber": { "name_tr": "Amber Kristal", "density": 1.6, "hp": 25,  "impact_threshold": 2.5, "friction": 0.4, "bounce": 0.15, "flags": ["conductive", "shatter", "freezable"], "coin_on_break": 1, "fx": "glass_amber", "sfx": "glass", "texture": "crystal_amber" },
+    "crystal_cyan":  { "name_tr": "Turkuaz Kristal","density": 1.6, "hp": 25, "impact_threshold": 2.5, "friction": 0.4, "bounce": 0.15, "flags": ["conductive", "shatter", "freezable"], "coin_on_break": 1, "fx": "glass_cyan", "sfx": "glass", "texture": "crystal_cyan" },
+    "crystal_purple":{ "name_tr": "Mor Kristal",   "density": 1.6, "hp": 30,  "impact_threshold": 2.5, "friction": 0.4, "bounce": 0.15, "flags": ["conductive", "shatter", "freezable"], "coin_on_break": 2, "fx": "glass_purple", "sfx": "glass", "texture": "crystal_purple" },
+    "ice":           { "name_tr": "Buz",           "density": 0.9, "hp": 45,  "impact_threshold": 3.0, "friction": 0.1, "bounce": 0.1, "flags": ["shatter"], "coin_on_break": 0, "fx": "ice_shards", "sfx": "ice", "texture": "ice" },
+    "metal":         { "name_tr": "Metal",         "density": 4.0, "hp": 300, "impact_threshold": 10.0, "friction": 0.5, "bounce": 0.2, "flags": ["conductive"], "coin_on_break": 0, "fx": "sparks", "sfx": "metal", "texture": "metal" },
+    "rope":          { "name_tr": "Halat",         "density": 0.3, "hp": 20,  "impact_threshold": 1.0, "friction": 0.6, "bounce": 0.0, "flags": ["joint", "flammable", "cuttable"], "coin_on_break": 0, "fx": "fibers", "sfx": "rope", "texture": "rope", "break_force": 400 },
+    "vine":          { "name_tr": "Sarmaşık",      "density": 0.3, "hp": 25,  "impact_threshold": 1.0, "friction": 0.6, "bounce": 0.0, "flags": ["joint", "flammable", "cuttable"], "coin_on_break": 0, "fx": "leaves", "sfx": "vine", "texture": "vine", "break_force": 450 },
+    "chain":         { "name_tr": "Zincir",        "density": 3.0, "hp": 200, "impact_threshold": 8.0, "friction": 0.4, "bounce": 0.0, "flags": ["joint", "conductive", "cuttable"], "coin_on_break": 0, "fx": "sparks", "sfx": "chain", "texture": "metal", "break_force": 1500 },
+    "core_gold":     { "name_tr": "Altın Küre",    "density": 3.0, "hp": 99999, "impact_threshold": 9999, "friction": 0.5, "bounce": 0.2, "flags": ["objective", "unbreakable"], "coin_on_break": 0, "fx": "gold_glint", "sfx": "gold", "texture": "gold" }
+  }
+}
+```
+
+### game_data/rules.json
+```json
+{
+  "_doc": "Genel oyun kurallari. '_' ile baslayan anahtarlar aciklamadir, kod okumaz. Degistirdikten sonra: python3 tools/validate_game_data.py",
+  "version": 1,
+  "aim": {
+    "mode": "tap_target",
+    "_doc_mode": "tap_target | drag_release",
+    "default_preview_dots": 14,
+    "aim_smoothing": 12.0,
+    "min_angle_deg": -75,
+    "max_angle_deg": 75
+  },
+  "shots": {
+    "default_per_level": 3,
+    "extra_shot_price_gold": 50,
+    "extra_shot_via_rewarded_ad": true,
+    "max_extra_shots_per_attempt": 2
+  },
+  "stars": {
+    "mode": "shots_left",
+    "_doc_mode": "shots_left: kalan gulleye gore | score: bolum JSON'undaki skor esiklerine gore",
+    "three_star_min_shots_left_offset": 1,
+    "two_star_min_shots_left_offset": 2,
+    "_doc_offsets": "3 yildiz: kalan >= shots - 1 ; 2 yildiz: kalan >= shots - 2",
+    "special_ball_reduces_stars": false
+  },
+  "objective_defaults": {
+    "type": "drop_core",
+    "clear_percent_target": 0.8
+  },
+  "physics": {
+    "gravity": 9.8,
+    "tick_rate": 60,
+    "settle_timeout_sec": 4.0,
+    "settle_linear_velocity_threshold": 0.05,
+    "fall_kill_y": -3.0,
+    "spawn_sleeping": true,
+    "pre_settle_sec": 0.3,
+    "max_active_bodies": 120,
+    "debris_lifetime_sec": 2.5,
+    "debris_min_physical_size": 0.4,
+    "axis_locks": false,
+    "_doc_axis_locks": "K-002: tam 3D, bloklarda ve topta eksen kilidi yok",
+    "edge_rule": "com_outside_platform",
+    "_doc_edge_rule": "com_outside_platform: agirlik merkezinin (x,z) izdusumu platform ust yuzeyi disindaysa VEYA y < fall_kill_y ise cisim dustu sayilir",
+    "edge_margin": 0.0,
+    "support_margin": 0.05,
+    "max_settle_drift": 0.02,
+    "_doc_support": "generator support_check: agirlik merkezi destek poligonu kenarina en az support_margin uzak olmali; pre_settle sonrasi kayma <= max_settle_drift"
+  },
+  "camera": {
+    "projection": "perspective",
+    "fov_deg": 40,
+    "pitch_deg": 20,
+    "yaw_deg": 0,
+    "distance": 16,
+    "look_at_height": 3.5,
+    "orbit_enabled": false,
+    "orbit_max_yaw_deg": 35,
+    "_doc_s007": "S-007 (Onerildi): v1 kamera sabit, capraz ~20 derece yukaridan; her keystone bu acidan gorunur olmali. Orbit v2.",
+    "_doc": "Tam 3D kamera. Bolum JSON'unda camera_override ile ezilebilir."
+  },
+  "feel": {
+    "hitstop_threshold_impulse": 18.0,
+    "hitstop_duration_ms": 55,
+    "hitstop_time_scale": 0.05,
+    "shake_max_offset": 0.25,
+    "shake_max_rotation_deg": 1.5,
+    "shake_decay": 1.8,
+    "final_slowmo_scale": 0.3,
+    "final_slowmo_duration_sec": 0.6,
+    "max_concurrent_bursts": 4,
+    "haptics_default_on": true
+  },
+  "quality": {
+    "default": "medium",
+    "levels": {
+      "low": { "particles_mult": 0.5, "shadows": false, "debris_physics": false, "glow": false },
+      "medium": { "particles_mult": 0.8, "shadows": true, "debris_physics": true, "glow": true },
+      "high": { "particles_mult": 1.0, "shadows": true, "debris_physics": true, "glow": true }
+    }
+  },
+  "features": {
+    "ball_upgrades": false,
+    "gems_currency": false,
+    "rewarded_ads": true,
+    "interstitial_ads": false,
+    "dev_panel_in_debug": true
+  }
+}
+```
+
+### game_data/shapes.json
+```json
+{
+  "_doc": "Blok sekilleri, TAM 3D (K-002). Grid birimi: 1 = standart kup = 1 metre. Eksenler: x sag, y yukari, z on (kameraya dogru). size = [genislik x, yukseklik y, derinlik z]. Sekil orijini = taban merkezi (y=0 alt yuzey). colliders: dinamik govdede yalnizca box/sphere/cylinder/convex compound (asla concave/trimesh); pos = [x,y,z], box size = [x,y,z], convex points = [[x,y,z],...]. mesh/fractured: Blender scriptinin uretecegi dosya yollari (6 yuz dokulu).",
+  "shapes": {
+    "cube": {"size": [1.0, 1.0, 1.0], "colliders": [{"type": "box", "pos": [0, 0.5, 0.0], "size": [1.0, 1.0, 1.0]}], "mesh": "res://assets/models/blocks/cube.glb", "fractured": "res://assets/models/fractured/cube_frac.glb"},
+    "half": {"size": [1.0, 0.5, 1.0], "colliders": [{"type": "box", "pos": [0, 0.25, 0.0], "size": [1.0, 0.5, 1.0]}], "mesh": "res://assets/models/blocks/half.glb", "fractured": "res://assets/models/fractured/half_frac.glb"},
+    "plank_s": {"size": [2.0, 0.4, 0.9], "colliders": [{"type": "box", "pos": [0, 0.2, 0.0], "size": [2.0, 0.4, 0.9]}], "mesh": "res://assets/models/blocks/plank_s.glb", "fractured": "res://assets/models/fractured/plank_s_frac.glb"},
+    "plank_l": {"size": [4.0, 0.4, 0.9], "colliders": [{"type": "box", "pos": [0, 0.2, 0.0], "size": [4.0, 0.4, 0.9]}], "mesh": "res://assets/models/blocks/plank_l.glb", "fractured": "res://assets/models/fractured/plank_l_frac.glb"},
+    "beam": {"size": [6.0, 0.5, 0.9], "colliders": [{"type": "box", "pos": [0, 0.25, 0.0], "size": [6.0, 0.5, 0.9]}], "mesh": "res://assets/models/blocks/beam.glb", "fractured": "res://assets/models/fractured/beam_frac.glb"},
+    "pillar_2": {"size": [0.6, 2.0, 0.6], "colliders": [{"type": "box", "pos": [0, 1.0, 0.0], "size": [0.6, 2.0, 0.6]}], "mesh": "res://assets/models/blocks/pillar_2.glb", "fractured": "res://assets/models/fractured/pillar_2_frac.glb"},
+    "pillar_3": {"size": [0.6, 3.0, 0.6], "colliders": [{"type": "box", "pos": [0, 1.5, 0.0], "size": [0.6, 3.0, 0.6]}], "mesh": "res://assets/models/blocks/pillar_3.glb", "fractured": "res://assets/models/fractured/pillar_3_frac.glb"},
+    "slab_2x2": {"size": [2.0, 0.3, 2.0], "colliders": [{"type": "box", "pos": [0, 0.15, 0.0], "size": [2.0, 0.3, 2.0]}], "mesh": "res://assets/models/blocks/slab_2x2.glb", "fractured": "res://assets/models/fractured/slab_2x2_frac.glb"},
+    "slab_3x3": {"size": [3.0, 0.3, 3.0], "colliders": [{"type": "box", "pos": [0, 0.15, 0.0], "size": [3.0, 0.3, 3.0]}], "mesh": "res://assets/models/blocks/slab_3x3.glb", "fractured": "res://assets/models/fractured/slab_3x3_frac.glb"},
+    "arch": {"size": [3.0, 2.0, 1.0], "colliders": [{"type": "box", "pos": [-1.2, 0.75, 0.0], "size": [0.6, 1.5, 1.0]}, {"type": "box", "pos": [1.2, 0.75, 0.0], "size": [0.6, 1.5, 1.0]}, {"type": "box", "pos": [0, 1.75, 0.0], "size": [3.0, 0.5, 1.0]}], "mesh": "res://assets/models/blocks/arch.glb", "fractured": "res://assets/models/fractured/arch_frac.glb"},
+    "half_arch": {"size": [1.5, 2.0, 1.0], "colliders": [{"type": "box", "pos": [-0.45, 0.75, 0.0], "size": [0.6, 1.5, 1.0]}, {"type": "box", "pos": [0, 1.75, 0.0], "size": [1.5, 0.5, 1.0]}], "mesh": "res://assets/models/blocks/half_arch.glb", "fractured": "res://assets/models/fractured/half_arch_frac.glb"},
+    "truss": {"size": [3.0, 1.5, 0.8], "colliders": [{"type": "box", "pos": [0, 0.15, 0.0], "size": [3.0, 0.3, 0.8]}, {"type": "box", "pos": [0, 0.9, 0.0], "size": [0.3, 1.5, 0.8]}], "mesh": "res://assets/models/blocks/truss.glb", "fractured": "res://assets/models/fractured/truss_frac.glb"},
+    "wedge": {"size": [1.0, 1.0, 1.0], "colliders": [{"type": "convex", "points": [[-0.5, 0, -0.5], [0.5, 0, -0.5], [0.5, 1.0, -0.5], [-0.5, 0, 0.5], [0.5, 0, 0.5], [0.5, 1.0, 0.5]]}], "mesh": "res://assets/models/blocks/wedge.glb", "fractured": "res://assets/models/fractured/wedge_frac.glb"},
+    "barrel": {"size": [0.8, 1.0, 0.8], "colliders": [{"type": "cylinder", "axis": "y", "pos": [0, 0.5, 0], "radius": 0.4, "height": 1.0}], "mesh": "res://assets/models/blocks/barrel.glb", "fractured": "res://assets/models/fractured/barrel_frac.glb"},
+    "ring_hanger": {"size": [1.5, 1.5, 1.0], "colliders": [{"type": "box", "pos": [-0.6, 0.6, 0.0], "size": [0.3, 1.2, 1.0]}, {"type": "box", "pos": [0.6, 0.6, 0.0], "size": [0.3, 1.2, 1.0]}, {"type": "box", "pos": [0, 0.1, 0.0], "size": [1.5, 0.2, 1.0]}], "mesh": "res://assets/models/blocks/ring_hanger.glb", "fractured": ""},
+    "core_sphere": {"size": [0.9, 0.9, 0.9], "colliders": [{"type": "sphere", "pos": [0, 0.45, 0], "radius": 0.45}], "mesh": "res://assets/models/blocks/core_sphere.glb", "fractured": ""}
+  }
+}
+```
+
+### game_data/worlds.json
+```json
+{
+  "_doc": "Dunyalar. unlock_stars_required: toplam yildiz esigi. level_count: dunyadaki bolum sayisi. palette: generator'in malzeme secim agirliklari. modifiers: cevresel kurallar (strength difficulty.json'daki modifier_strength ile carpilir). allowed_templates: bu dunyada kullanilabilecek kule sablonlari.",
+  "worlds": [
+    {
+      "id": "akdeniz", "index": 1, "name_tr": "Akdeniz Sahili", "level_count": 10, "unlock_stars_required": 0,
+      "background_dir": "res://assets/backgrounds/akdeniz/", "card": "res://assets/ui/cards/akdeniz.png",
+      "platform_style": "limestone_plinth", "environment": "res://src/gameplay/world/env/akdeniz.tres", "music": "music_akdeniz",
+      "palette": { "stone": 0.45, "wood": 0.25, "crystal_amber": 0.15, "crystal_cyan": 0.15 },
+      "modifiers": {},
+      "allowed_templates": ["stack_pyramid", "twin_pillars", "arch_shrine", "domino_row", "staircase"]
+    },
+    {
+      "id": "korsan", "index": 2, "name_tr": "Korsan Gemisi", "level_count": 10, "unlock_stars_required": 18,
+      "background_dir": "res://assets/backgrounds/korsan/", "card": "res://assets/ui/cards/korsan.png",
+      "platform_style": "ship_deck_plinth", "environment": "res://src/gameplay/world/env/korsan.tres", "music": "music_korsan",
+      "palette": { "wood": 0.35, "crate": 0.25, "stone": 0.2, "crystal_amber": 0.1, "crystal_cyan": 0.1 },
+      "joints": ["rope"],
+      "modifiers": { "platform_sway": { "amplitude_deg": 2.5, "period_sec": 4.0 } },
+      "allowed_templates": ["twin_pillars", "arch_shrine", "truss_bridge", "staircase", "seesaw_ramp", "hanging_core", "domino_row"]
+    },
+    {
+      "id": "yanardag", "index": 3, "name_tr": "Yanardağ", "level_count": 10, "unlock_stars_required": 38,
+      "background_dir": "res://assets/backgrounds/yanardag/", "card": "res://assets/ui/cards/yanardag.png",
+      "platform_style": "basalt_plinth", "environment": "res://src/gameplay/world/env/yanardag.tres", "music": "music_yanardag",
+      "palette": { "lava_rock": 0.4, "stone": 0.15, "wood": 0.15, "crystal_amber": 0.15, "crystal_cyan": 0.15 },
+      "joints": ["chain"],
+      "modifiers": { "lava_floor": { "melt_bonus_coin": 0 } },
+      "allowed_templates": ["arch_shrine", "hanging_core", "fortress_wall", "staircase", "tall_needle", "truss_bridge"]
+    },
+    {
+      "id": "buz", "index": 4, "name_tr": "Buz Mağarası", "level_count": 10, "unlock_stars_required": 58,
+      "background_dir": "res://assets/backgrounds/buz/", "card": "res://assets/ui/cards/buz.png",
+      "platform_style": "ice_plinth", "environment": "res://src/gameplay/world/env/buz.tres", "music": "music_buz",
+      "palette": { "ice": 0.35, "snow_stone": 0.3, "crystal_cyan": 0.2, "crystal_amber": 0.15 },
+      "modifiers": { "slippery": { "friction_mult": 0.4 } },
+      "allowed_templates": ["stack_pyramid", "arch_shrine", "tall_needle", "cantilever", "domino_row", "twin_towers"]
+    },
+    {
+      "id": "col", "index": 5, "name_tr": "Çöl Vadisi", "level_count": 10, "unlock_stars_required": 80,
+      "background_dir": "res://assets/backgrounds/col/", "card": "res://assets/ui/cards/col.png",
+      "platform_style": "sandstone_plinth", "environment": "res://src/gameplay/world/env/col.tres", "music": "music_col",
+      "palette": { "sandstone": 0.4, "crate": 0.2, "metal": 0.1, "crystal_purple": 0.15, "crystal_amber": 0.15 },
+      "modifiers": { "wind": { "force_x": 1.5, "gust_period_sec": 3.0 } },
+      "allowed_templates": ["arch_shrine", "fortress_wall", "cantilever", "staircase", "seesaw_ramp", "twin_towers"]
+    },
+    {
+      "id": "orman", "index": 6, "name_tr": "Büyülü Orman", "level_count": 10, "unlock_stars_required": 104,
+      "background_dir": "res://assets/backgrounds/orman/", "card": "res://assets/ui/cards/orman.png",
+      "platform_style": "mossy_plinth", "environment": "res://src/gameplay/world/env/orman.tres", "music": "music_orman",
+      "palette": { "mossy_stone": 0.35, "wood": 0.3, "crystal_purple": 0.2, "crystal_cyan": 0.15 },
+      "joints": ["vine"],
+      "modifiers": { "vine_links": { "link_ratio": 0.3 } },
+      "allowed_templates": ["hanging_core", "arch_shrine", "truss_bridge", "cantilever", "twin_towers", "fortress_wall"]
+    },
+    {
+      "id": "gokyuzu", "index": 7, "name_tr": "Gökyüzü Adaları", "level_count": 10, "unlock_stars_required": 130,
+      "background_dir": "res://assets/backgrounds/gokyuzu/", "card": "res://assets/ui/cards/gokyuzu.png",
+      "platform_style": "floating_islands", "environment": "res://src/gameplay/world/env/gokyuzu.tres", "music": "music_gokyuzu",
+      "palette": { "stone": 0.4, "wood": 0.2, "crystal_cyan": 0.25, "crystal_amber": 0.15 },
+      "modifiers": { "low_gravity": { "gravity_mult": 0.7 }, "split_platforms": { "gap": 1.5 } },
+      "allowed_templates": ["twin_towers", "arch_shrine", "cantilever", "tall_needle", "hanging_core"]
+    },
+    {
+      "id": "sualti", "index": 8, "name_tr": "Sualtı Harabeleri", "level_count": 10, "unlock_stars_required": 158,
+      "background_dir": "res://assets/backgrounds/sualti/", "card": "res://assets/ui/cards/sualti.png",
+      "platform_style": "sunken_plinth", "environment": "res://src/gameplay/world/env/sualti.tres", "music": "music_sualti",
+      "palette": { "coral_stone": 0.4, "stone": 0.2, "crystal_cyan": 0.25, "metal": 0.15 },
+      "joints": ["chain"],
+      "modifiers": { "water": { "linear_damp": 0.8, "angular_damp": 0.6, "buoyancy": 0.25 } },
+      "allowed_templates": ["arch_shrine", "fortress_wall", "twin_towers", "hanging_core", "cantilever", "truss_bridge"]
+    }
+  ]
+}
+```
+
+### game_data/levels/w01_akdeniz/w01_l01.json
+```json
+{
+  "id": "w01_l01",
+  "world": "akdeniz",
+  "index": 1,
+  "name_tr": "İlk Atış",
+  "difficulty": 2,
+  "role": "intro",
+  "shots": 3,
+  "objective": { "type": "drop_core" },
+  "aim_preview_dots": 20,
+  "platform": { "width": 7, "depth": 5, "style": "limestone_plinth" },
+  "structures": [],
+  "blocks": [
+    { "id": "b01", "shape": "cube", "mat": "stone",         "x": -1.0, "y": 0.0, "z": 0.0, "rot": [0, 0, 0] },
+    { "id": "b02", "shape": "cube", "mat": "crystal_amber", "x":  0.0, "y": 0.0, "z": 0.0, "rot": [0, 0, 0] },
+    { "id": "b03", "shape": "cube", "mat": "stone",         "x":  1.0, "y": 0.0, "z": 0.0, "rot": [0, 0, 0] },
+    { "id": "b04", "shape": "cube", "mat": "crystal_cyan",  "x": -0.5, "y": 1.0, "z": 0.0, "rot": [0, 0, 0] },
+    { "id": "b05", "shape": "cube", "mat": "crystal_cyan",  "x":  0.5, "y": 1.0, "z": 0.0, "rot": [0, 0, 0] },
+    { "id": "b06", "shape": "plank_s", "mat": "wood",       "x":  0.0, "y": 2.0, "z": 0.0, "rot": [0, 0, 0] }
+  ],
+  "joints": [],
+  "cores": [ { "x": 0.0, "y": 2.4, "z": 0.0, "attach": "rest" } ],
+  "keystones": ["b02"],
+  "tutorial": { "type": "hand_tap", "target_block": "b02", "text_tr": "Dokun ve ateşle!" },
+  "intro_ball": null,
+  "free_balls": {},
+  "baked": true,
+  "_doc": "FTUE bolumu: kristal ortadaki alt blok kirilinca piramit coker, kure duser. Tek atis cok buyuk ihtimalle yeter. FTUE icin bilerek tek sira (z=0); derinlik W1 B3+ ile gelir."
+}
+```
+
+### game_data/levels/w01_akdeniz/w01_l03.json
+```json
+{
+  "id": "w01_l03",
+  "world": "akdeniz",
+  "index": 3,
+  "name_tr": "Üç Kemer",
+  "difficulty": 10,
+  "role": "build_up",
+  "shots": 3,
+  "objective": { "type": "drop_core" },
+  "aim_preview_dots": 17,
+  "platform": { "width": 9, "depth": 5, "style": "limestone_plinth" },
+  "structures": [
+    { "template": "arch_shrine", "x": 0, "z": 0, "ry": 0, "seed": 1031, "params": { "floors": 2, "depth_layers": 1, "side_towers": true, "core": "hanging_center", "symmetry": 0.95 } }
+  ],
+  "blocks": [],
+  "joints": [],
+  "cores": [],
+  "keystones": [],
+  "tutorial": { "type": "hint", "text_tr": "Kemeri taşıyan desteğe nişan al!" },
+  "intro_ball": null,
+  "free_balls": {},
+  "baked": false,
+  "_doc": "Sablon tabanli ornek: blocks/cores/keystones generator tarafindan doldurulur; Faz 3 sonunda baked=true olarak dondurulur."
+}
+```
