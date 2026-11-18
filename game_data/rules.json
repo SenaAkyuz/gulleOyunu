@@ -7,7 +7,16 @@
     "default_preview_dots": 14,
     "aim_smoothing": 12.0,
     "min_angle_deg": -75,
-    "max_angle_deg": 75
+    "max_angle_deg": 75,
+    "preview_dot_interval_sec": 0.06,
+    "arc": "low",
+    "_doc_arc": "low: sabit launch_speed ile hedefe giden alcak yay | high: yuksek (lob) yay. Menzil disinda 45 derece ile hedef yonune atilir.",
+    "on_miss": "ignore",
+    "_doc_on_miss": "ignore: dokunus hicbir seye isabet etmezse (gokyuzu) atis yapilmaz. Atis parmak kalkinca yapilir."
+  },
+  "cannon": {
+    "position": [0, 0, 6],
+    "_doc": "Top (cannon) konumu [x, y, z]. Faz 1 Adim 3'te ekranda kesinlesecek (docs/03 eski degeri (0,-1,8) kameradan gorunmuyordu)."
   },
   "shots": {
     "default_per_level": 3,
@@ -43,6 +52,8 @@
     "edge_rule": "com_outside_platform",
     "_doc_edge_rule": "com_outside_platform: agirlik merkezinin (x,z) izdusumu platform ust yuzeyi disindaysa VEYA y < fall_kill_y ise cisim dustu sayilir",
     "edge_margin": 0.0,
+    "spawn_edge_inset": 0.3,
+    "_doc_spawn_edge_inset": "Bloklar platform kenarindan en az bu kadar iceride dogar (docs/03 4. kural 5)",
     "support_margin": 0.05,
     "max_settle_drift": 0.02,
     "_doc_support": "generator support_check: agirlik merkezi destek poligonu kenarina en az support_margin uzak olmali; pre_settle sonrasi kayma <= max_settle_drift"
@@ -54,6 +65,8 @@
     "yaw_deg": 0,
     "distance": 16,
     "look_at_height": 3.5,
+    "keep_aspect": "width",
+    "_doc_keep_aspect": "width: fov_deg yatay aci (portrede kule alani sigar) | height: fov_deg dikey aci (Godot varsayilani)",
     "orbit_enabled": false,
     "orbit_max_yaw_deg": 35,
     "_doc_s007": "S-007 (Onerildi): v1 kamera sabit, capraz ~20 derece yukaridan; her keystone bu acidan gorunur olmali. Orbit v2.",
@@ -69,7 +82,14 @@
     "final_slowmo_scale": 0.3,
     "final_slowmo_duration_sec": 0.6,
     "max_concurrent_bursts": 4,
-    "haptics_default_on": true
+    "haptics_default_on": true,
+    "shake_trauma_per_impulse": 0.005,
+    "spark_min_impulse": 4.0,
+    "_doc_taslak": "shake_trauma_per_impulse ve spark_min_impulse taslak; Faz 1 Adim 10-11'de Dev Panel ile ayarlanacak"
+  },
+  "dev": {
+    "stress_block_count": 120,
+    "_doc": "Gelistirici araclari. stress_block_count: P tusuyla kurulan performans test kulesindeki blok sayisi (S-008)."
   },
   "quality": {
     "default": "medium",

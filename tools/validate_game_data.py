@@ -40,6 +40,9 @@ VALID_ROLES = {r["role"] for r in difficulty.get("rhythm", [])}
 VALID_AIM = {"tap_target", "drag_release"}
 VALID_EDGE_RULES = {"com_outside_platform"}
 VALID_COLLIDERS = {"box", "sphere", "cylinder", "convex"}
+VALID_KEEP_ASPECT = {"width", "height"}
+VALID_ARC = {"low", "high"}
+VALID_ON_MISS = {"ignore"}
 
 
 def is_num(v) -> bool:
@@ -62,9 +65,25 @@ cam = rules.get("camera")
 if not cam:
     errors.append("rules.camera eksik")
 else:
-    for key in ("fov_deg", "pitch_deg", "yaw_deg", "distance"):
+    for key in ("fov_deg", "pitch_deg", "yaw_deg", "distance", "look_at_height"):
         if not is_num(cam.get(key)):
             errors.append(f"rules.camera.{key} sayi olmali")
+    if cam.get("keep_aspect") not in VALID_KEEP_ASPECT:
+        errors.append(f"rules.camera.keep_aspect gecersiz: {cam.get('keep_aspect')} ({VALID_KEEP_ASPECT})")
+aim = rules.get("aim", {})
+if aim.get("arc") not in VALID_ARC:
+    errors.append(f"rules.aim.arc gecersiz: {aim.get('arc')} ({VALID_ARC})")
+if aim.get("on_miss") not in VALID_ON_MISS:
+    errors.append(f"rules.aim.on_miss gecersiz: {aim.get('on_miss')} ({VALID_ON_MISS})")
+if not is_num(aim.get("preview_dot_interval_sec")) or aim.get("preview_dot_interval_sec") <= 0:
+    errors.append("rules.aim.preview_dot_interval_sec pozitif sayi olmali")
+if not is_vec3(rules.get("cannon", {}).get("position")):
+    errors.append("rules.cannon.position [x, y, z] olmali")
+if not is_num(phys.get("spawn_edge_inset")) or phys.get("spawn_edge_inset") < 0:
+    errors.append("rules.physics.spawn_edge_inset 0 veya pozitif sayi olmali")
+stress = rules.get("dev", {}).get("stress_block_count")
+if not isinstance(stress, int) or isinstance(stress, bool) or stress <= 0:
+    errors.append("rules.dev.stress_block_count pozitif tam sayi olmali")
 
 # --- shapes (3D) ---
 for sid, s in shapes.items():
@@ -196,6 +215,14 @@ for lf in sorted((ROOT / "levels").rglob("*.json")):
             errors.append(f"{rel}: blok {blk.get('id')} rot [rx, ry, rz] (derece) olmali")
         if blk.get("id") in block_ids:
             errors.append(f"{rel}: tekrar eden blok id {blk.get('id')}")
+        # Kenar payi (docs/03 4. kural 5): yalnizca donmemis bloklar icin basit eksen hizali kontrol
+        shp = shapes.get(blk.get("shape"), {})
+        if (blk.get("rot", [0, 0, 0]) == [0, 0, 0] and is_vec3(shp.get("size"))
+                and all(is_num(blk.get(k)) for k in ("x", "z")) and is_num(plat.get("width")) and is_num(plat.get("depth"))):
+            inset = phys.get("spawn_edge_inset", 0)
+            if (abs(blk["x"]) + shp["size"][0] / 2 > plat["width"] / 2 - inset + 1e-6
+                    or abs(blk["z"]) + shp["size"][2] / 2 > plat["depth"] / 2 - inset + 1e-6):
+                errors.append(f"{rel}: blok {blk.get('id')} platform kenarina {inset} birimden yakin")
         block_ids.add(blk.get("id"))
     for k in lv.get("keystones", []):
         if lv.get("baked") and k not in block_ids:
