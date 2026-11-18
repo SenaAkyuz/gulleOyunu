@@ -56,7 +56,7 @@ flowchart LR
 
 | Tip | Açıklama | Ne zaman kullanılır |
 |---|---|---|
-| `clear_percent` | Blokların **%80'i** (⚙️ `rules.objective_defaults.clear_percent_target`) platformdan düşerse kazanırsın. Oran **blok hacmine** göre (⚙️ `clear_measure = "volume"`, alternatif `"count"`); Altın Küre ve joint'ler (halat/zincir/sarmaşık) orana dahil değil. Ekranda **doluluk çubuğu**. Otomatik final temizliği **yok** | **Varsayılan** (Smash Away tarzı) |
+| `clear_percent` | Blokların **%80'i** (⚙️ `rules.objective_defaults.clear_percent_target`) platformdan düşerse kazanırsın. Oran **blok hacmine** göre (⚙️ `clear_measure = "volume"`, alternatif `"count"`); Altın Küre ve joint'ler (halat/zincir/sarmaşık) orana dahil değil; **kırılan bloklar temizlenmiş sayılır** (⚙️ `broken_counts_as_cleared`). Ekranda **doluluk çubuğu**. Otomatik final temizliği **yok** | **Varsayılan** (Smash Away tarzı) |
 | `drop_core` | **Altın Küre** platformdan düşerse kazanırsın; küre **korunaklıdır**, doğrudan tek atışla düşmez | Dünya başına **1–2 bölüm** (zincire asılı küre, boss) |
 | `shatter_crystals` | Tüm kristal blokları (turuncu/turkuaz) kır | Kristal ağırlıklı özel bölümler |
 | `drop_all_cores` | Birden fazla küre (çift kule bölümleri) | Boss / çift kule |

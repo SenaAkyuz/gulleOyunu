@@ -229,7 +229,8 @@ Durum makinesi: `AIMING → BALL_IN_FLIGHT → SETTLING → EVALUATE → (AIMING
 SETTLING: tüm aktif gövdeler uyuyana ya da `settle_timeout_sec` dolana kadar. "Atlama" butonu (hızlı ileri) opsiyonel.
 EVALUATE: her hedef cisim için **kenar kuralı** (§2, `rules.physics.edge_rule`) uygulanır: ağırlık merkezi (x,z) platform dışında veya `fall_kill_y` altında → düştü.
 - `clear_percent` (varsayılan, K-018): düşen blokların hacmi / tüm blokların hacmi (`rules.objective_defaults.clear_measure = volume`; `count` = adet)
-  ≥ `clear_percent_target` (bölümde `objective.target` ile ezilebilir) → WON. Küre ve joint'ler orana katılmaz.
+  ≥ `clear_percent_target` (bölümde `objective.target` ile ezilebilir) → WON. Küre ve joint'ler orana katılmaz;
+  kırılan bloklar temizlenmiş sayılır (`rules.objective_defaults.broken_counts_as_cleared = true`).
 - Gülle bitti ve oran hedefin altında → LOST. Otomatik final temizliği yok.
 - Küre düşerse (`clear_percent`): `EventBus.core_dropped` → jackpot (ağır çekim, konfeti, altın); yıldızı etkilemez. `drop_core`: küre düşünce WON.
 

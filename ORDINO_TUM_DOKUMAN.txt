@@ -147,7 +147,7 @@ flowchart LR
 
 | Tip | Açıklama | Ne zaman kullanılır |
 |---|---|---|
-| `clear_percent` | Blokların **%80'i** (⚙️ `rules.objective_defaults.clear_percent_target`) platformdan düşerse kazanırsın. Oran **blok hacmine** göre (⚙️ `clear_measure = "volume"`, alternatif `"count"`); Altın Küre ve joint'ler (halat/zincir/sarmaşık) orana dahil değil. Ekranda **doluluk çubuğu**. Otomatik final temizliği **yok** | **Varsayılan** (Smash Away tarzı) |
+| `clear_percent` | Blokların **%80'i** (⚙️ `rules.objective_defaults.clear_percent_target`) platformdan düşerse kazanırsın. Oran **blok hacmine** göre (⚙️ `clear_measure = "volume"`, alternatif `"count"`); Altın Küre ve joint'ler (halat/zincir/sarmaşık) orana dahil değil; **kırılan bloklar temizlenmiş sayılır** (⚙️ `broken_counts_as_cleared`). Ekranda **doluluk çubuğu**. Otomatik final temizliği **yok** | **Varsayılan** (Smash Away tarzı) |
 | `drop_core` | **Altın Küre** platformdan düşerse kazanırsın; küre **korunaklıdır**, doğrudan tek atışla düşmez | Dünya başına **1–2 bölüm** (zincire asılı küre, boss) |
 | `shatter_crystals` | Tüm kristal blokları (turuncu/turkuaz) kır | Kristal ağırlıklı özel bölümler |
 | `drop_all_cores` | Birden fazla küre (çift kule bölümleri) | Boss / çift kule |
@@ -531,7 +531,8 @@ Durum makinesi: `AIMING → BALL_IN_FLIGHT → SETTLING → EVALUATE → (AIMING
 SETTLING: tüm aktif gövdeler uyuyana ya da `settle_timeout_sec` dolana kadar. "Atlama" butonu (hızlı ileri) opsiyonel.
 EVALUATE: her hedef cisim için **kenar kuralı** (§2, `rules.physics.edge_rule`) uygulanır: ağırlık merkezi (x,z) platform dışında veya `fall_kill_y` altında → düştü.
 - `clear_percent` (varsayılan, K-018): düşen blokların hacmi / tüm blokların hacmi (`rules.objective_defaults.clear_measure = volume`; `count` = adet)
-  ≥ `clear_percent_target` (bölümde `objective.target` ile ezilebilir) → WON. Küre ve joint'ler orana katılmaz.
+  ≥ `clear_percent_target` (bölümde `objective.target` ile ezilebilir) → WON. Küre ve joint'ler orana katılmaz;
+  kırılan bloklar temizlenmiş sayılır (`rules.objective_defaults.broken_counts_as_cleared = true`).
 - Gülle bitti ve oran hedefin altında → LOST. Otomatik final temizliği yok.
 - Küre düşerse (`clear_percent`): `EventBus.core_dropped` → jackpot (ağır çekim, konfeti, altın); yıldızı etkilemez. `drop_core`: küre düşünce WON.
 
@@ -749,7 +750,8 @@ Ara değerler **doğrusal interpolasyon** (veya `difficulty.json`'daki eğri nok
 
 **Zorluk nasıl artar (K-018, mevcut eğrilerle):** daha çok ve daha ağır blok (`block_count`, `heavy_ratio`), dağınık veya ikiz kuleler
 (`structure_count`, `twin_towers`), daha az gülle, kürenin daha derine gömülmesi (`core_protection`).
-> ⚠️ `_TODO_SENA`: K-018 "daha az gülle" diyor; mevcut `curves.shots` ise zorlukla gülleyi **artırıyor** (3 → 5, oyuncuyu sinirlendirmemek için). Eğri değiştirilmedi; karar bekleniyor.
+> Not (Sena, 2026-11-18): `curves.shots` bilerek zorlukla artar (3 → 5): zor bölümlerde blok sayısı çok arttığı için 4–5 gülle yine sıkıdır.
+> "Daha az gülle" kule büyüklüğüne göre az gülle anlamındadır; eğri aynen kalır.
 
 ### 6.2 Bölüm ritmi (dünya başına 10 bölüm) — "testere dişi" eğri
 ```
@@ -1351,7 +1353,9 @@ Faz 0–1: 1 hafta · Faz 2–4: 2 hafta · Faz 5–6: 1.5 hafta · Faz 7–8: 2
 | K-013 | 2026-11-18 | v1'de yalnızca **ödüllü reklam**, interstitial yok | Retention + çocuk oyuncu politikaları (S-003) | Onaylandı |
 | K-014 | 2026-11-18 | İlk sürüm **TR + EN**; tüm metinler baştan çeviri tablosunda | Global mağaza (S-004) | Onaylandı |
 | K-015 | 2026-11-18 | iOS build ve yayın **Codemagic** (bulut macOS) ile | Sena'nın Codemagic hesabı var, Mac gerekmez (S-005) | Onaylandı |
-| K-018 | 2026-11-18 | **Ana hedef "masayı temizle"** (`clear_percent`, K-010'un yerine): blok **hacminin** %80'i platformdan düşünce bölüm kazanılır (`rules.objective_defaults`: `type`, `clear_percent_target = 0.8`, `clear_measure = "volume"` / `"count"`); Altın Küre ve joint'ler orana dahil değil; ekranda doluluk çubuğu; otomatik final temizliği yok. **Altın Küre = jackpot:** `clear_percent` bölümlerinde kule içine/kemer altına/tepeye gömülü; düşerse büyük altın (`economy.rewards.core_jackpot_gold`, taslak 20) + ağır çekim + konfeti; yıldızı etkilemez. `drop_core` yalnızca dünya başına 1–2 bölüm (zincire asılı küre, boss); küre korunaklı, doğrudan tek atışla düşmez. Yıldızlar değişmedi (kalan gülle, `rules.stars`). Zorluk: daha çok/ağır blok, dağınık/ikiz kuleler, daha az gülle, daha derine gömülü küre | Smash Away'in "masayı temizle" tatmini ana döngü olur; küre ustalık ve tekrar oynama motivasyonu veren ikincil hedef | Onaylandı |
+| K-016 | 2026-11-18 | Faz 1 planı onaylandı: kamera `keep_aspect = width`, top (0, 0, 6) ile başlar, atış parmak kalkınca | Sena Faz 1 planını bu kararlarla onayladı | Onaylandı |
+| K-017 | 2026-11-18 | Faz 1 kadrajı: FOV 40 (width), pitch 20, distance 18, look_at_height 4, top (0, 0, 6) | Adım 3 ekran görüntüsüyle doğrulandı: 12 birimlik kule alanı sığıyor, top görünüyor, altta top seçici payı kalıyor | Onaylandı |
+| K-018 | 2026-11-18 | **Ana hedef "masayı temizle"** (`clear_percent`, K-010'un yerine): blok **hacminin** %80'i platformdan düşünce bölüm kazanılır (`rules.objective_defaults`: `type`, `clear_percent_target = 0.8`, `clear_measure = "volume"` / `"count"`); Altın Küre ve joint'ler orana dahil değil; kırılan bloklar temizlenmiş sayılır (`broken_counts_as_cleared = true`); ekranda doluluk çubuğu; otomatik final temizliği yok. **Altın Küre = jackpot:** `clear_percent` bölümlerinde kule içine/kemer altına/tepeye gömülü; düşerse büyük altın (`economy.rewards.core_jackpot_gold`, taslak 20) + ağır çekim + konfeti; yıldızı etkilemez. `drop_core` yalnızca dünya başına 1–2 bölüm (zincire asılı küre, boss); küre korunaklı, doğrudan tek atışla düşmez. Yıldızlar değişmedi (kalan gülle, `rules.stars`). Zorluk: daha çok/ağır blok, dağınık/ikiz kuleler, daha az gülle, daha derine gömülü küre | Smash Away'in "masayı temizle" tatmini ana döngü olur; küre ustalık ve tekrar oynama motivasyonu veren ikincil hedef | Onaylandı |
 
 ## Açık sorular (Sena karar verecek)
 | No | Soru | Öneri | Durum |
@@ -1641,6 +1645,8 @@ Faz 0–1: 1 hafta · Faz 2–4: 2 hafta · Faz 5–6: 1.5 hafta · Faz 7–8: 2
     "type": "clear_percent",
     "clear_percent_target": 0.8,
     "clear_measure": "volume",
+    "broken_counts_as_cleared": true,
+    "_doc_broken": "Kirilan blok (hp 0) temizlenmis sayilir (Sena, 2026-11-18): kristali kirmak da onu masadan kaldirmaktir.",
     "_doc": "K-018: varsayilan hedef clear_percent (bloklarin clear_percent_target orani platformdan duserse kazanilir). clear_measure: volume (blok hacmi) | count (adet). Altin Kure ve joint'ler orana dahil degil. Bolumde objective.target ile ezilebilir. Otomatik final temizligi yok. clear_percent bolumlerinde kure jackpot'tur (economy.rewards.core_jackpot_gold); drop_core bolumlerinde hedeftir.",
     "core_shape": "core_sphere",
     "core_material": "core_gold",

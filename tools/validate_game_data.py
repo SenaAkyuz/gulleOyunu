@@ -92,6 +92,8 @@ if obj_def.get("type") not in VALID_OBJECTIVES:
     errors.append(f"rules.objective_defaults.type gecersiz: {obj_def.get('type')}")
 if not is_num(obj_def.get("clear_percent_target")) or not 0 < obj_def["clear_percent_target"] <= 1:
     errors.append("rules.objective_defaults.clear_percent_target 0 < x <= 1 olmali")
+if not isinstance(obj_def.get("broken_counts_as_cleared"), bool):
+    errors.append("rules.objective_defaults.broken_counts_as_cleared true/false olmali")
 if obj_def.get("clear_measure") not in VALID_CLEAR_MEASURE:
     errors.append(f"rules.objective_defaults.clear_measure gecersiz: {obj_def.get('clear_measure')} ({VALID_CLEAR_MEASURE})")
 if obj_def.get("core_shape") not in shapes:

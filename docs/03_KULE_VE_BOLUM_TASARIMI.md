@@ -166,7 +166,8 @@ Ara değerler **doğrusal interpolasyon** (veya `difficulty.json`'daki eğri nok
 
 **Zorluk nasıl artar (K-018, mevcut eğrilerle):** daha çok ve daha ağır blok (`block_count`, `heavy_ratio`), dağınık veya ikiz kuleler
 (`structure_count`, `twin_towers`), daha az gülle, kürenin daha derine gömülmesi (`core_protection`).
-> ⚠️ `_TODO_SENA`: K-018 "daha az gülle" diyor; mevcut `curves.shots` ise zorlukla gülleyi **artırıyor** (3 → 5, oyuncuyu sinirlendirmemek için). Eğri değiştirilmedi; karar bekleniyor.
+> Not (Sena, 2026-11-18): `curves.shots` bilerek zorlukla artar (3 → 5): zor bölümlerde blok sayısı çok arttığı için 4–5 gülle yine sıkıdır.
+> "Daha az gülle" kule büyüklüğüne göre az gülle anlamındadır; eğri aynen kalır.
 
 ### 6.2 Bölüm ritmi (dünya başına 10 bölüm) — "testere dişi" eğri
 ```
