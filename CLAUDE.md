@@ -63,6 +63,12 @@ Rakip referansı: *Smash Away!* (Oakever). Hedefimiz: görsel olarak çok daha z
 - `/ordino-balance` — ekonomi/zorluk dengesini analiz et ve ayarla.
 - `/ordino-game-feel` — bir özelliğin "juice" kontrol listesini uygula/denetle.
 
+Üçüncü taraf skill'ler (sabit sürüm, Apache-2.0, kaynak: gamedev-skills/awesome-gamedev-agent-skills @ c6ca6c4; lisans `.claude/skills/_third_party/`):
+`godot-gdscript`, `godot-physics`, `godot-3d-essentials`, `godot-signals-groups`, `godot-gdscript-headless-testing`,
+`physics-tuning`, `godot-ui-control`, `game-feel`, `godot-shaders`, `godot-export`.
+
+Üçüncü taraf skill'ler yardımcıdır; çelişkide CLAUDE.md, docs/ ve ordino-* skill'leri önceliklidir. game-feel ile ordino-game-feel çakışırsa ordino-game-feel geçerli.
+
 ## 7. Komutlar
 ```bash
 # Oyun verisini doğrula
