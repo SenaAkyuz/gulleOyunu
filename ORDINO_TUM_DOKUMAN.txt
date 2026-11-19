@@ -89,8 +89,8 @@ godot --headless -s addons/gut/gut_cmdln.gd -gdir=res://tests -gexit
 ```
 
 ## 8. Mevcut durum
-- **Faz:** 1 — Gri Kutu **tamamlandı** (2026-11-19; Sena'nın "10 kez oyna → eğlenceli mi?" kararı bekliyor). Sonraki: Faz 2 (bkz. `docs/06_YOL_HARITASI.md`). Her faz bitince bu satırı güncelle.
-- Faz 1 çıktısı: L01 oynanır (tap_target + drag_release), hakem/doluluk çubuğu/yıldız/jackpot, hasar, sarsıntı + kıvılcım, Dev Panel (F1), stres testi (P).
+- **Faz:** 1 — Gri Kutu **tamam** (2026-11-19, Sena onayladı). **Faz 2 — Veri omurgası ve kayıt başlıyor** (bkz. `docs/06_YOL_HARITASI.md`). Her faz bitince bu satırı güncelle.
+- Faz 1 çıktısı: L01 oynanır (tap_target + drag_release, sürekli atış K-023), hakem/doluluk çubuğu/yıldız/jackpot, hasar, sarsıntı + kıvılcım, Dev Panel (F1), stres testi (P).
   Dev tuşları: G alan · Boşluk uyandır · Tab seç · Oklar it · H hp · R baştan · F1 panel · P stres · F12 ekran görüntüsü.
 - Açık: Android performans ölçümü (S-008), tutorial elinin çizimi, hit-stop + konfeti (Faz 8), GUT kurulumu (Faz 2).
 
@@ -455,7 +455,7 @@ flowchart TB
 ### 4.1 Autoload'lar (singleton)
 | Autoload | Sorumluluk | Kural |
 |---|---|---|
-| `EventBus` | Global sinyaller (`src/autoload/event_bus.gd`): atış `ball_fired(ball_id)`, `ball_impact(pos, impulse, material)`, `ball_expired(ball_id)` · bloklar `block_damaged(block, hp_left)`, `block_broken(block, material)`, `core_dropped(core)` · akış `level_started(level_id)`, `shots_changed(left, total)`, `clear_progress_changed(ratio, target)`, `referee_state_changed(state)`, `level_completed(stars, shots_left)`, `level_failed` · meta `currency_changed(currency, amount)`, `ball_unlocked(ball_id)` | Sistemler birbirini doğrudan çağırmaz |
+| `EventBus` | Global sinyaller (`src/autoload/event_bus.gd`): atış `ball_fired(ball_id)`, `ball_impact(pos, impulse, material)`, `ball_hit(ball_id)` (ilk temas → yeniden atış beklemesi), `ball_expired(ball_id)` · bloklar `block_damaged(block, hp_left)`, `block_broken(block, material)`, `core_dropped(core)` · akış `level_started(level_id)`, `shots_changed(left, total)`, `clear_progress_changed(ratio, target)`, `referee_state_changed(state)`, `level_completed(stars, shots_left)`, `level_failed` · meta `currency_changed(currency, amount)`, `ball_unlocked(ball_id)` | Sistemler birbirini doğrudan çağırmaz |
 | `GameConfig` | Tüm JSON'ları açılışta yükler, şema doğrular, tipli erişim verir: `GameConfig.ball("fire").price_gold` | Yalnızca okunur. Remote config override katmanı (Faz 10) |
 | `SaveManager` | `user://save.json`, **sürümlü** (`save_version`), migrasyon fonksiyonları, atomik yazma (önce `.tmp`) | Bulut kaydı ileride |
 | `Progress` | Bölüm yıldızları, en iyi skor, açık dünyalar, toplam yıldız | Açılma koşullarını `GameConfig`'ten değerlendirir |
@@ -510,6 +510,8 @@ if Progress.is_unlocked(fire.unlock) and Inventory.count("fire") > 0:
 | `aim.drag_deg_per_px`, `drag_pitch_min/max_deg`, `drag_yaw_max_deg`, `drag_dead_zone_px` | drag_release (sapan) modu |
 | `aim.min_angle_deg` / `max_angle_deg` | **Kullanılmıyor** (2D döneminden kalma); Faz 2'de kaldırılabilir |
 | `cannon.position` | Topun dünya konumu (K-016: 0, 0, 6) |
+| `shots.refire_cooldown_sec` | Sürekli atış: gülle çarptıktan sonra yeni atışa kadar bekleme (K-023: 0.3 sn) |
+| `feel.slowmo_enabled` | Jackpot/küre ağır çekimi aç/kapa (K-023: kapalı) |
 | `camera.distance`, `look_at_height`, `keep_aspect` | Kadraj (K-017); bölüm `camera_override` ile anahtar anahtar ezer |
 | `physics.spawn_edge_inset` | Bloklar platform kenarından en az bu kadar içeride doğar (validator) |
 | `platform.thickness`, `friction`, `bounce` | Platform gövdesi |
@@ -1410,6 +1412,7 @@ Faz 0–1: 1 hafta · Faz 2–4: 2 hafta · Faz 5–6: 1.5 hafta · Faz 7–8: 2
 | K-020 | 2026-11-19 | Ağır top kütlesi 6 → 2 (`balls.json → heavy.mass`) | Sena Dev Panel'de oynayarak seçti | Onaylandı |
 | K-021 | 2026-11-19 | L01 = A5 "Kristal Ayaklı Masa" (taş ayak x = -0.4, amber kristal keystone ayak öne çekik); kristal hp 10 (amber/turkuaz/mor, global); L01 `camera_override` distance 14 / look_at_height 3.0 | Sim: keystone atışı 20/20 kazanma (%86 temizlik), jackpot 20/20; kristal tek doğrudan vuruşta kırılır (ölçülen hasar 11.7–19.5); kule kadrajda büyür, top görünür kalır | Onaylandı |
 | K-022 | 2026-11-19 | Malzeme rolü: kristal tek vuruşta kırılır; ahşap/sandık orta (özel toplarla hızlı yok olur); taş/metal neredeyse kırılmaz, devrilerek temizlenir (docs/03 §6.3). Kesin sayılar Faz 6–9'da `/ordino-balance` ile | Ağır top (2 kg) ile taş 7–11 vuruşta kırılıyor; temizlik fizikle devirmekten gelmeli | Onaylandı |
+| K-023 | 2026-11-19 | **Sürekli atış:** gülle ilk temasından `rules.shots.refire_cooldown_sec` (0.3 sn) sonra yeni atış serbest, kulenin durulması beklenmez; kazanma her karede kontrol edilir (hedefe ulaşıldığı an WON), kaybetme yalnızca son gülle durulunca (veya `settle_timeout_sec`); yıldız kullanılan gülleye göre. **Ağır çekim kapalı** (`rules.feel.slowmo_enabled = false`); Faz 8'de yalnızca kazanma anında kısa vurgu olarak denenecek | Faz 1 oynanış testi: durulmayı beklemek ve ağır çekim akışı kesiyordu; 0.5 sn yavaş bulundu → 0.3 | Onaylandı |
 
 ## Açık sorular (Sena karar verecek)
 | No | Soru | Öneri | Durum |

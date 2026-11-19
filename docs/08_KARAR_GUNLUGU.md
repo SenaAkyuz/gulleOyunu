@@ -28,6 +28,7 @@
 | K-020 | 2026-11-19 | Ağır top kütlesi 6 → 2 (`balls.json → heavy.mass`) | Sena Dev Panel'de oynayarak seçti | Onaylandı |
 | K-021 | 2026-11-19 | L01 = A5 "Kristal Ayaklı Masa" (taş ayak x = -0.4, amber kristal keystone ayak öne çekik); kristal hp 10 (amber/turkuaz/mor, global); L01 `camera_override` distance 14 / look_at_height 3.0 | Sim: keystone atışı 20/20 kazanma (%86 temizlik), jackpot 20/20; kristal tek doğrudan vuruşta kırılır (ölçülen hasar 11.7–19.5); kule kadrajda büyür, top görünür kalır | Onaylandı |
 | K-022 | 2026-11-19 | Malzeme rolü: kristal tek vuruşta kırılır; ahşap/sandık orta (özel toplarla hızlı yok olur); taş/metal neredeyse kırılmaz, devrilerek temizlenir (docs/03 §6.3). Kesin sayılar Faz 6–9'da `/ordino-balance` ile | Ağır top (2 kg) ile taş 7–11 vuruşta kırılıyor; temizlik fizikle devirmekten gelmeli | Onaylandı |
+| K-023 | 2026-11-19 | **Sürekli atış:** gülle ilk temasından `rules.shots.refire_cooldown_sec` (0.3 sn) sonra yeni atış serbest, kulenin durulması beklenmez; kazanma her karede kontrol edilir (hedefe ulaşıldığı an WON), kaybetme yalnızca son gülle durulunca (veya `settle_timeout_sec`); yıldız kullanılan gülleye göre. **Ağır çekim kapalı** (`rules.feel.slowmo_enabled = false`); Faz 8'de yalnızca kazanma anında kısa vurgu olarak denenecek | Faz 1 oynanış testi: durulmayı beklemek ve ağır çekim akışı kesiyordu; 0.5 sn yavaş bulundu → 0.3 | Onaylandı |
 
 ## Açık sorular (Sena karar verecek)
 | No | Soru | Öneri | Durum |

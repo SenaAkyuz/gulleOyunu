@@ -140,7 +140,7 @@ flowchart TB
 ### 4.1 Autoload'lar (singleton)
 | Autoload | Sorumluluk | Kural |
 |---|---|---|
-| `EventBus` | Global sinyaller (`src/autoload/event_bus.gd`): atış `ball_fired(ball_id)`, `ball_impact(pos, impulse, material)`, `ball_expired(ball_id)` · bloklar `block_damaged(block, hp_left)`, `block_broken(block, material)`, `core_dropped(core)` · akış `level_started(level_id)`, `shots_changed(left, total)`, `clear_progress_changed(ratio, target)`, `referee_state_changed(state)`, `level_completed(stars, shots_left)`, `level_failed` · meta `currency_changed(currency, amount)`, `ball_unlocked(ball_id)` | Sistemler birbirini doğrudan çağırmaz |
+| `EventBus` | Global sinyaller (`src/autoload/event_bus.gd`): atış `ball_fired(ball_id)`, `ball_impact(pos, impulse, material)`, `ball_hit(ball_id)` (ilk temas → yeniden atış beklemesi), `ball_expired(ball_id)` · bloklar `block_damaged(block, hp_left)`, `block_broken(block, material)`, `core_dropped(core)` · akış `level_started(level_id)`, `shots_changed(left, total)`, `clear_progress_changed(ratio, target)`, `referee_state_changed(state)`, `level_completed(stars, shots_left)`, `level_failed` · meta `currency_changed(currency, amount)`, `ball_unlocked(ball_id)` | Sistemler birbirini doğrudan çağırmaz |
 | `GameConfig` | Tüm JSON'ları açılışta yükler, şema doğrular, tipli erişim verir: `GameConfig.ball("fire").price_gold` | Yalnızca okunur. Remote config override katmanı (Faz 10) |
 | `SaveManager` | `user://save.json`, **sürümlü** (`save_version`), migrasyon fonksiyonları, atomik yazma (önce `.tmp`) | Bulut kaydı ileride |
 | `Progress` | Bölüm yıldızları, en iyi skor, açık dünyalar, toplam yıldız | Açılma koşullarını `GameConfig`'ten değerlendirir |
@@ -195,6 +195,8 @@ if Progress.is_unlocked(fire.unlock) and Inventory.count("fire") > 0:
 | `aim.drag_deg_per_px`, `drag_pitch_min/max_deg`, `drag_yaw_max_deg`, `drag_dead_zone_px` | drag_release (sapan) modu |
 | `aim.min_angle_deg` / `max_angle_deg` | **Kullanılmıyor** (2D döneminden kalma); Faz 2'de kaldırılabilir |
 | `cannon.position` | Topun dünya konumu (K-016: 0, 0, 6) |
+| `shots.refire_cooldown_sec` | Sürekli atış: gülle çarptıktan sonra yeni atışa kadar bekleme (K-023: 0.3 sn) |
+| `feel.slowmo_enabled` | Jackpot/küre ağır çekimi aç/kapa (K-023: kapalı) |
 | `camera.distance`, `look_at_height`, `keep_aspect` | Kadraj (K-017); bölüm `camera_override` ile anahtar anahtar ezer |
 | `physics.spawn_edge_inset` | Bloklar platform kenarından en az bu kadar içeride doğar (validator) |
 | `platform.thickness`, `friction`, `bounce` | Platform gövdesi |

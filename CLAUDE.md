@@ -80,7 +80,7 @@ godot --headless -s addons/gut/gut_cmdln.gd -gdir=res://tests -gexit
 ```
 
 ## 8. Mevcut durum
-- **Faz:** 1 — Gri Kutu **tamamlandı** (2026-11-19; Sena'nın "10 kez oyna → eğlenceli mi?" kararı bekliyor). Sonraki: Faz 2 (bkz. `docs/06_YOL_HARITASI.md`). Her faz bitince bu satırı güncelle.
-- Faz 1 çıktısı: L01 oynanır (tap_target + drag_release), hakem/doluluk çubuğu/yıldız/jackpot, hasar, sarsıntı + kıvılcım, Dev Panel (F1), stres testi (P).
+- **Faz:** 1 — Gri Kutu **tamam** (2026-11-19, Sena onayladı). **Faz 2 — Veri omurgası ve kayıt başlıyor** (bkz. `docs/06_YOL_HARITASI.md`). Her faz bitince bu satırı güncelle.
+- Faz 1 çıktısı: L01 oynanır (tap_target + drag_release, sürekli atış K-023), hakem/doluluk çubuğu/yıldız/jackpot, hasar, sarsıntı + kıvılcım, Dev Panel (F1), stres testi (P).
   Dev tuşları: G alan · Boşluk uyandır · Tab seç · Oklar it · H hp · R baştan · F1 panel · P stres · F12 ekran görüntüsü.
 - Açık: Android performans ölçümü (S-008), tutorial elinin çizimi, hit-stop + konfeti (Faz 8), GUT kurulumu (Faz 2).
