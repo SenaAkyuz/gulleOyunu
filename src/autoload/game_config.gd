@@ -40,6 +40,8 @@ const VALID_EDGE_RULES: PackedStringArray = ["com_outside_platform"]
 const VALID_KEEP_ASPECT: PackedStringArray = ["width", "height"]
 
 var errors: PackedStringArray = []
+## Non-fatal data issues (e.g. a special ball whose behaviour arrives in a later phase).
+var warnings: PackedStringArray = []
 
 var _rules: Dictionary = {}
 var _materials: Dictionary = {}
@@ -56,6 +58,8 @@ var _dev_original: Dictionary = {}
 
 func _ready() -> void:
 	load_all()
+	for w in warnings:
+		push_warning("GameConfig: " + w)
 	if is_valid():
 		apply_physics_settings()
 		print("GameConfig OK: ", summary())
@@ -70,6 +74,7 @@ func is_valid() -> bool:
 
 func load_all() -> void:
 	errors.clear()
+	warnings.clear()
 	_level_cache.clear()
 	_dev_original.clear()
 	_rules = _load_json("rules.json")
@@ -82,6 +87,7 @@ func load_all() -> void:
 	_level_paths.clear()
 	_scan_levels(LEVELS_DIR)
 	_check_rules()
+	_validate_references()
 
 
 func summary() -> String:
@@ -288,6 +294,19 @@ func _scan_levels(dir_path: String) -> void:
 	for file in dir.get_files():
 		if file.get_extension() == "json":
 			_level_paths[file.get_basename()] = dir_path.path_join(file)
+
+
+## Cross-file references (ConfigValidator). Parses every level once (they are cached).
+func _validate_references() -> void:
+	var levels: Dictionary = {}
+	for id: String in _level_paths:
+		levels[id] = level(id)
+	var v := ConfigValidator.new().validate({
+		"rules": _rules, "materials": _materials, "shapes": _shapes, "balls": _balls,
+		"worlds": _worlds, "economy": _economy, "levels": levels,
+	})
+	errors.append_array(v.errors)
+	warnings.append_array(v.warnings)
 
 
 func _check_rules() -> void:
