@@ -114,9 +114,12 @@ func test_level_03_opens_full() -> void:
 	var lv := LevelExpander.expand(GameConfig.level("w01_l03"))
 	assert_eq((lv["_expand_warnings"] as PackedStringArray).size(), 0)
 	assert_gt((lv["blocks"] as Array).size(), 0)
-	assert_eq((lv["cores"] as Array).size(), 1, "drop_core bölümünde küre olmalı")
+	assert_eq((lv["cores"] as Array).size(), 1, "L03 jackpot küresi yuvada")
 	var bad := Kit.problems(lv)
 	assert_eq(bad.size(), 0, "; ".join(bad))
+	assert_eq(str(lv["objective"]["type"]), "clear_percent", "K-025: küre bölümü bitirmez")
+	assert_eq(lv["platform"]["width"], LayoutCheck.platform_for(lv["blocks"])["width"], "dar platform (docs/03 §2)")
+	assert_eq(lv["platform"]["depth"], LayoutCheck.platform_for(lv["blocks"])["depth"], "dar platform (docs/03 §2)")
 	LevelLoader.dev_level_id = "w01_l03"
 	var counts: Dictionary = await _scene_counts({})
 	LevelLoader.dev_level_id = ""

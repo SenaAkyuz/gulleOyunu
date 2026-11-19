@@ -36,7 +36,8 @@ economy = load("economy.json")
 VALID_FLAGS = {"flammable", "cuttable", "conductive", "freezable", "shatter",
                "thermal_shock", "objective", "joint", "unbreakable"}
 VALID_UNLOCK = {"start", "level_cleared", "levels_cleared_count", "world_completed", "stars_total"}
-VALID_OBJECTIVES = {"drop_core", "clear_percent", "shatter_crystals", "drop_all_cores"}
+# K-025: Altin Kure bolumu asla bitirmez -> drop_core / drop_all_cores hedefi yok
+VALID_OBJECTIVES = {"clear_percent", "shatter_crystals"}
 VALID_ROLES = {r["role"] for r in difficulty.get("rhythm", [])}
 VALID_AIM = {"tap_target", "drag_release"}
 VALID_EDGE_RULES = {"com_outside_platform"}
@@ -45,7 +46,6 @@ VALID_KEEP_ASPECT = {"width", "height"}
 VALID_ARC = {"low", "high"}
 VALID_ON_MISS = {"ignore"}
 VALID_CLEAR_MEASURE = {"volume", "count"}
-CORE_OBJECTIVES = {"drop_core", "drop_all_cores"}
 
 
 def is_num(v) -> bool:
@@ -367,9 +367,7 @@ for lf in sorted((ROOT / "levels").rglob("*.json")):
     if lv.get("baked"):
         if not lv.get("blocks"):
             errors.append(f"{rel}: baked=true ama blocks bos")
-        # cores yalnizca drop_core / drop_all_cores icin zorunlu; clear_percent'te opsiyonel jackpot kuresi (K-018)
-        if objective.get("type") in CORE_OBJECTIVES and not lv.get("cores"):
-            errors.append(f"{rel}: {objective.get('type')} hedefi ama cores bos")
+        # cores opsiyonel: Altin Kure yalnizca jackpot (K-018, K-025)
         if not lv.get("keystones"):
             warnings.append(f"{rel}: keystone isaretlenmemis")
     for b in lv.get("free_balls", {}):

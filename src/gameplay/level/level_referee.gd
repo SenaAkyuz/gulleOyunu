@@ -8,14 +8,13 @@ extends Node
 ##   rules.shots.refire_cooldown_sec (the tower is NOT waited for); after the last shot SETTLING
 ##   waits until every body rests (asleep or slower than rules.physics.settle_linear_velocity_threshold,
 ##   no ball alive) or rules.physics.settle_timeout_sec.
-## - WIN is checked every tick and happens the moment the objective is met:
-##     clear_percent (default): cleared volume (or count) / total >= target; cleared = centre of mass
-##       outside the platform (edge rule), or broken when rules.objective_defaults.broken_counts_as_cleared.
-##       Core/joints excluded.
-##     drop_core / drop_all_cores: the core(s) fell off.
+## - WIN is checked every tick and happens the moment the objective is met. The only objective is
+##   clear_percent (K-018, K-025): cleared volume (or count) / total >= target; cleared = centre of mass
+##   outside the platform (edge rule), or broken when rules.objective_defaults.broken_counts_as_cleared.
+##   Core/joints excluded. The Golden Core never ends a level (K-025).
 ## - LOSS only in EVALUATE after the last shot settled (no automatic final clear).
 ## - Golden Core: checked every tick, also after the win; dropping it emits EventBus.core_dropped
-##   (jackpot in clear_percent levels, never affects stars).
+##   (jackpot gold only, never affects stars or the result).
 ## - Stars (rules.stars, mode shots_left) from shots left at the win (= shots used).
 ## Talks to the rest of the game only through EventBus.
 
@@ -26,9 +25,7 @@ const STATE_NAMES := {
 	State.SETTLING: "SETTLING", State.EVALUATE: "EVALUATE", State.WON: "WON", State.LOST: "LOST",
 }
 const OBJ_CLEAR_PERCENT := "clear_percent"
-const OBJ_DROP_CORE := "drop_core"
-const OBJ_DROP_ALL_CORES := "drop_all_cores"
-const SUPPORTED_OBJECTIVES: PackedStringArray = [OBJ_CLEAR_PERCENT, OBJ_DROP_CORE, OBJ_DROP_ALL_CORES]
+const SUPPORTED_OBJECTIVES: PackedStringArray = [OBJ_CLEAR_PERCENT]
 const STARS_MODE_SHOTS_LEFT := "shots_left"
 const MEASURE_VOLUME := "volume"
 ## Only re-emit clear progress when it moved more than this (avoids per-tick signal spam).
@@ -79,10 +76,8 @@ func setup(level: Dictionary, tower: TowerBuilder, platform: Platform) -> void:
 	objective_type = str(objective.get("type", GameConfig.rule("objective_defaults.type")))
 	clear_target = float(objective.get("target", GameConfig.rule("objective_defaults.clear_percent_target")))
 	if not SUPPORTED_OBJECTIVES.has(objective_type):
-		push_error("LevelReferee: '%s' hedefi Faz 1'de yok; clear_percent kullanılıyor" % objective_type)
+		push_error("LevelReferee: '%s' hedefi yok (K-025); clear_percent kullanılıyor" % objective_type)
 		objective_type = OBJ_CLEAR_PERCENT
-	if objective_type != OBJ_CLEAR_PERCENT and _tower.cores.is_empty():
-		push_error("LevelReferee: %s hedefi ama bölümde küre yok" % objective_type)
 
 	EventBus.ball_fired.connect(_on_ball_fired)
 	EventBus.ball_expired.connect(_on_ball_expired)
@@ -221,14 +216,6 @@ func _win() -> void:
 
 
 func _objective_met() -> bool:
-	match objective_type:
-		OBJ_DROP_CORE:
-			return core_dropped
-		OBJ_DROP_ALL_CORES:
-			for c in _tower.cores:
-				if not c.is_fallen:
-					return false
-			return not _tower.cores.is_empty()
 	return clear_ratio >= clear_target
 
 

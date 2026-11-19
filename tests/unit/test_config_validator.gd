@@ -97,10 +97,9 @@ func test_start_level_must_exist() -> void:
 	_assert_error("start_level_id 'w09_l99'")
 
 
-func test_drop_core_needs_cores_when_baked() -> void:
+func test_core_objectives_are_gone_k025() -> void:
 	data["levels"]["w01_l01"]["objective"] = {"type": "drop_core"}
-	data["levels"]["w01_l01"]["cores"] = []
-	_assert_error("drop_core hedefi ama cores boş")
+	_assert_error("geçersiz objective.type 'drop_core'")
 
 
 func test_missing_behavior_is_only_a_warning() -> void:

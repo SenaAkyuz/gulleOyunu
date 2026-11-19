@@ -7,8 +7,8 @@ extends RefCounted
 ## Pure function over plain dictionaries so GUT can feed it broken data. Messages are Turkish.
 
 const VALID_COLLIDERS: PackedStringArray = ["box", "sphere", "cylinder", "convex"]
-const VALID_OBJECTIVES: PackedStringArray = ["clear_percent", "drop_core", "drop_all_cores", "shatter_crystals"]
-const NEEDS_CORES: PackedStringArray = ["drop_core", "drop_all_cores"]
+## K-025: the Golden Core never ends a level -> no drop_core / drop_all_cores objectives.
+const VALID_OBJECTIVES: PackedStringArray = ["clear_percent", "shatter_crystals"]
 const VALID_UNLOCKS: PackedStringArray = ["start", "level_cleared"]
 const MATERIAL_NUMBERS: PackedStringArray = ["density", "hp", "impact_threshold", "friction", "bounce"]
 const BALL_NUMBERS: PackedStringArray = ["mass", "radius", "launch_speed", "max_life_sec"]
@@ -182,8 +182,6 @@ func _check_level(id: String, lv: Dictionary, rules: Dictionary, materials: Dict
 		for k: String in lv.get("keystones", []):
 			if not ids.has(k):
 				errors.append("%s: keystone '%s' blok listesinde yok" % [where, k])
-		if NEEDS_CORES.has(otype) and (lv.get("cores", []) as Array).is_empty():
-			errors.append("%s: %s hedefi ama cores boş" % [where, otype])
 		var tutorial: Variant = lv.get("tutorial")
 		if tutorial is Dictionary and (tutorial as Dictionary).has("target_block") \
 				and not ids.has(str(tutorial["target_block"])):

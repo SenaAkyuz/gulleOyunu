@@ -55,13 +55,12 @@ flowchart LR
 
 ### 3.3 Kazanma koşulu (bölüm bazında seçilir) ⚙️ `level.objective.type`
 ✅ Karar (K-018, Sena onayladı — K-010'un yerine): **Ana hedef "masayı temizle", Altın Küre jackpot.**
+✅ **K-025 (2026-11-19):** Altın Küre **hiçbir zaman bölümü bitirmez** — her bölümde kazanma koşulu temizliktir, küre her zaman yalnızca jackpot altını verir. `drop_core` / `drop_all_cores` kaldırıldı.
 
 | Tip | Açıklama | Ne zaman kullanılır |
 |---|---|---|
 | `clear_percent` | Blokların **%80'i** (⚙️ `rules.objective_defaults.clear_percent_target`) platformdan düşerse kazanırsın. Oran **blok hacmine** göre (⚙️ `clear_measure = "volume"`, alternatif `"count"`); Altın Küre ve joint'ler (halat/zincir/sarmaşık) orana dahil değil; **kırılan bloklar temizlenmiş sayılır** (⚙️ `broken_counts_as_cleared`). Ekranda **doluluk çubuğu**. Otomatik final temizliği **yok** | **Varsayılan** (Smash Away tarzı) |
-| `drop_core` | **Altın Küre** platformdan düşerse kazanırsın; küre **korunaklıdır**, doğrudan tek atışla düşmez | Dünya başına **1–2 bölüm** (zincire asılı küre, boss) |
 | `shatter_crystals` | Tüm kristal blokları (turuncu/turkuaz) kır | Kristal ağırlıklı özel bölümler |
-| `drop_all_cores` | Birden fazla küre (çift kule bölümleri) | Boss / çift kule |
 
 **Sürekli atış:** gülle bir yere çarptıktan ⚙️ `rules.shots.refire_cooldown_sec` (0.3 sn) sonra yeni atış yapılabilir; kulenin durulması beklenmez.
 Kazanma her an kontrol edilir: hedefe (%80) ulaşıldığı an kazanılır. Kaybetme yalnızca son gülle atılıp fizik **durulunca** (veya ⚙️ `rules.physics.settle_timeout_sec`) değerlendirilir.
@@ -165,7 +164,7 @@ Her blok = **şekil (shape)** + **malzeme (material)**. Malzeme fizik ve etkile�
 | `lava_rock` | Koyu, turuncu çatlaklı | Yüksek | Yüksek | thermal_shock (Buz ×2) |
 | `metal` | Perçin, plaka | Çok yüksek | Çok yüksek | conductive |
 | `rope` / `chain` / `vine` | Bağlantı (joint) | — | Düşük/Yüksek/Orta | joint; rope/vine cuttable+flammable |
-| `core_gold` | **Altın Küre** (jackpot; `drop_core` bölümlerinde hedef) | Orta | Kırılmaz | objective |
+| `core_gold` | **Altın Küre** (yalnızca jackpot, K-025) | Orta | Kırılmaz | objective |
 
 **Kristal bloklar** (turuncu/turkuaz) kırılınca küçük altın (⚙️ `materials.json → coin_on_break`) ve tatmin edici cam kırılma efekti verir → oyuncuyu "daha çok yık" yönünde ödüllendirir.
 

@@ -153,10 +153,7 @@ func _on_level_failed() -> void:
 func _on_core_dropped(_core: Node3D) -> void:
 	if _jackpot.visible:
 		return
-	if _objective == OBJ_CLEAR_PERCENT:
-		_jackpot.text = "JACKPOT!"
-	else:
-		_jackpot.text = "KÜRE DÜŞTÜ!"
+	_jackpot.text = "JACKPOT!"
 	_jackpot.visible = true
 
 

@@ -47,7 +47,7 @@
     "clear_measure": "volume",
     "broken_counts_as_cleared": true,
     "_doc_broken": "Kirilan blok (hp 0) temizlenmis sayilir (Sena, 2026-11-18): kristali kirmak da onu masadan kaldirmaktir.",
-    "_doc": "K-018: varsayilan hedef clear_percent (bloklarin clear_percent_target orani platformdan duserse kazanilir). clear_measure: volume (blok hacmi) | count (adet). Altin Kure ve joint'ler orana dahil degil. Bolumde objective.target ile ezilebilir. Otomatik final temizligi yok. clear_percent bolumlerinde kure jackpot'tur (economy.rewards.core_jackpot_gold); drop_core bolumlerinde hedeftir.",
+    "_doc": "K-018: varsayilan hedef clear_percent (bloklarin clear_percent_target orani platformdan duserse kazanilir). clear_measure: volume (blok hacmi) | count (adet). Altin Kure ve joint'ler orana dahil degil. Bolumde objective.target ile ezilebilir. Otomatik final temizligi yok. Altin Kure her zaman yalnizca jackpot'tur (economy.rewards.core_jackpot_gold), bolumu asla bitirmez (K-025).",
     "core_shape": "core_sphere",
     "core_material": "core_gold",
     "_doc_core": "Bolum JSON'undaki cores[] ogeleri bu sekil + malzemeyle kurulur. cores[].y = kurenin alt yuzeyi (bloklarla ayni kural)."

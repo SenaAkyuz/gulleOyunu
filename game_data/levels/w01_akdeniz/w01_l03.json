@@ -6,9 +6,9 @@
   "difficulty": 10,
   "role": "build_up",
   "shots": 3,
-  "objective": { "type": "drop_core" },
+  "objective": { "type": "clear_percent" },
   "aim_preview_dots": 17,
-  "platform": { "width": 9, "depth": 5, "style": "limestone_plinth" },
+  "platform": { "width": 7.44, "depth": 2.6, "style": "limestone_plinth" },
   "structures": [
     { "template": "arch_shrine", "x": 0, "z": 0, "ry": 0, "seed": 1031, "params": { "floors": 2, "depth_layers": 1, "side_towers": true, "core": "hanging_center", "symmetry": 0.95 } }
   ],
@@ -20,5 +20,5 @@
   "intro_ball": null,
   "free_balls": {},
   "baked": false,
-  "_doc": "Sablon tabanli ornek: blocks/cores/keystones generator tarafindan doldurulur; Faz 3 sonunda baked=true olarak dondurulur."
+  "_doc": "Sablon tabanli ornek: blocks/cores/keystones LevelExpander ile sablondan doldurulur; Faz 3 sonunda baked=true olarak dondurulur. K-025: hedef clear_percent, kure (kemer icinde yuvada) yalnizca jackpot. Platform = kule ayak izi + spawn_edge_inset + generator.platform_margin."
 }

@@ -47,7 +47,7 @@ Tek risk IAP/reklam eklentileri → `IAPService` / `AdsService` arayüzleriyle s
   1. **Ağırlık merkezinin yatay izdüşümü (x, z) platform üst yüzeyinin dışındaysa** (tolerans: `rules.physics.edge_margin`), **veya**
   2. `y < rules.physics.fall_kill_y` (platformun altına inmişse).
 - Kenarda asılı kalan ama ağırlık merkezi platform dışında olan cisim **düşmüş** sayılır; ağırlık merkezi platform içindeyse **düşmemiş** sayılır. Ara durum yok.
-- Kontrol sürekli yapılır: Altın Küre'nin ağırlık merkezi platform dışına çıktığı an "düştü" sayılır (jackpot ağır çekimi başlar; `drop_core` bölümlerinde kazanma). Bloklar için temizlik oranı (`clear_percent`, K-018) her karede canlı hesaplanır ve hedefe ulaşıldığı an kazanılır; kesin hüküm (kaybetme için) son gülle durulunca verilir.
+- Kontrol sürekli yapılır: Altın Küre'nin ağırlık merkezi platform dışına çıktığı an "düştü" sayılır (jackpot; bölümü bitirmez, K-025). Bloklar için temizlik oranı (`clear_percent`, K-018) her karede canlı hesaplanır ve hedefe ulaşıldığı an kazanılır; kesin hüküm (kaybetme için) son gülle durulunca verilir.
 - Ayrık platformlarda (Gökyüzü Adaları) "platform" = tüm platform üst yüzeylerinin birleşimi.
 - Oyuncuya görünür: kenarda asılı ama düşmüş sayılan cisim hafif gri parıltı alır.
 
@@ -263,7 +263,7 @@ hp <= 0  → kırıl (fracture) ; hp < %50 → çatlak dokusu (decal/overlay)
   ≥ `clear_percent_target` (bölümde `objective.target` ile ezilebilir) → WON. Küre ve joint'ler orana katılmaz;
   kırılan bloklar temizlenmiş sayılır (`rules.objective_defaults.broken_counts_as_cleared = true`).
 - Gülle bitti ve oran hedefin altında → LOST. Otomatik final temizliği yok.
-- Küre düşerse (`clear_percent`): `EventBus.core_dropped` → jackpot (altın; konfeti Faz 8; ağır çekim `rules.feel.slowmo_enabled` ile kapalı); yıldızı etkilemez, kazandıktan sonra düşse de sayılır. `drop_core`: küre düşünce WON.
+- Küre düşerse (`clear_percent`): `EventBus.core_dropped` → jackpot (altın; konfeti Faz 8; ağır çekim `rules.feel.slowmo_enabled` ile kapalı); yıldızı etkilemez, kazandıktan sonra düşse de sayılır.
 - Yıldız: kazanma anında kalan gülleye göre (= kullanılan gülle sayısı, `rules.stars`).
 
 ---
