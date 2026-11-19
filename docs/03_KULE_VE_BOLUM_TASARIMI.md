@@ -266,6 +266,32 @@ flowchart LR
 - `jackpot_rate` (`clear_percent`): çözümlerin kaçında Altın Küre de düşüyor. Öneri: intro %50–80 → challenge %10–25. Şimdilik yalnızca raporlanır;
   `difficulty.json → sim_targets`'a eşik eklemek Sena'nın onayına bağlı (`_TODO_SENA`).
 
+**Uygulama (Faz 3 Adım 8):** `src/tools/sim/level_sim.gd` (+ komut satırı `src/tools/sim/sim_cli.gd`):
+`godot --headless --fixed-fps 60 --path . -s src/tools/sim/sim_cli.gd -- --world akdeniz` (veya `--level w01_l05`, `--samples N`, `--greedy N`, `--batch K`).
+Gerçek `Ball` + bloklar (hasar, kırılma, kenar kuralı); bölümün `batch` kopyası aynı fizik dünyasında 40 m arayla paralel; `--fixed-fps` ile her kare bir fizik adımı (deterministik, CPU hızında).
+Rastgele hedefler = varsayılan kameradan görünen blok yüzü noktaları (oyuncunun dokunabileceği yerler), `aim.arc` atışı. `within_shots_rate` için "açgözlü" strateji:
+ilk atış rastgele, sonrakiler platformda kalan en büyük bloğa. Çıktı: `_sim_reports/<id>.json` + `summary.md` (git dışı). Hiçbir bölümü değiştirmez.
+
+**İlk ölçüm — Dünya 1, 200 örnek (2026-11-19, yalnızca rapor; karar Sena'nın):**
+
+| Bölüm | Kaynak | Rol | Tek atış (hedef) | Keystone çözüm / çöküş | Jackpot | Gülleyle çözüm (≥%20) | Yere değen hacim |
+|---|---|---|---|---|---|---|---|
+| L01 | elle | intro | %42 (30–60) ✔ | ✔ / %86 | %100 | %56 ✔ | %27 |
+| L02 | generator | build_up | %0 (10–30) ⚠ | ✘ / %33 | – | %0 ⚠ | %76 |
+| L03 | dosya | build_up | %0 (10–30) ⚠ | ✘ / %56 | – | %0 ⚠ | %37 |
+| L04 | aday | breather | %0 (25–55) ⚠ | ✘ / %50 | – | %21 ✔ | %50 |
+| L05 | generator | new_mechanic | %21 (10–35) ✔ | ✘ / %54 | %43 | %52 ✔ | %21 |
+| L06 | generator | combine | %0 (6–20) ⚠ | ✘ / %30 | – | %8 ⚠ | %40 |
+| L07 | generator | combine | %0 (6–20) ⚠ | ✘ / %10 | – | %6 ⚠ | %40 |
+| L08 | generator | challenge | %0 (2–8) ⚠ | ✘ / %33 | – | %0 ⚠ | %76 |
+| L09 | aday | breather | %0 (25–55) ⚠ | ✘ / %30 | – | %2 ⚠ | %40 |
+| L10 | aday (boss) | boss | %0 (1–3) ⚠ | ✘ / %26, %28 | – | %0 ⚠ | %50 |
+
+Süre: bölüm başına 13–17 sn (boss 31 sn), Dünya 1 toplam ~2 dk 48 sn → 200 örnek uygun. Aynı girdi iki kez → birebir aynı sonuç.
+Bulgular: (1) Hedefe ulaşan iki bölüm "yere değen hacim"i en düşük olanlar (L01 %27, L05 %21): ince ayaklı "masa" kuleler keystone kırılınca bütünüyle devriliyor,
+geniş tabanlı şablonlarda taban (taş) platformda kalıyor ve hacim %80'e ulaşmıyor. (2) Platform payının etkisi küçük (deney: `platform_margin` 0.5 → 0, keystone
+çöküşü en çok +%10). (3) L01 keystone %86 = K-021 ölçümüyle aynı (aracın doğrulaması). Açık karar (Sena): şablon tasarımı / hedef oranı / ölçüm biçimi.
+
 ### 8.2 Bölüm editörü (Godot editör eklentisi, Faz 3)
 > **K-024:** Faz 3'te özel ızgara editörü yerine Godot editör paneli yapılır: butonlar aşağıdaki gibi, bloklar Godot'un 3D gizmo'su ile taşınır. Aşağıdaki üç panelli düzen ileride değerlendirilir.
 - Sol panel: şablon/blok paleti · Orta: grid üzerinde sürükle-bırak · Sağ: seçili bloğun malzemesi, döndürme, keystone işareti.
