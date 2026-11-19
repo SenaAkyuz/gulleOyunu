@@ -6,7 +6,7 @@
       "name_tr": "Ağır Top",
       "desc_tr": "Yüksek kütlesiyle blokları ezer, kırar ve yıkar.",
       "behavior": "heavy",
-      "mass": 6.0,
+      "mass": 2.0,
       "radius": 0.35,
       "launch_speed": 22.0,
       "max_life_sec": 6.0,
