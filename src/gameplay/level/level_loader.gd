@@ -45,7 +45,7 @@ func _ready() -> void:
 	_tower.build(level_data)
 	EventBus.referee_state_changed.connect(_on_referee_state_changed)
 	_referee.setup(level_data, _tower, _platform)
-	_hud.setup(int(level_data.get("index", 0)), _referee.objective_type)
+	_hud.setup(int(level_data.get("index", 0)), _referee.objective_type, Progress.stars_for(level_id))
 
 	_cannon.position = ShapeBuilder.to_vec3(GameConfig.rule("cannon.position"))
 	var dots: Variant = level_data.get("aim_preview_dots")
