@@ -97,7 +97,7 @@ func test_staircase_leans() -> void:
 # --- counts end to end ---
 
 func test_block_counts_match_everywhere() -> void:
-	for t: String in ["stack_pyramid", "twin_pillars", "arch_shrine", "staircase"]:
+	for t: String in ["stack_pyramid", "twin_pillars", "arch_shrine", "staircase", "domino_row", "truss_bridge"]:
 		var lv := Kit.level(t, 30.0, 1)
 		var p := DifficultyCalc.params(30.0)
 		var rng := RandomNumberGenerator.new()
