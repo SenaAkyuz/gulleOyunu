@@ -63,7 +63,7 @@ flowchart LR
 | `shatter_crystals` | Tüm kristal blokları (turuncu/turkuaz) kır | Kristal ağırlıklı özel bölümler |
 | `drop_all_cores` | Birden fazla küre (çift kule bölümleri) | Boss / çift kule |
 
-**Sürekli atış:** gülle bir yere çarptıktan ⚙️ `rules.shots.refire_cooldown_sec` (0.5 sn) sonra yeni atış yapılabilir; kulenin durulması beklenmez.
+**Sürekli atış:** gülle bir yere çarptıktan ⚙️ `rules.shots.refire_cooldown_sec` (0.3 sn) sonra yeni atış yapılabilir; kulenin durulması beklenmez.
 Kazanma her an kontrol edilir: hedefe (%80) ulaşıldığı an kazanılır. Kaybetme yalnızca son gülle atılıp fizik **durulunca** (veya ⚙️ `rules.physics.settle_timeout_sec`) değerlendirilir.
 Yıldızlar kullanılan gülle sayısına göre.
 

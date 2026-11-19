@@ -30,7 +30,7 @@
     "extra_shot_price_gold": 50,
     "extra_shot_via_rewarded_ad": true,
     "max_extra_shots_per_attempt": 2,
-    "refire_cooldown_sec": 0.5,
+    "refire_cooldown_sec": 0.3,
     "_doc_refire": "Surekli atis: gulle ilk carptiktan (veya kaybolduktan) bu kadar sn sonra yeni atisa izin verilir; kulenin durulmasi beklenmez. Kazanma (hedef) her karede kontrol edilir; kaybetme yalnizca son gulle carpip her sey durulunca (veya physics.settle_timeout_sec) degerlendirilir."
   },
   "stars": {

@@ -248,7 +248,7 @@ hp <= 0  → kırıl (fracture) ; hp < %50 → çatlak dokusu (decal/overlay)
 ### 6.6 Kazanma kontrolü (`level_referee.gd`)
 **Sürekli atış (Faz 1 oynanış geri bildirimi, 2026-11-19):**
 `AIMING → BALL_IN_FLIGHT → COOLDOWN → AIMING …` (gülle kaldıkça) · son gülleden sonra `BALL_IN_FLIGHT → SETTLING → EVALUATE → WON | LOST`.
-- Gülle ilk temasında (`EventBus.ball_hit`) ya da kaybolunca `rules.shots.refire_cooldown_sec` (0.5) beklenir, sonra yeni atış serbest; kulenin durulması beklenmez.
+- Gülle ilk temasında (`EventBus.ball_hit`) ya da kaybolunca `rules.shots.refire_cooldown_sec` (0.3) beklenir, sonra yeni atış serbest; kulenin durulması beklenmez.
 - **Kazanma her karede kontrol edilir** ve hedefe ulaşıldığı an WON (temizlik oranı canlı: ağırlık merkezi platform dışında olan bloklar düşmüş sayılır).
 - **Kaybetme** yalnızca son gülle çarpıp her şey durulunca (gövdeler uyur / `settle_linear_velocity_threshold` altı, canlı gülle yok) ya da `settle_timeout_sec` dolunca, EVALUATE'te.
 - EVALUATE: her blok için **kenar kuralı** (§2, `rules.physics.edge_rule`) kesinleşir: ağırlık merkezi (x,z) platform dışında veya `fall_kill_y` altında → düştü.
