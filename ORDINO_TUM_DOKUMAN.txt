@@ -488,7 +488,7 @@ Level (Node3D)  ← level_loader.gd: JSON okur (LevelExpander ile şablonları a
 (`baked: true` bölümler olduğu gibi kalır). Parametreler: `DifficultyCalc.params(difficulty)` (`src/core/difficulty_calc.gd`, `difficulty.json → curves`)
 üzerine yapının `params`'ı; rastgelelik yapının `seed`'inden (aynı dosya = aynı kule). Şablonlar `src/gameplay/level/templates/<id>.gd`
 (`TowerTemplate`'ten türer, `TemplateRegistry` bulur), blokları yerel çerçevede ve **rol** ile (`structure` / `light` / `crystal`) verir;
-`MaterialPicker` rolü dünya paletinden malzemeye çevirir. Blok id'leri `s<n>_b01…`. Dev: **N / B** sonraki/önceki bölüm dosyası (menüler Faz 4'e kadar).
+`MaterialPicker` rolü dünya paletinden malzemeye çevirir. Blok id'leri `s<n>_b01…`. Dev: **N / B** dünyanın sonraki/önceki bölümü — dosyası varsa dosya, yoksa `LevelGenerator` çıktısı (docs/03 §8; kaynak Dev Panel'de).
 
 ---
 
@@ -883,6 +883,18 @@ flowchart LR
   V --> H[Sena / Claude seçer<br/>editörde ince ayar]
   H --> J[baked JSON<br/>git commit]
 ```
+
+**Uygulama (Faz 3 Adım 7, `src/gameplay/level/level_generator.gd`):**
+- **Plan** (`plan_world`): dünyanın her bölümüne bir şablon. Dosyası olan bölüm kendi şablonunu korur (elle / baked JSON'a asla dokunulmaz).
+  Diğerleri: `worlds.allowed_templates` ∩ yazılmış şablonlar ∩ `difficulty.templates` aralığı zorluğu kapsayanlar; önceki bölümle (ve dosyası olan sonraki
+  bölümle) aynı olamaz; aralarından dünyada en az kullanılanlar, eşitlikte seed (`rules.generator.base_seed`). Aynı girdi + seed = aynı kule.
+- **Üretim** (`generate`): yapı sayısı `structure_count` eğrisinden (boss: `role_overrides.boss.structure_count_min`, asla altına inilmez); bütçe yapılara bölünür;
+  üretilen blok / bütçe `generator.budget_warn_below`'un altındaysa yan yana ek yapı (en çok `generator.max_structures`, oyun alanına sığdıkça, aralık
+  `generator.structure_gap`); hâlâ altındaysa raporda uyarı. Platform = tüm blokların ayak izi + pay.
+- **Yeniden deneme:** her deneme kendi alt-seed'i; `LevelChecks` (yerleşim, denge, her yapının keystone görüş/erişim) + fizik kayma. `generator.max_attempts`
+  aşılırsa kural gevşetilmez: hata + hangi kontrolün kaç kez düştüğü raporlanır.
+- **Elle bölümler** (`difficulty.handmade_levels` = 1, 4, 9, 10): dosyası yoksa generator yalnızca **aday** üretir (kaynak "generator adayı (elle yapılacak)").
+- **Oyunda:** N/B dünyanın 10 bölümünde gezer; dosya varsa dosya, yoksa generator çıktısı (oturum boyunca önbellekte). Kaynak Dev Panel'de ve alttaki bilgi satırında.
 
 ### 8.1 Simülasyon metrikleri ve hedefler (`difficulty.json → sim_targets`)
 - **Çözüm** (K-018) = bölüm hedefine ulaşmak. Tek hedef `clear_percent`: blok hacminin `clear_percent_target` (0.8) oranı platformdan düşer (K-025).
@@ -1615,6 +1627,15 @@ Faz 0–1: 1 hafta · Faz 2–4: 2 hafta · Faz 5–6: 1.5 hafta · Faz 7–8: 2
     "boss":     { "structure_count_min": 2, "shots_bonus": 1 },
     "new_mechanic": { "favor_intro_ball_materials": true }
   },
+  "templates": {
+    "stack_pyramid": [1, 25], "arch_shrine": [5, 60], "twin_pillars": [1, 30], "truss_bridge": [20, 70],
+    "staircase": [10, 50], "cantilever": [30, 80], "fortress_wall": [40, 90], "hanging_core": [30, 90],
+    "seesaw_ramp": [25, 70], "tall_needle": [20, 60], "domino_row": [5, 50], "twin_towers": [35, 100],
+    "grid_tower": [1, 70], "ziggurat": [5, 40], "ring_fort": [40, 90], "l_tower": [30, 80]
+  },
+  "_doc_templates": "Sablonlarin zorluk araliklari (docs/03 4 tablosu). Generator bir bolume yalnizca zorlugu bu araliga giren, dunyanin allowed_templates listesindeki ve yazilmis olan sablonu secer.",
+  "handmade_levels": [1, 4, 9, 10],
+  "_doc_handmade": "Her dunyada elle tasarlanan bolum siralari (docs/03 9). Generator bunlar icin yalnizca aday uretir; elle yazilmis / baked JSON'a asla dokunmaz.",
   "intro_ball": {
     "strong_material_share": 0.6,
     "_doc": "Top tanitim bolumu (docs/03 6.3 ve 7): bolumun intro_ball'u veya tutorial_level_id'si bu bolum olan top varsa, kristal olmayan bloklarin en az strong_material_share orani o topun guclu oldugu (balls.json damage_mult > 1) palet malzemelerinden secilir. Ornek: Alev Topu -> ahsap %60 (W1 L08)."
@@ -1826,6 +1847,12 @@ Faz 0–1: 1 hafta · Faz 2–4: 2 hafta · Faz 5–6: 1.5 hafta · Faz 7–8: 2
   "generator": {
     "block_gap": 0.02,
     "platform_margin": 0.5,
+    "max_attempts": 12,
+    "budget_warn_below": 0.6,
+    "structure_gap": 1.0,
+    "max_structures": 3,
+    "base_seed": 1000,
+    "_doc_pipeline": "LevelGenerator (docs/03 8): bolum = zorluk + dunya + rol + seed. max_attempts: denge, yerlesim, keystone ve fizik kontrollerinden gecen kule icin en fazla bu kadar alt-seed denenir; asilirsa kural gevsetilmez, hata + hangi kontrolun kac kez dustugu raporlanir. budget_warn_below: uretilen blok / difficulty block_count bu oranin altindaysa ek yapi eklenir, yine de altindaysa uyari. structure_gap: yan yana yapilar arasi bosluk (birim). max_structures: bir bolumdeki en fazla yapi. base_seed: bolum seed'lerinin tabani (ayni seed = ayni kule).",
     "_doc": "Kule sablonlari / generator (docs/03 4, Faz 3). block_gap: yan yana bloklar arasindaki bosluk (birim; dogarken birbirine gomulup titremesin). platform_margin: sablonla uretilen bolumde platform, kulenin ayak izinden her yone bu kadar genis (docs/03 2 dar platform: 0.5-1)."
   },
   "level_checks": {

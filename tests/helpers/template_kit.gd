@@ -16,11 +16,4 @@ static func level(template_id: String, difficulty: float, seed: int, params: Dic
 
 ## Every static check; returns a list of human-readable problems (empty = all good).
 static func problems(lv: Dictionary) -> PackedStringArray:
-	var out := PackedStringArray()
-	out.append_array(lv.get("_expand_warnings", PackedStringArray()))
-	out.append_array(LayoutCheck.check(lv)["issues"])
-	var s := SupportCheck.check(lv)
-	if not s["ok"]:
-		out.append(SupportCheck.describe(s))
-	out.append_array(KeystoneCheck.check(lv)["issues"])
-	return out
+	return LevelChecks.flatten(LevelChecks.static_problems(lv))

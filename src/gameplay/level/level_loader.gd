@@ -17,6 +17,8 @@ static var stress_mode: bool = false
 static var dev_level_id: String = ""
 ## Dev / editor "Test Et": a level dictionary to play instead of a file (cleared by N/B).
 static var dev_level_data: Dictionary = {}
+## Where the current level came from (LevelGenerator.describe), shown in the Dev Panel and HUD.
+static var current_source: String = ""
 
 var level_data: Dictionary = {}
 ## Peak active bodies since the level started (S-008 budget check).
@@ -24,6 +26,7 @@ var peak_active: int = 0
 var _info_static: String = ""
 var _selected: int = -1
 var _hp_visible: bool = false
+var _loaded: bool = false
 
 @onready var _camera: LevelCamera = $Camera3D
 @onready var _platform: Platform = $Platform
@@ -45,9 +48,16 @@ func _ready() -> void:
 		level_data = LevelExpander.expand(dev_level_data)
 		level_id = str(level_data.get("id", level_id))
 	else:
-		level_data = LevelExpander.expand(GameConfig.level(level_id))
+		# A level file if there is one, else the generator (docs/03 §8); may take a moment.
+		_hud.set_dev_text("Bölüm hazırlanıyor: %s ..." % level_id)
+		var res: Dictionary = await LevelGenerator.resolve(level_id, self)
+		level_data = res.get("level", {})
+		current_source = LevelGenerator.describe(res)
+	if stress_mode or not dev_level_data.is_empty():
+		current_source = "stres" if stress_mode else "bellek (editör / test)"
 	if level_data.is_empty():
 		push_error("Level: bölüm yüklenemedi: " + level_id)
+		_hud.set_dev_text("Bölüm yüklenemedi: %s (Output panelinde ayrıntı)" % level_id)
 		return
 
 	_camera.configure(_camera_settings())
@@ -68,9 +78,13 @@ func _ready() -> void:
 	_build_area_guide()
 	_info_static = "%s · %s · %d blok + %d küre · top: %s\nSol tık: nişan · bırak: ateş   H hp · G alan · Boşluk · Tab seç · Oklar it · R baştan · N/B bölüm · F1 panel · P stres · F12" % [
 		str(level_data.get("id", level_id)), _referee.objective_type, _tower.blocks.size(), _tower.cores.size(), _cannon.ball_id]
+	_info_static = "Kaynak: %s\n%s" % [current_source, _info_static]
+	_loaded = true
 
 
 func _physics_process(_delta: float) -> void:
+	if not _loaded:
+		return
 	var active := active_body_count()
 	peak_active = maxi(peak_active, active)
 	_hud.set_perf(Engine.get_frames_per_second(), active, peak_active)
@@ -118,12 +132,15 @@ func _unhandled_input(event: InputEvent) -> void:
 			_switch_level(-1)
 
 
-## Dev: next / previous level file (sorted ids), wraps around.
+## Dev: next / previous level of the current world (files or generator), wraps around.
 func _switch_level(step: int) -> void:
-	var ids := GameConfig.level_ids()
-	if ids.is_empty():
+	var wi := LevelGenerator.parse_id(level_id)
+	if wi.x < 0:
+		wi = LevelGenerator.parse_id(str(GameConfig.rule("dev.start_level_id")))
+	var count := int(LevelGenerator.world_by_index(wi.x).get("level_count", 0))
+	if count <= 0:
 		return
-	dev_level_id = ids[posmod(ids.find(level_id) + step, ids.size())]
+	dev_level_id = LevelGenerator.level_id(wi.x, posmod(wi.y - 1 + step, count) + 1)
 	dev_level_data = {}
 	stress_mode = false
 	get_tree().reload_current_scene()

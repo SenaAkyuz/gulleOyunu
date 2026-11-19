@@ -31,6 +31,8 @@ const REQUIRED_RULES: PackedStringArray = [
 	"physics.support_margin", "physics.support_contact_epsilon", "physics.max_settle_drift",
 	"physics.pre_settle_sec", "physics.spawn_edge_inset",
 	"generator.block_gap", "generator.platform_margin",
+	"generator.max_attempts", "generator.budget_warn_below", "generator.structure_gap",
+	"generator.max_structures", "generator.base_seed",
 	"level_checks.keystone_min_visible_ratio", "level_checks.face_samples",
 	"feel.spark_amount", "feel.spark_lifetime_sec", "feel.spark_speed", "feel.spark_size",
 	"quality.default",

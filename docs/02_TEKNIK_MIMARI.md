@@ -171,7 +171,7 @@ Level (Node3D)  ← level_loader.gd: JSON okur (LevelExpander ile şablonları a
 (`baked: true` bölümler olduğu gibi kalır). Parametreler: `DifficultyCalc.params(difficulty)` (`src/core/difficulty_calc.gd`, `difficulty.json → curves`)
 üzerine yapının `params`'ı; rastgelelik yapının `seed`'inden (aynı dosya = aynı kule). Şablonlar `src/gameplay/level/templates/<id>.gd`
 (`TowerTemplate`'ten türer, `TemplateRegistry` bulur), blokları yerel çerçevede ve **rol** ile (`structure` / `light` / `crystal`) verir;
-`MaterialPicker` rolü dünya paletinden malzemeye çevirir. Blok id'leri `s<n>_b01…`. Dev: **N / B** sonraki/önceki bölüm dosyası (menüler Faz 4'e kadar).
+`MaterialPicker` rolü dünya paletinden malzemeye çevirir. Blok id'leri `s<n>_b01…`. Dev: **N / B** dünyanın sonraki/önceki bölümü — dosyası varsa dosya, yoksa `LevelGenerator` çıktısı (docs/03 §8; kaynak Dev Panel'de).
 
 ---
 

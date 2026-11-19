@@ -32,6 +32,15 @@
     "boss":     { "structure_count_min": 2, "shots_bonus": 1 },
     "new_mechanic": { "favor_intro_ball_materials": true }
   },
+  "templates": {
+    "stack_pyramid": [1, 25], "arch_shrine": [5, 60], "twin_pillars": [1, 30], "truss_bridge": [20, 70],
+    "staircase": [10, 50], "cantilever": [30, 80], "fortress_wall": [40, 90], "hanging_core": [30, 90],
+    "seesaw_ramp": [25, 70], "tall_needle": [20, 60], "domino_row": [5, 50], "twin_towers": [35, 100],
+    "grid_tower": [1, 70], "ziggurat": [5, 40], "ring_fort": [40, 90], "l_tower": [30, 80]
+  },
+  "_doc_templates": "Sablonlarin zorluk araliklari (docs/03 4 tablosu). Generator bir bolume yalnizca zorlugu bu araliga giren, dunyanin allowed_templates listesindeki ve yazilmis olan sablonu secer.",
+  "handmade_levels": [1, 4, 9, 10],
+  "_doc_handmade": "Her dunyada elle tasarlanan bolum siralari (docs/03 9). Generator bunlar icin yalnizca aday uretir; elle yazilmis / baked JSON'a asla dokunmaz.",
   "intro_ball": {
     "strong_material_share": 0.6,
     "_doc": "Top tanitim bolumu (docs/03 6.3 ve 7): bolumun intro_ball'u veya tutorial_level_id'si bu bolum olan top varsa, kristal olmayan bloklarin en az strong_material_share orani o topun guclu oldugu (balls.json damage_mult > 1) palet malzemelerinden secilir. Ornek: Alev Topu -> ahsap %60 (W1 L08)."

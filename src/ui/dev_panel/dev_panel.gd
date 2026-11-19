@@ -99,6 +99,9 @@ func _build() -> void:
 
 	var title := _label("DEV PANEL  (F1 kapat)", TITLE_FONT_SIZE)
 	list.add_child(title)
+	var source := _label("Bölüm kaynağı: %s" % LevelLoader.current_source, FONT_SIZE)
+	source.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	list.add_child(source)
 	for i in _entries.size():
 		var entry := _entries[i]
 		var value_label := _label("", FONT_SIZE)

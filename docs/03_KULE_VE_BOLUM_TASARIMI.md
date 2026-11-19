@@ -242,6 +242,18 @@ flowchart LR
   H --> J[baked JSON<br/>git commit]
 ```
 
+**Uygulama (Faz 3 Adım 7, `src/gameplay/level/level_generator.gd`):**
+- **Plan** (`plan_world`): dünyanın her bölümüne bir şablon. Dosyası olan bölüm kendi şablonunu korur (elle / baked JSON'a asla dokunulmaz).
+  Diğerleri: `worlds.allowed_templates` ∩ yazılmış şablonlar ∩ `difficulty.templates` aralığı zorluğu kapsayanlar; önceki bölümle (ve dosyası olan sonraki
+  bölümle) aynı olamaz; aralarından dünyada en az kullanılanlar, eşitlikte seed (`rules.generator.base_seed`). Aynı girdi + seed = aynı kule.
+- **Üretim** (`generate`): yapı sayısı `structure_count` eğrisinden (boss: `role_overrides.boss.structure_count_min`, asla altına inilmez); bütçe yapılara bölünür;
+  üretilen blok / bütçe `generator.budget_warn_below`'un altındaysa yan yana ek yapı (en çok `generator.max_structures`, oyun alanına sığdıkça, aralık
+  `generator.structure_gap`); hâlâ altındaysa raporda uyarı. Platform = tüm blokların ayak izi + pay.
+- **Yeniden deneme:** her deneme kendi alt-seed'i; `LevelChecks` (yerleşim, denge, her yapının keystone görüş/erişim) + fizik kayma. `generator.max_attempts`
+  aşılırsa kural gevşetilmez: hata + hangi kontrolün kaç kez düştüğü raporlanır.
+- **Elle bölümler** (`difficulty.handmade_levels` = 1, 4, 9, 10): dosyası yoksa generator yalnızca **aday** üretir (kaynak "generator adayı (elle yapılacak)").
+- **Oyunda:** N/B dünyanın 10 bölümünde gezer; dosya varsa dosya, yoksa generator çıktısı (oturum boyunca önbellekte). Kaynak Dev Panel'de ve alttaki bilgi satırında.
+
 ### 8.1 Simülasyon metrikleri ve hedefler (`difficulty.json → sim_targets`)
 - **Çözüm** (K-018) = bölüm hedefine ulaşmak. Tek hedef `clear_percent`: blok hacminin `clear_percent_target` (0.8) oranı platformdan düşer (K-025).
 - `one_shot_solve_rate`: rastgele örneklenen 200 atış noktasından kaçı tek atışta çözüyor.
