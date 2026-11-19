@@ -121,6 +121,11 @@ func _build() -> void:
 	if OS.has_feature("editor"):
 		list.add_child(_button("JSON'a kaydet", _save))
 	list.add_child(_label("↻ = bölüm yeniden başlayınca uygulanır", FONT_SIZE))
+	list.add_child(_button("Kaydı sıfırla (altın, yıldızlar)", _reset_save))
+	var save_info := _label("Kayıt: %s · altın %d\n%s" % [SaveManager.status_name(), int(SaveManager.data.get("gold", 0)),
+			ProjectSettings.globalize_path(SaveManager.save_path)], FONT_SIZE)
+	save_info.autowrap_mode = TextServer.AUTOWRAP_ARBITRARY
+	list.add_child(save_info)
 	_status = _label("", FONT_SIZE)
 	_status.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	list.add_child(_status)
@@ -158,6 +163,12 @@ func _refresh_label(index: int) -> void:
 
 func _restart() -> void:
 	get_tree().reload_current_scene()
+
+
+## Dev: wipe progress (SaveManager keeps the previous file as backup).
+func _reset_save() -> void:
+	SaveManager.reset()
+	_restart()
 
 
 func _revert() -> void:

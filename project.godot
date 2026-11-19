@@ -19,6 +19,7 @@ config/features=PackedStringArray("4.7", "Mobile")
 
 EventBus="*res://src/autoload/event_bus.gd"
 GameConfig="*res://src/autoload/game_config.gd"
+SaveManager="*res://src/autoload/save_manager.gd"
 DevTools="*res://src/autoload/dev_tools.gd"
 
 [display]

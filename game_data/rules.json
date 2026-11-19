@@ -148,6 +148,12 @@
     "_doc_panel": "Dev Panel (F1 veya panel_open_touches parmak): kaydiricilar. file: rules|balls|materials; ids: balls/materials kayit id'leri (hepsi ayni degeri alir); key: noktali yol; restart: true ise bolum yeniden baslayinca uygulanir. Sadece debug build'de acilir; 'JSON'a kaydet' sadece editorden calisinca gorunur.",
     "_doc": "Gelistirici araclari. stress_block_count: P tusuyla kurulan performans test kulesindeki blok sayisi (S-008)."
   },
+  "save": {
+    "file": "user://save.json",
+    "backup_file": "user://save.bak.json",
+    "default_settings": { "sfx": 1.0, "music": 0.7, "lang": "tr" },
+    "_doc": "SaveManager (docs/02 8): kayit dosyasi ve yedegi (her kayitta onceki saglam dosya yedege alinir). default_settings: ilk acilistaki ses/muzik/dil; titresim varsayilani feel.haptics_default_on."
+  },
   "quality": {
     "default": "medium",
     "levels": {

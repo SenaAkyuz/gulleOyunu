@@ -30,6 +30,7 @@ const REQUIRED_RULES: PackedStringArray = [
 	"feel.crack_hp_ratio", "feel.shake_frequency",
 	"feel.spark_amount", "feel.spark_lifetime_sec", "feel.spark_speed", "feel.spark_size",
 	"quality.default",
+	"save.file", "save.backup_file", "save.default_settings", "feel.haptics_default_on",
 	"platform.thickness", "platform.friction", "platform.bounce",
 	"dev.start_level_id", "dev.play_area_guide", "dev.stress_block_count", "dev.nudge_impulse",
 	"dev.panel_open_touches", "dev.panel",

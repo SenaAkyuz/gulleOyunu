@@ -110,6 +110,16 @@ if not is_num(phys.get("spawn_edge_inset")) or phys.get("spawn_edge_inset") < 0:
 crack = rules.get("feel", {}).get("crack_hp_ratio")
 if not is_num(crack) or not 0 < crack < 1:
     errors.append("rules.feel.crack_hp_ratio 0 < x < 1 olmali")
+save = rules.get("save", {})
+for key in ("file", "backup_file"):
+    if not str(save.get(key, "")).startswith("user://"):
+        errors.append(f"rules.save.{key} user:// ile baslamali (res:// export'ta salt okunur)")
+ds = save.get("default_settings", {})
+for key in ("sfx", "music"):
+    if not is_num(ds.get(key)) or not 0 <= ds[key] <= 1:
+        errors.append(f"rules.save.default_settings.{key} 0..1 olmali")
+if not isinstance(ds.get("lang"), str):
+    errors.append("rules.save.default_settings.lang metin olmali")
 feel = rules.get("feel", {})
 if not isinstance(feel.get("slowmo_enabled"), bool):
     errors.append("rules.feel.slowmo_enabled true/false olmali")

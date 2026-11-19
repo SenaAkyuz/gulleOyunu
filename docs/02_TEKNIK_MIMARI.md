@@ -284,6 +284,12 @@ hp <= 0  → kırıl (fracture) ; hp < %50 → çatlak dokusu (decal/overlay)
 }
 ```
 Kural: Alan eklenince `save_version` artar ve `SaveManager._migrate_vN_to_vN1()` yazılır. Testi zorunlu.
+- **Uygulama (Faz 2, `src/autoload/save_manager.gd`):** dosya `rules.save.file` (`user://save.json`), yedek `rules.save.backup_file`.
+  Yazma atomik: `.tmp`'ye yaz → tekrar okuyup doğrula → eski sağlam dosyayı yedeğe kopyala → `.tmp`'yi asıl dosyanın yerine taşı.
+  Bozuk dosya → yedekten kurtar (yoksa sıfırla; bozuk dosya `.corrupt` olarak saklanır). `save_version` olmayan kayıt = v0 → `_migrate_v0_to_v1`.
+  **Daha yeni sürümün kaydı asla ezilmez** (salt okunur). Eksik alanlar varsayılanla doldurulur (`rules.save.default_settings`, `feel.haptics_default_on`,
+  `economy.currencies.gold.start_amount`). Economy/Progress/Inventory `SaveManager.data`'daki kendi bölümlerini değiştirip `request_save()` çağırır (kare başına en fazla 1 yazma).
+  Dev Panel: kayıt durumu + "Kaydı sıfırla". Testler: `tests/unit/test_save_manager.gd`.
 
 ## 9. Test stratejisi
 - **GUT birim testleri** (GUT 9.7.1, `addons/gut`, `tests/unit/test_*.gd`, `.gutconfig.json`; komut CLAUDE.md §7): Economy (harca/kazan/yetersiz bakiye), Inventory, Progress açılma koşulları, yıldız hesabı, save migrasyonu, GameConfig doğrulama. Faz 1 çekirdeği de testli: balistik, hasar formülü, kenar kuralı.
