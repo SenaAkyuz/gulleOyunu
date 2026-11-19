@@ -121,6 +121,11 @@ Düşük zorlukta 1 sıra (okunur, neredeyse düz), yüksek zorlukta 2–3 sıra
    b. Bloğun **ve üstündeki tüm yükün** birleşik ağırlık merkezinin (x, z) izdüşümü bu poligonun içinde ve kenarına en az `rules.physics.support_margin` uzaklıkta olmalı.
    c. Eğik bloklar (`rx`/`rz` ≠ 0) için destek, temas noktalarından hesaplanır.
    d. Son doğrulama fizikle: `pre_settle_sec` simülasyonunda hiçbir blok `rules.physics.max_settle_drift` birimden fazla kaymamalı.
+   **Uygulama (Faz 3):** `src/gameplay/level/support_check.gd` → `SupportCheck.check(level)` (a–c, saf hesap; 120 blok ≈ 0.25 sn) ve
+   `await SupportCheck.physics_drift(level, node)` (d). "Üstündeki yük" = bloğa doğrudan/dolaylı yaslanan her şey; bu grubun destek poligonu,
+   grubun dışındaki cisimlerle temaslarından kurulur (iki sütun üstündeki kalas, her sütunun kontrolünde öbür sütundan da destek alır).
+   Temas: aşağı bakan yüz, yukarı bakan yüzün `rules.physics.support_contact_epsilon` kalınlığındaki dilimine ve sınırına kırpılır
+   (düz–düz, köşe ve kenar–kenar temasları). Altın Küre yalnızca yüktür. Testler: `tests/unit/test_support_check.gd`.
 2. **Keystone garantisi:** Şablon en az 1 keystone işaretler (keystone = en büyük çöküşü başlatan blok); simülasyon bu bloğa vurulunca hedefin
    (varsayılan: blok hacminin `clear_percent_target` oranı platformdan düşer) gerçekleştiğini doğrular.
 3. **Görüş hattı (S-007):** v1'de kamera sabittir; bu yüzden **her keystone varsayılan kamera açısından (`rules.camera`) görünür olmalı** — en az bir yüzü önden/üstten açıkça görünür, başka bloğun arkasında saklı değil. Ayrıca toptan **doğrudan ya da lob atışla** ulaşılabilir olmalı. Arkada saklı veya önü tamamen kapalı keystone yasak. (Kamera döndürme v2'de gelirse bu kural yeniden değerlendirilir.)

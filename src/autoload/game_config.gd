@@ -28,6 +28,8 @@ const REQUIRED_RULES: PackedStringArray = [
 	"feel.shake_max_offset", "feel.shake_max_rotation_deg", "feel.shake_decay",
 	"feel.max_concurrent_bursts", "feel.shake_trauma_per_impulse", "feel.spark_min_impulse",
 	"feel.crack_hp_ratio", "feel.shake_frequency",
+	"physics.support_margin", "physics.support_contact_epsilon", "physics.max_settle_drift",
+	"physics.pre_settle_sec", "physics.spawn_edge_inset",
 	"feel.spark_amount", "feel.spark_lifetime_sec", "feel.spark_speed", "feel.spark_size",
 	"quality.default",
 	"save.file", "save.backup_file", "save.default_settings", "feel.haptics_default_on",

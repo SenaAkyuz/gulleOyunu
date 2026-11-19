@@ -72,7 +72,8 @@
     "_doc_spawn_edge_inset": "Bloklar platform kenarindan en az bu kadar iceride dogar (docs/03 4. kural 5)",
     "support_margin": 0.05,
     "max_settle_drift": 0.02,
-    "_doc_support": "generator support_check: agirlik merkezi destek poligonu kenarina en az support_margin uzak olmali; pre_settle sonrasi kayma <= max_settle_drift"
+    "support_contact_epsilon": 0.01,
+    "_doc_support": "generator support_check (docs/03 4 kural 1, src/gameplay/level/support_check.gd): her blok + uzerindeki tum yukun birlesik agirlik merkezi, bu grubun disaridaki desteklerle temas noktalarinin dis bukey zarfina (destek poligonu) en az support_margin iceride olmali; egik bloklarda temas kose-yuzey noktalarindan bulunur. support_contact_epsilon: iki yuzey/kose bu mesafeden yakinsa temas sayilir. Ardindan fizik: pre_settle_sec boyunca hicbir blok max_settle_drift den fazla kaymamali."
   },
   "camera": {
     "projection": "perspective",
