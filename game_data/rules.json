@@ -93,9 +93,15 @@
     "haptics_default_on": true,
     "crack_hp_ratio": 0.5,
     "_doc_crack": "hp bu oranin altina inince blok catlak gorunur (docs/02 6.3; Faz 1'de koyulasir, Faz 7'de catlak dokusu)",
-    "shake_trauma_per_impulse": 0.005,
+    "shake_trauma_per_impulse": 0.015,
     "spark_min_impulse": 4.0,
-    "_doc_taslak": "shake_trauma_per_impulse ve spark_min_impulse taslak; Faz 1 Adim 10-11'de Dev Panel ile ayarlanacak"
+    "shake_frequency": 30.0,
+    "spark_amount": 24,
+    "spark_lifetime_sec": 0.35,
+    "spark_speed": 6.0,
+    "spark_size": 0.15,
+    "_doc_spark": "Faz 1 kivilcim: carpma noktasinda tek seferlik patlama, adet x quality.levels[*].particles_mult; havuz boyutu max_concurrent_bursts",
+    "_doc_taslak": "shake_trauma_per_impulse, shake_frequency ve spark_* taslak; Faz 1 Adim 11'de Dev Panel ile ayarlanacak"
   },
   "platform": {
     "thickness": 1.0,

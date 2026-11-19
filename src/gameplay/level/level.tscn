@@ -8,6 +8,8 @@
 [ext_resource type="PackedScene" path="res://src/gameplay/cannon/cannon.tscn" id="6_cannon"]
 [ext_resource type="PackedScene" path="res://src/ui/hud/hud.tscn" id="7_hud"]
 [ext_resource type="Script" path="res://src/gameplay/fx/slowmo.gd" id="8_slowmo"]
+[ext_resource type="Script" path="res://src/gameplay/fx/camera_shake.gd" id="9_shake"]
+[ext_resource type="Script" path="res://src/gameplay/fx/fx_pool.gd" id="10_fxpool"]
 
 [sub_resource type="Environment" id="Env_grey"]
 background_mode = 1
@@ -37,6 +39,9 @@ shadow_enabled = true
 script = ExtResource("2_camera")
 current = true
 
+[node name="CameraShake" type="Node" parent="Camera3D"]
+script = ExtResource("9_shake")
+
 [node name="Platform" type="StaticBody3D" parent="."]
 script = ExtResource("3_platform")
 
@@ -52,6 +57,9 @@ script = ExtResource("5_referee")
 
 [node name="SlowMo" type="Node" parent="."]
 script = ExtResource("8_slowmo")
+
+[node name="FxPool" type="Node3D" parent="."]
+script = ExtResource("10_fxpool")
 
 [node name="AreaGuide" type="MeshInstance3D" parent="."]
 material_override = SubResource("Mat_guide")

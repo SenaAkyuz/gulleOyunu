@@ -86,6 +86,20 @@ if not is_num(phys.get("spawn_edge_inset")) or phys.get("spawn_edge_inset") < 0:
 crack = rules.get("feel", {}).get("crack_hp_ratio")
 if not is_num(crack) or not 0 < crack < 1:
     errors.append("rules.feel.crack_hp_ratio 0 < x < 1 olmali")
+feel = rules.get("feel", {})
+for key in ("shake_trauma_per_impulse", "shake_frequency", "shake_decay", "shake_max_offset",
+            "spark_min_impulse", "spark_lifetime_sec", "spark_speed", "spark_size"):
+    if not is_num(feel.get(key)) or feel.get(key) <= 0:
+        errors.append(f"rules.feel.{key} pozitif sayi olmali")
+for key in ("spark_amount", "max_concurrent_bursts"):
+    if not isinstance(feel.get(key), int) or feel.get(key) < 1:
+        errors.append(f"rules.feel.{key} 1 veya daha buyuk tam sayi olmali")
+quality = rules.get("quality", {})
+if quality.get("default") not in quality.get("levels", {}):
+    errors.append(f"rules.quality.default '{quality.get('default')}' quality.levels icinde yok")
+for qname, q in quality.get("levels", {}).items():
+    if not is_num(q.get("particles_mult")) or not 0 <= q["particles_mult"] <= 1:
+        errors.append(f"rules.quality.levels.{qname}.particles_mult 0..1 olmali")
 obj_def = rules.get("objective_defaults", {})
 # K-018: varsayilan hedef clear_percent, Altin Kure jackpot
 if obj_def.get("type") not in VALID_OBJECTIVES:
