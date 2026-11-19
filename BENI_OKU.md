@@ -7,7 +7,7 @@ Oyununu Claude ile **adım adım** geliştirmen için hazırlanmış proje iskel
 ordino-games/
 ├── BENI_OKU.md                 ← şu an okuduğun dosya
 ├── CLAUDE.md                   ← Claude Code'un her oturumda otomatik okuduğu ana talimat
-├── ORDINO_TUM_DOKUMAN.md       ← tüm dokümanların tek dosyada birleşimi (Claude uygulamasındaki Projeye eklemek için)
+├── ORDINO_TUM_DOKUMAN.txt      ← tüm dokümanların tek dosyada birleşimi (Claude uygulamasındaki Projeye eklemek için; `python tools/build_combined_doc.py` ile üretilir, elle düzenleme)
 ├── docs/
 │   ├── 01_OYUN_TASARIMI_GDD.md      oyun kuralları, dünyalar, toplar, yıldız, ekranlar
 │   ├── 02_TEKNIK_MIMARI.md          Godot, tam 3D, klasörler, sistemler, fizik, kayıt
@@ -47,4 +47,4 @@ Değişiklikten sonra: `python3 tools/validate_game_data.py`
 2. GitHub'da özel repo aç, bu klasörün içeriğini repo köküne koy, ilk commit.
 3. VS Code'da klasörü aç → Claude Code panelini aç.
 4. `docs/06_YOL_HARITASI.md` → **FAZ 0** promptunu yapıştır.
-5. Claude uygulamasında bir **Proje** aç, `ORDINO_TUM_DOKUMAN.md` + referans görselleri ekle → tasarım sohbetleri ve görsel promptları için orayı kullan.
+5. Claude uygulamasında bir **Proje** aç, `ORDINO_TUM_DOKUMAN.txt` + referans görselleri ekle → tasarım sohbetleri ve görsel promptları için orayı kullan.

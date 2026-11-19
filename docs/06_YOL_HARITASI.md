@@ -10,7 +10,7 @@
 | İş | Araç | Neden |
 |---|---|---|
 | Kod yazma, dosya oluşturma, test çalıştırma | **Claude Code — VS Code eklentisi** (veya terminal) | Repo'daki dosyaları doğrudan görür/değiştirir, `CLAUDE.md` ve skill'leri otomatik yükler |
-| Tasarım tartışması, görsel değerlendirme, prompt üretimi, ekran görüntüsü yorumlama | **Claude uygulaması** (claude.ai / masaüstü) — bir **Proje** aç, `ORDINO_TUM_DOKUMAN.md`'yi proje bilgisine ekle | Uzun sohbet, görsel analizi, karar verme |
+| Tasarım tartışması, görsel değerlendirme, prompt üretimi, ekran görüntüsü yorumlama | **Claude uygulaması** (claude.ai / masaüstü) — bir **Proje** aç, `ORDINO_TUM_DOKUMAN.txt`'yi proje bilgisine ekle | Uzun sohbet, görsel analizi, karar verme |
 | Bölüm tasarlama, denge, prompt | İkisinde de: Claude Code'da `/ordino-level-designer`, `/ordino-balance`, `/ordino-art-prompts` | Skill'ler repo içinde |
 
 **Altın ipuçları (Claude Code):**

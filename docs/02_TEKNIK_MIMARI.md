@@ -140,7 +140,7 @@ flowchart TB
 ### 4.1 Autoload'lar (singleton)
 | Autoload | Sorumluluk | Kural |
 |---|---|---|
-| `EventBus` | Global sinyaller: `ball_fired`, `ball_impact(pos, impulse, material)`, `block_damaged`, `block_broken`, `core_dropped`, `level_completed(stars, shots_left)`, `level_failed`, `currency_changed`, `ball_unlocked` | Sistemler birbirini doğrudan çağırmaz |
+| `EventBus` | Global sinyaller (`src/autoload/event_bus.gd`): atış `ball_fired(ball_id)`, `ball_impact(pos, impulse, material)`, `ball_expired(ball_id)` · bloklar `block_damaged(block, hp_left)`, `block_broken(block, material)`, `core_dropped(core)` · akış `level_started(level_id)`, `shots_changed(left, total)`, `clear_progress_changed(ratio, target)`, `referee_state_changed(state)`, `level_completed(stars, shots_left)`, `level_failed` · meta `currency_changed(currency, amount)`, `ball_unlocked(ball_id)` | Sistemler birbirini doğrudan çağırmaz |
 | `GameConfig` | Tüm JSON'ları açılışta yükler, şema doğrular, tipli erişim verir: `GameConfig.ball("fire").price_gold` | Yalnızca okunur. Remote config override katmanı (Faz 10) |
 | `SaveManager` | `user://save.json`, **sürümlü** (`save_version`), migrasyon fonksiyonları, atomik yazma (önce `.tmp`) | Bulut kaydı ileride |
 | `Progress` | Bölüm yıldızları, en iyi skor, açık dünyalar, toplam yıldız | Açılma koşullarını `GameConfig`'ten değerlendirir |
@@ -162,7 +162,7 @@ Level (Node3D)  ← level_loader.gd: JSON okur, world'ü kurar
 ├── Platform (StaticBody3D, dünya başına görünüm)
 ├── Tower (TowerBuilder → Block örnekleri)
 ├── Cannon (aim_input, trajectory_preview)
-├── KillZone (Area3D, fall_kill_y)
+├── (KillZone yok: `fall_kill_y` kontrolünü LevelReferee ve Ball yapar)
 ├── LevelReferee
 ├── FxPool (parçacık/parça havuzu)
 └── HUD (CanvasLayer)
@@ -187,6 +187,24 @@ var fire := GameConfig.ball("fire")
 if Progress.is_unlocked(fire.unlock) and Inventory.count("fire") > 0:
     cannon.load_ball("fire")
 ```
+
+### 5.1 Faz 1'de eklenen anahtarlar (`rules.json` + `economy.json`)
+| Anahtar | Ne işe yarar |
+|---|---|
+| `aim.preview_dot_interval_sec`, `aim.arc` (`low`/`high`), `aim.on_miss` (`ignore`) | tap_target önizleme aralığı, balistik yay seçimi, boşluğa dokunuş |
+| `aim.drag_deg_per_px`, `drag_pitch_min/max_deg`, `drag_yaw_max_deg`, `drag_dead_zone_px` | drag_release (sapan) modu |
+| `aim.min_angle_deg` / `max_angle_deg` | **Kullanılmıyor** (2D döneminden kalma); Faz 2'de kaldırılabilir |
+| `cannon.position` | Topun dünya konumu (K-016: 0, 0, 6) |
+| `camera.distance`, `look_at_height`, `keep_aspect` | Kadraj (K-017); bölüm `camera_override` ile anahtar anahtar ezer |
+| `physics.spawn_edge_inset` | Bloklar platform kenarından en az bu kadar içeride doğar (validator) |
+| `platform.thickness`, `friction`, `bounce` | Platform gövdesi |
+| `objective_defaults.*` | K-018 varsayılan hedef: `type`, `clear_percent_target`, `clear_measure`, `broken_counts_as_cleared`, küre şekli/malzemesi |
+| `feel.crack_hp_ratio` | hp bu oranın altında blok çatlak görünür (Faz 1: koyulaşır) |
+| `feel.shake_trauma_per_impulse`, `shake_frequency`, `spark_min_impulse`, `spark_amount`, `spark_lifetime_sec`, `spark_speed`, `spark_size` | Kamera sarsıntısı + çarpma kıvılcımı (Adım 10) |
+| `dev.start_level_id`, `play_area_guide`, `nudge_impulse` | Geliştirici: açılış bölümü, G alan kılavuzu, ok tuşu itmesi |
+| `dev.panel`, `dev.panel_open_touches` | Dev Panel kaydırıcıları (§5.3) |
+| `dev.stress_block_count`, `stress_columns`, `stress_rows`, `perf_warn_fps` | P stres kulesi + HUD performans uyarısı (S-008) |
+| `economy.rewards.core_jackpot_gold`, `sim.core_jackpot_levels_per_world`, `sim.avg_core_jackpot_rate` | Altın Küre jackpot'u (K-018) |
 
 ---
 

@@ -31,41 +31,42 @@ Böylece yıldız sistemi "şans" değil "zekâ" ödüllendirir.
 - Oynanabilir kule alanı: genişlik ≈ **10 birim** (x: −5…+5), derinlik ≈ **6 birim** (z: −3…+3), yükseklik ≈ **12 birim**.
 - **Blok konumu:** `x, z` = bloğun taban merkezi, `y` = alt yüzeyi. **Dönüş:** `rot: [rx, ry, rz]` derece (Euler YXZ).
   Çoğu blok yalnızca `ry` ile (dikey eksen etrafında) döndürülür; eğik/devrik yerleşim için `rx` / `rz`.
-- Top (cannon): platformun önünde ve biraz aşağıda, ≈ `(0, -1, +8)`; dünya bazında JSON'dan. Atış yönü 3D.
+- Top (cannon): platformun önünde, `rules.cannon.position` = `(0, 0, 6)` (K-016); bölüm `camera_override` ile kadrajı daraltabilir. Atış yönü 3D.
 
-### 2.1 Bölüm JSON formatı (`game_data/levels/w01_akdeniz/w01_l03.json`)
+### 2.1 Bölüm JSON formatı (gerçek dosya: `game_data/levels/w01_akdeniz/w01_l03.json`)
 ```json
 {
   "id": "w01_l03",
   "world": "akdeniz",
   "index": 3,
   "name_tr": "Üç Kemer",
-  "difficulty": 14,
+  "difficulty": 10,
   "role": "build_up",
   "shots": 3,
-  "objective": { "type": "clear_percent" },
-  "aim_preview_dots": 14,
-  "platform": { "width": 9, "depth": 5, "style": "stone_island" },
+  "objective": { "type": "drop_core" },
+  "aim_preview_dots": 17,
+  "platform": { "width": 9, "depth": 5, "style": "limestone_plinth" },
   "structures": [
-    { "template": "arch_shrine", "x": 0, "z": 0, "ry": 0, "params": { "floors": 2, "depth_layers": 2, "core": "hanging_center" } }
+    { "template": "arch_shrine", "x": 0, "z": 0, "ry": 0, "seed": 1031, "params": { "floors": 2, "depth_layers": 1, "side_towers": true, "core": "hanging_center", "symmetry": 0.95 } }
   ],
-  "blocks": [
-    { "shape": "cube", "mat": "crystal_amber", "x": -3, "y": 0, "z": 1, "rot": [0, 45, 0] }
-  ],
+  "blocks": [],
   "joints": [],
-  "cores": [ { "x": 0, "y": 3.2, "z": 0, "attach": "chain", "attach_to": "b12" } ],
-  "keystones": ["b04", "b07"],
-  "camera_override": null,
-  "modifiers_override": {},
+  "cores": [],
+  "keystones": [],
+  "tutorial": { "type": "hint", "text_tr": "Kemeri taşıyan desteğe nişan al!" },
   "intro_ball": null,
   "free_balls": {},
   "baked": false,
-  "_doc": "structures şablondan blok üretir; blocks elle ek/override bloklardır. baked=true ise blocks tam listedir ve şablon yok sayılır. Konum x,y,z (y = alt yüzey), rot = [rx, ry, rz] derece."
+  "_doc": "Sablon tabanli ornek: blocks/cores/keystones generator tarafindan doldurulur; Faz 3 sonunda baked=true olarak dondurulur."
 }
 ```
 - **`structures`** = şablon çağrıları (kısa, okunur, değiştirmesi kolay).
 - **`blocks`** = elle eklenen/değiştirilen bloklar (her bloğa otomatik `id`: `b01`, `b02`…).
 - `baked: true` → generator çıktısı "dondurulmuş" tam liste (yayın sürümünde bölümler pişirilmiş olur, böylece şablon kodu değişse de bölüm bozulmaz).
+- **Opsiyonel alanlar:** `camera_override` (`rules.camera` anahtarlarını bölüme özel ezer, ör. L01: `{ "distance": 14, "look_at_height": 3.0 }`);
+  `modifiers_override` (dünya modifier'larını ezer, Faz 4+); `tutorial` (`{ "type": "hand_tap", "target_block": "b02", "text_tr": "…" }` → el keystone'u gösterir,
+  veya `{ "type": "hint", "text_tr": "…" }` → yalnızca ipucu yazısı; çizimi Faz 2 UI'da).
+- Elle tasarlanmış tam örnek: `w01_l01.json` (`baked: true`, blok listesi + `keystones` + `cores` + `camera_override`).
 - **`objective`** (K-018): varsayılan `{ "type": "clear_percent" }`; hedef oranı `rules.objective_defaults.clear_percent_target`, bölüme özel `objective.target` (0–1) ile ezilebilir.
   `drop_core` / `drop_all_cores` bölümlerinde `cores` zorunlu; `clear_percent` bölümlerinde `cores` **opsiyoneldir** (jackpot küresi). `cores[].y` = kürenin alt yüzeyi.
 

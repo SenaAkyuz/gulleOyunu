@@ -89,7 +89,10 @@ godot --headless -s addons/gut/gut_cmdln.gd -gdir=res://tests -gexit
 ```
 
 ## 8. Mevcut durum
-- **Faz:** 0 — Kurulum (bkz. `docs/06_YOL_HARITASI.md`). Her faz bitince bu satırı güncelle.
+- **Faz:** 1 — Gri Kutu **tamamlandı** (2026-11-19; Sena'nın "10 kez oyna → eğlenceli mi?" kararı bekliyor). Sonraki: Faz 2 (bkz. `docs/06_YOL_HARITASI.md`). Her faz bitince bu satırı güncelle.
+- Faz 1 çıktısı: L01 oynanır (tap_target + drag_release), hakem/doluluk çubuğu/yıldız/jackpot, hasar, sarsıntı + kıvılcım, Dev Panel (F1), stres testi (P).
+  Dev tuşları: G alan · Boşluk uyandır · Tab seç · Oklar it · H hp · R baştan · F1 panel · P stres · F12 ekran görüntüsü.
+- Açık: Android performans ölçümü (S-008), tutorial elinin çizimi, hit-stop + konfeti (Faz 8), GUT kurulumu (Faz 2).
 
 ---
 
@@ -450,7 +453,7 @@ flowchart TB
 ### 4.1 Autoload'lar (singleton)
 | Autoload | Sorumluluk | Kural |
 |---|---|---|
-| `EventBus` | Global sinyaller: `ball_fired`, `ball_impact(pos, impulse, material)`, `block_damaged`, `block_broken`, `core_dropped`, `level_completed(stars, shots_left)`, `level_failed`, `currency_changed`, `ball_unlocked` | Sistemler birbirini doğrudan çağırmaz |
+| `EventBus` | Global sinyaller (`src/autoload/event_bus.gd`): atış `ball_fired(ball_id)`, `ball_impact(pos, impulse, material)`, `ball_expired(ball_id)` · bloklar `block_damaged(block, hp_left)`, `block_broken(block, material)`, `core_dropped(core)` · akış `level_started(level_id)`, `shots_changed(left, total)`, `clear_progress_changed(ratio, target)`, `referee_state_changed(state)`, `level_completed(stars, shots_left)`, `level_failed` · meta `currency_changed(currency, amount)`, `ball_unlocked(ball_id)` | Sistemler birbirini doğrudan çağırmaz |
 | `GameConfig` | Tüm JSON'ları açılışta yükler, şema doğrular, tipli erişim verir: `GameConfig.ball("fire").price_gold` | Yalnızca okunur. Remote config override katmanı (Faz 10) |
 | `SaveManager` | `user://save.json`, **sürümlü** (`save_version`), migrasyon fonksiyonları, atomik yazma (önce `.tmp`) | Bulut kaydı ileride |
 | `Progress` | Bölüm yıldızları, en iyi skor, açık dünyalar, toplam yıldız | Açılma koşullarını `GameConfig`'ten değerlendirir |
@@ -472,7 +475,7 @@ Level (Node3D)  ← level_loader.gd: JSON okur, world'ü kurar
 ├── Platform (StaticBody3D, dünya başına görünüm)
 ├── Tower (TowerBuilder → Block örnekleri)
 ├── Cannon (aim_input, trajectory_preview)
-├── KillZone (Area3D, fall_kill_y)
+├── (KillZone yok: `fall_kill_y` kontrolünü LevelReferee ve Ball yapar)
 ├── LevelReferee
 ├── FxPool (parçacık/parça havuzu)
 └── HUD (CanvasLayer)
@@ -497,6 +500,24 @@ var fire := GameConfig.ball("fire")
 if Progress.is_unlocked(fire.unlock) and Inventory.count("fire") > 0:
     cannon.load_ball("fire")
 ```
+
+### 5.1 Faz 1'de eklenen anahtarlar (`rules.json` + `economy.json`)
+| Anahtar | Ne işe yarar |
+|---|---|
+| `aim.preview_dot_interval_sec`, `aim.arc` (`low`/`high`), `aim.on_miss` (`ignore`) | tap_target önizleme aralığı, balistik yay seçimi, boşluğa dokunuş |
+| `aim.drag_deg_per_px`, `drag_pitch_min/max_deg`, `drag_yaw_max_deg`, `drag_dead_zone_px` | drag_release (sapan) modu |
+| `aim.min_angle_deg` / `max_angle_deg` | **Kullanılmıyor** (2D döneminden kalma); Faz 2'de kaldırılabilir |
+| `cannon.position` | Topun dünya konumu (K-016: 0, 0, 6) |
+| `camera.distance`, `look_at_height`, `keep_aspect` | Kadraj (K-017); bölüm `camera_override` ile anahtar anahtar ezer |
+| `physics.spawn_edge_inset` | Bloklar platform kenarından en az bu kadar içeride doğar (validator) |
+| `platform.thickness`, `friction`, `bounce` | Platform gövdesi |
+| `objective_defaults.*` | K-018 varsayılan hedef: `type`, `clear_percent_target`, `clear_measure`, `broken_counts_as_cleared`, küre şekli/malzemesi |
+| `feel.crack_hp_ratio` | hp bu oranın altında blok çatlak görünür (Faz 1: koyulaşır) |
+| `feel.shake_trauma_per_impulse`, `shake_frequency`, `spark_min_impulse`, `spark_amount`, `spark_lifetime_sec`, `spark_speed`, `spark_size` | Kamera sarsıntısı + çarpma kıvılcımı (Adım 10) |
+| `dev.start_level_id`, `play_area_guide`, `nudge_impulse` | Geliştirici: açılış bölümü, G alan kılavuzu, ok tuşu itmesi |
+| `dev.panel`, `dev.panel_open_touches` | Dev Panel kaydırıcıları (§5.3) |
+| `dev.stress_block_count`, `stress_columns`, `stress_rows`, `perf_warn_fps` | P stres kulesi + HUD performans uyarısı (S-008) |
+| `economy.rewards.core_jackpot_gold`, `sim.core_jackpot_levels_per_world`, `sim.avg_core_jackpot_rate` | Altın Küre jackpot'u (K-018) |
 
 ---
 
@@ -629,41 +650,42 @@ Böylece yıldız sistemi "şans" değil "zekâ" ödüllendirir.
 - Oynanabilir kule alanı: genişlik ≈ **10 birim** (x: −5…+5), derinlik ≈ **6 birim** (z: −3…+3), yükseklik ≈ **12 birim**.
 - **Blok konumu:** `x, z` = bloğun taban merkezi, `y` = alt yüzeyi. **Dönüş:** `rot: [rx, ry, rz]` derece (Euler YXZ).
   Çoğu blok yalnızca `ry` ile (dikey eksen etrafında) döndürülür; eğik/devrik yerleşim için `rx` / `rz`.
-- Top (cannon): platformun önünde ve biraz aşağıda, ≈ `(0, -1, +8)`; dünya bazında JSON'dan. Atış yönü 3D.
+- Top (cannon): platformun önünde, `rules.cannon.position` = `(0, 0, 6)` (K-016); bölüm `camera_override` ile kadrajı daraltabilir. Atış yönü 3D.
 
-### 2.1 Bölüm JSON formatı (`game_data/levels/w01_akdeniz/w01_l03.json`)
+### 2.1 Bölüm JSON formatı (gerçek dosya: `game_data/levels/w01_akdeniz/w01_l03.json`)
 ```json
 {
   "id": "w01_l03",
   "world": "akdeniz",
   "index": 3,
   "name_tr": "Üç Kemer",
-  "difficulty": 14,
+  "difficulty": 10,
   "role": "build_up",
   "shots": 3,
-  "objective": { "type": "clear_percent" },
-  "aim_preview_dots": 14,
-  "platform": { "width": 9, "depth": 5, "style": "stone_island" },
+  "objective": { "type": "drop_core" },
+  "aim_preview_dots": 17,
+  "platform": { "width": 9, "depth": 5, "style": "limestone_plinth" },
   "structures": [
-    { "template": "arch_shrine", "x": 0, "z": 0, "ry": 0, "params": { "floors": 2, "depth_layers": 2, "core": "hanging_center" } }
+    { "template": "arch_shrine", "x": 0, "z": 0, "ry": 0, "seed": 1031, "params": { "floors": 2, "depth_layers": 1, "side_towers": true, "core": "hanging_center", "symmetry": 0.95 } }
   ],
-  "blocks": [
-    { "shape": "cube", "mat": "crystal_amber", "x": -3, "y": 0, "z": 1, "rot": [0, 45, 0] }
-  ],
+  "blocks": [],
   "joints": [],
-  "cores": [ { "x": 0, "y": 3.2, "z": 0, "attach": "chain", "attach_to": "b12" } ],
-  "keystones": ["b04", "b07"],
-  "camera_override": null,
-  "modifiers_override": {},
+  "cores": [],
+  "keystones": [],
+  "tutorial": { "type": "hint", "text_tr": "Kemeri taşıyan desteğe nişan al!" },
   "intro_ball": null,
   "free_balls": {},
   "baked": false,
-  "_doc": "structures şablondan blok üretir; blocks elle ek/override bloklardır. baked=true ise blocks tam listedir ve şablon yok sayılır. Konum x,y,z (y = alt yüzey), rot = [rx, ry, rz] derece."
+  "_doc": "Sablon tabanli ornek: blocks/cores/keystones generator tarafindan doldurulur; Faz 3 sonunda baked=true olarak dondurulur."
 }
 ```
 - **`structures`** = şablon çağrıları (kısa, okunur, değiştirmesi kolay).
 - **`blocks`** = elle eklenen/değiştirilen bloklar (her bloğa otomatik `id`: `b01`, `b02`…).
 - `baked: true` → generator çıktısı "dondurulmuş" tam liste (yayın sürümünde bölümler pişirilmiş olur, böylece şablon kodu değişse de bölüm bozulmaz).
+- **Opsiyonel alanlar:** `camera_override` (`rules.camera` anahtarlarını bölüme özel ezer, ör. L01: `{ "distance": 14, "look_at_height": 3.0 }`);
+  `modifiers_override` (dünya modifier'larını ezer, Faz 4+); `tutorial` (`{ "type": "hand_tap", "target_block": "b02", "text_tr": "…" }` → el keystone'u gösterir,
+  veya `{ "type": "hint", "text_tr": "…" }` → yalnızca ipucu yazısı; çizimi Faz 2 UI'da).
+- Elle tasarlanmış tam örnek: `w01_l01.json` (`baked: true`, blok listesi + `keystones` + `cores` + `camera_override`).
 - **`objective`** (K-018): varsayılan `{ "type": "clear_percent" }`; hedef oranı `rules.objective_defaults.clear_percent_target`, bölüme özel `objective.target` (0–1) ile ezilebilir.
   `drop_core` / `drop_all_cores` bölümlerinde `cores` zorunlu; `clear_percent` bölümlerinde `cores` **opsiyoneldir** (jackpot küresi). `cores[].y` = kürenin alt yüzeyi.
 
@@ -1156,7 +1178,7 @@ Bunlarla: hangi bölümde oyuncu takılıyor (fail oranı), ekonomi enflasyonu, 
 | İş | Araç | Neden |
 |---|---|---|
 | Kod yazma, dosya oluşturma, test çalıştırma | **Claude Code — VS Code eklentisi** (veya terminal) | Repo'daki dosyaları doğrudan görür/değiştirir, `CLAUDE.md` ve skill'leri otomatik yükler |
-| Tasarım tartışması, görsel değerlendirme, prompt üretimi, ekran görüntüsü yorumlama | **Claude uygulaması** (claude.ai / masaüstü) — bir **Proje** aç, `ORDINO_TUM_DOKUMAN.md`'yi proje bilgisine ekle | Uzun sohbet, görsel analizi, karar verme |
+| Tasarım tartışması, görsel değerlendirme, prompt üretimi, ekran görüntüsü yorumlama | **Claude uygulaması** (claude.ai / masaüstü) — bir **Proje** aç, `ORDINO_TUM_DOKUMAN.txt`'yi proje bilgisine ekle | Uzun sohbet, görsel analizi, karar verme |
 | Bölüm tasarlama, denge, prompt | İkisinde de: Claude Code'da `/ordino-level-designer`, `/ordino-balance`, `/ordino-art-prompts` | Skill'ler repo içinde |
 
 **Altın ipuçları (Claude Code):**
@@ -1376,6 +1398,7 @@ Faz 0–1: 1 hafta · Faz 2–4: 2 hafta · Faz 5–6: 1.5 hafta · Faz 7–8: 2
 | K-016 | 2026-11-18 | Faz 1 planı onaylandı: kamera `keep_aspect = width`, top (0, 0, 6) ile başlar, atış parmak kalkınca | Sena Faz 1 planını bu kararlarla onayladı | Onaylandı |
 | K-017 | 2026-11-18 | Faz 1 kadrajı: FOV 40 (width), pitch 20, distance 18, look_at_height 4, top (0, 0, 6) | Adım 3 ekran görüntüsüyle doğrulandı: 12 birimlik kule alanı sığıyor, top görünüyor, altta top seçici payı kalıyor | Onaylandı |
 | K-018 | 2026-11-18 | **Ana hedef "masayı temizle"** (`clear_percent`, K-010'un yerine): blok **hacminin** %80'i platformdan düşünce bölüm kazanılır (`rules.objective_defaults`: `type`, `clear_percent_target = 0.8`, `clear_measure = "volume"` / `"count"`); Altın Küre ve joint'ler orana dahil değil; kırılan bloklar temizlenmiş sayılır (`broken_counts_as_cleared = true`); ekranda doluluk çubuğu; otomatik final temizliği yok. **Altın Küre = jackpot:** `clear_percent` bölümlerinde kule içine/kemer altına/tepeye gömülü; düşerse büyük altın (`economy.rewards.core_jackpot_gold`, taslak 20) + ağır çekim + konfeti; yıldızı etkilemez. `drop_core` yalnızca dünya başına 1–2 bölüm (zincire asılı küre, boss); küre korunaklı, doğrudan tek atışla düşmez. Yıldızlar değişmedi (kalan gülle, `rules.stars`). Zorluk: daha çok/ağır blok, dağınık/ikiz kuleler, daha az gülle, daha derine gömülü küre | Smash Away'in "masayı temizle" tatmini ana döngü olur; küre ustalık ve tekrar oynama motivasyonu veren ikincil hedef | Onaylandı |
+| K-019 | 2026-11-19 | Seçili 10 üçüncü taraf skill (awesome-gamedev-agent-skills, commit c6ca6c4) proje içinde (`.claude/skills/`, Apache-2.0); çelişkide CLAUDE.md, docs ve ordino-* skill'leri öncelikli | Godot 4.7/Jolt API doğruluğu | Onaylandı |
 | K-020 | 2026-11-19 | Ağır top kütlesi 6 → 2 (`balls.json → heavy.mass`) | Sena Dev Panel'de oynayarak seçti | Onaylandı |
 | K-021 | 2026-11-19 | L01 = A5 "Kristal Ayaklı Masa" (taş ayak x = -0.4, amber kristal keystone ayak öne çekik); kristal hp 10 (amber/turkuaz/mor, global); L01 `camera_override` distance 14 / look_at_height 3.0 | Sim: keystone atışı 20/20 kazanma (%86 temizlik), jackpot 20/20; kristal tek doğrudan vuruşta kırılır (ölçülen hasar 11.7–19.5); kule kadrajda büyür, top görünür kalır | Onaylandı |
 | K-022 | 2026-11-19 | Malzeme rolü: kristal tek vuruşta kırılır; ahşap/sandık orta (özel toplarla hızlı yok olur); taş/metal neredeyse kırılmaz, devrilerek temizlenir (docs/03 §6.3). Kesin sayılar Faz 6–9'da `/ordino-balance` ile | Ağır top (2 kg) ile taş 7–11 vuruşta kırılıyor; temizlik fizikle devirmekten gelmeli | Onaylandı |
@@ -1390,7 +1413,7 @@ Faz 0–1: 1 hafta · Faz 2–4: 2 hafta · Faz 5–6: 1.5 hafta · Faz 7–8: 2
 | S-005 | Mac erişimi var mı? (iOS build için şart) | Codemagic bulut build | Kapandı → K-015 |
 | S-006 | Oyun adı: "Ordino Games" yayıncı adı mı, oyun adı mı? | Faz 11'e kadar çalışma adı kullanılır | Ertelendi |
 | S-007 | Kamera: oyuncu kuleyi döndürebilsin mi? | **Sena:** v1'de kamera sabit (çapraz, ~20° yukarıdan, `rules.camera`). Tasarım kuralı: her keystone varsayılan kamera açısından görünür olmalı (`docs/03` §4 kural 3). Kamera döndürme v2'de değerlendirilir. | Önerildi |
-| S-008 | Performans bütçesi tam 3D'de aynı mı kalsın? | **Sena:** ≤120 aktif gövde olarak kalır; Faz 1'de orta segment Android cihazda ölçülür, gerekirse revize edilir. | Önerildi |
+| S-008 | Performans bütçesi tam 3D'de aynı mı kalsın? | **Sena:** ≤120 aktif gövde olarak kalır; Faz 1'de orta segment Android cihazda ölçülür, gerekirse revize edilir. **Not 2026-11-19:** masaüstü ölçümü tamam (RTX 3050 Ti, 120 blok stres kulesi ~140 FPS, tepe 121 aktif gövde); Android ölçümü bekliyor. | Önerildi |
 
 ---
 <!-- EK: game_data JSON dosyaları -->
@@ -1809,7 +1832,7 @@ Faz 0–1: 1 hafta · Faz 2–4: 2 hafta · Faz 5–6: 1.5 hafta · Faz 7–8: 2
     "slab_3x3": {"size": [3.0, 0.3, 3.0], "colliders": [{"type": "box", "pos": [0, 0.15, 0.0], "size": [3.0, 0.3, 3.0]}], "mesh": "res://assets/models/blocks/slab_3x3.glb", "fractured": "res://assets/models/fractured/slab_3x3_frac.glb"},
     "arch": {"size": [3.0, 2.0, 1.0], "colliders": [{"type": "box", "pos": [-1.2, 0.75, 0.0], "size": [0.6, 1.5, 1.0]}, {"type": "box", "pos": [1.2, 0.75, 0.0], "size": [0.6, 1.5, 1.0]}, {"type": "box", "pos": [0, 1.75, 0.0], "size": [3.0, 0.5, 1.0]}], "mesh": "res://assets/models/blocks/arch.glb", "fractured": "res://assets/models/fractured/arch_frac.glb"},
     "half_arch": {"size": [1.5, 2.0, 1.0], "colliders": [{"type": "box", "pos": [-0.45, 0.75, 0.0], "size": [0.6, 1.5, 1.0]}, {"type": "box", "pos": [0, 1.75, 0.0], "size": [1.5, 0.5, 1.0]}], "mesh": "res://assets/models/blocks/half_arch.glb", "fractured": "res://assets/models/fractured/half_arch_frac.glb"},
-    "truss": {"size": [3.0, 1.5, 0.8], "colliders": [{"type": "box", "pos": [0, 0.15, 0.0], "size": [3.0, 0.3, 0.8]}, {"type": "box", "pos": [0, 0.9, 0.0], "size": [0.3, 1.5, 0.8]}], "mesh": "res://assets/models/blocks/truss.glb", "fractured": "res://assets/models/fractured/truss_frac.glb"},
+    "truss": {"size": [3.0, 1.5, 0.8], "colliders": [{"type": "box", "pos": [0, 0.15, 0.0], "size": [3.0, 0.3, 0.8]}, {"type": "box", "pos": [0, 0.9, 0.0], "size": [0.3, 1.2, 0.8]}], "mesh": "res://assets/models/blocks/truss.glb", "fractured": "res://assets/models/fractured/truss_frac.glb"},
     "wedge": {"size": [1.0, 1.0, 1.0], "colliders": [{"type": "convex", "points": [[-0.5, 0, -0.5], [0.5, 0, -0.5], [0.5, 1.0, -0.5], [-0.5, 0, 0.5], [0.5, 0, 0.5], [0.5, 1.0, 0.5]]}], "mesh": "res://assets/models/blocks/wedge.glb", "fractured": "res://assets/models/fractured/wedge_frac.glb"},
     "barrel": {"size": [0.8, 1.0, 0.8], "colliders": [{"type": "cylinder", "axis": "y", "pos": [0, 0.5, 0], "radius": 0.4, "height": 1.0}], "mesh": "res://assets/models/blocks/barrel.glb", "fractured": "res://assets/models/fractured/barrel_frac.glb"},
     "ring_hanger": {"size": [1.5, 1.5, 1.0], "colliders": [{"type": "box", "pos": [-0.6, 0.6, 0.0], "size": [0.3, 1.2, 1.0]}, {"type": "box", "pos": [0.6, 0.6, 0.0], "size": [0.3, 1.2, 1.0]}, {"type": "box", "pos": [0, 0.1, 0.0], "size": [1.5, 0.2, 1.0]}], "mesh": "res://assets/models/blocks/ring_hanger.glb", "fractured": ""},

@@ -23,7 +23,7 @@ description: Ordino Games için yeni bölüm/kule tasarlar veya mevcut bölümü
    - Ağır malzeme alta/sütunlara, kristaller görünür ve kırılabilir yerlere.
    - 1–3 **keystone** işaretle. **Kamera kuralı (S-007):** v1'de kamera sabit (`rules.camera`: çapraz, ~20° yukarıdan) →
      **her keystone varsayılan kamera açısından görünür olmalı** (en az bir yüzü açıkça görünür, başka bloğun arkasında değil)
-     ve toptan (≈ 0, −1, +8) doğrudan ya da lob atışla ulaşılabilir olmalı.
+     ve toptan (`rules.cannon.position`, 0, 0, 6) doğrudan ya da lob atışla ulaşılabilir olmalı.
    - Top tanıtım bölümüyse (`balls.json → tutorial_level_id`) kuleyi o topun güçlü olduğu malzemelerle kur, `free_balls` ver.
 5. **JSON yaz:** `game_data/levels/<wNN_dunya>/<id>.json`, format `docs/03 §2.1`. Elle tasarımda `baked: true`.
 6. **Doğrula:** `python3 tools/validate_game_data.py` → hata yoksa devam.

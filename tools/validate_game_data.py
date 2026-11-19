@@ -5,6 +5,7 @@ Kullanim:  python3 tools/validate_game_data.py
 Hata varsa cikis kodu 1 doner. JSON degistirdikten sonra mutlaka calistir.
 """
 import json
+import math
 import sys
 from pathlib import Path
 
@@ -49,6 +50,24 @@ CORE_OBJECTIVES = {"drop_core", "drop_all_cores"}
 
 def is_num(v) -> bool:
     return isinstance(v, (int, float)) and not isinstance(v, bool)
+
+
+def footprint_xz(x, z, size, rot_deg):
+    """Rotated box (origin = base centre, Euler YXZ degrees like Godot) -> centre x, z and half extents x, z."""
+    rx, ry, rz = (math.radians(a) for a in rot_deg)
+    cx_, sx_ = math.cos(rx), math.sin(rx)
+    cy_, sy_ = math.cos(ry), math.sin(ry)
+    cz_, sz_ = math.cos(rz), math.sin(rz)
+    ry_m = [[cy_, 0, sy_], [0, 1, 0], [-sy_, 0, cy_]]
+    rx_m = [[1, 0, 0], [0, cx_, -sx_], [0, sx_, cx_]]
+    rz_m = [[cz_, -sz_, 0], [sz_, cz_, 0], [0, 0, 1]]
+    mul = lambda a, b: [[sum(a[i][k] * b[k][j] for k in range(3)) for j in range(3)] for i in range(3)]
+    r = mul(mul(ry_m, rx_m), rz_m)
+    h = [size[0] / 2, size[1] / 2, size[2] / 2]
+    up = [r[i][1] * h[1] for i in range(3)]  # base centre -> box centre
+    hx = sum(abs(r[0][j]) * h[j] for j in range(3))
+    hz = sum(abs(r[2][j]) * h[j] for j in range(3))
+    return x + up[0], z + up[2], hx, hz
 
 
 def is_vec3(v) -> bool:
@@ -317,13 +336,14 @@ for lf in sorted((ROOT / "levels").rglob("*.json")):
             errors.append(f"{rel}: blok {blk.get('id')} rot [rx, ry, rz] (derece) olmali")
         if blk.get("id") in block_ids:
             errors.append(f"{rel}: tekrar eden blok id {blk.get('id')}")
-        # Kenar payi (docs/03 4. kural 5): yalnizca donmemis bloklar icin basit eksen hizali kontrol
+        # Kenar payi (docs/03 4. kural 5): dondurulmus kutunun (Euler YXZ, oyundaki gibi) x/z kapsami
         shp = shapes.get(blk.get("shape"), {})
-        if (blk.get("rot", [0, 0, 0]) == [0, 0, 0] and is_vec3(shp.get("size"))
+        if (is_vec3(shp.get("size")) and is_vec3(blk.get("rot", [0, 0, 0]))
                 and all(is_num(blk.get(k)) for k in ("x", "z")) and is_num(plat.get("width")) and is_num(plat.get("depth"))):
             inset = phys.get("spawn_edge_inset", 0)
-            if (abs(blk["x"]) + shp["size"][0] / 2 > plat["width"] / 2 - inset + 1e-6
-                    or abs(blk["z"]) + shp["size"][2] / 2 > plat["depth"] / 2 - inset + 1e-6):
+            cx, cz, hx, hz = footprint_xz(blk["x"], blk["z"], shp["size"], blk.get("rot", [0, 0, 0]))
+            if (abs(cx) + hx > plat["width"] / 2 - inset + 1e-6
+                    or abs(cz) + hz > plat["depth"] / 2 - inset + 1e-6):
                 errors.append(f"{rel}: blok {blk.get('id')} platform kenarina {inset} birimden yakin")
         block_ids.add(blk.get("id"))
     for k in lv.get("keystones", []):
