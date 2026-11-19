@@ -209,6 +209,16 @@ Generator blok malzemesini rastgele değil **dünya paleti + zorluk** ile seçer
   **ahşap/sandık** orta dayanıklı (ağır topla birkaç vuruş, özel toplarla — alev, kesici — hızlı yok olur);
   **taş/metal** neredeyse kırılmaz, **devrilerek** temizlenir (yapının iskeleti; tasarım onları düşürmeye dayanmalı, kırmaya değil).
   Kesin hp/eşik sayıları Faz 6–9'da `/ordino-balance` ile ayarlanır.
+- **Uygulama (Faz 3 Adım 6, `src/gameplay/level/material_picker.gd`):** şablon blokları rol verir (`structure` / `light` / `crystal`); palet katıları
+  ortalama yoğunluğa göre ağır/hafif ayrılır (Akdeniz: taş ağır, ahşap hafif), seçimler palet ağırlıklı. Kristal olmayan blokların `heavy_ratio` kadarı ağır:
+  önce taşıyıcılar, sonra alttan yukarı. `role_overrides.breather.crystal_ratio_min` en üst blokları kristale çevirir. **Top tanıtım bölümü:**
+  bölümün `intro_ball`'u veya `tutorial_level_id`'si bu bölüm olan top varsa kristal olmayanların en az `difficulty.intro_ball.strong_material_share`'i (0.6)
+  o topun `damage_mult > 1` olduğu malzemelerden (W1 L08 Alev → ahşap). Keystone en yaygın malzemeden farklı olur (devrilmesi gereken keystone kristal olmaz).
+  **Ayna çiftleri** (aynı şekil/rol/yükseklik/|x|/z) aynı malzemeyi alır — taş + ahşap yük, tek dikmeye dengelenmiş kirişi deviriyordu.
+  > Not: Alev Topu davranışı Faz 5'te gelir; L08'in "alevle tek atışta yanma" iddiası ancak orada simülasyonla doğrulanabilir.
+- **Küre koruması (`core_protection`, kural 6a):** 0 = küre açıkta; 1 = `ring_hanger` yuvasında; ≥2 = yuva + üstünde `plank_s` kapak (dikmelerin tepesine oturur).
+  `staircase`'te küre en alt basamakta durur (eğik duvarın tepesinde sallanıp `max_settle_drift`'i aşıyordu); `domino_row`'da küreyi zincirin kendisi korur (yuva yok);
+  `arch_shrine` `inside` modunda küre her zaman kemerin altında yuvadadır.
 
 ## 7. Top tanıtım bölümü tarifi
 Örnek — Alev Topu (W1 B8):

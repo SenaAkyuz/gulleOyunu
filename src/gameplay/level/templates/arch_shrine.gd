@@ -11,7 +11,6 @@ extends TowerTemplate
 
 const ARCH := "arch"
 const FOOT := "cube"
-const HANGER := "ring_hanger"
 const TOWER := "cube"
 const MAX_FLOORS := 3
 const MAX_DEPTH_LAYERS := 2
@@ -50,11 +49,13 @@ func _build(p: Dictionary, rng: RandomNumberGenerator) -> void:
 			y += arch.y
 		used += 2 + floors
 		top_y = y
+		var protection := p_int(p, "core_protection", 0)
 		if front and core_mode == CORE_TOP:
-			_cradle(Vector3(0, top_y, z))
+			add_protected_core(Vector3(0, top_y, z), protection)
 			used += 1
 		elif front and CORE_INSIDE.has(core_mode):
-			_cradle(Vector3(0, 0, z))
+			# Under the arch the core always sits in a cradle (no lid: the arch is the roof).
+			add_protected_core(Vector3(0, 0, z), 1)
 			used += 1
 
 	# Side towers from the rest of the budget: one cube column on each side, crystal on top.
@@ -68,17 +69,6 @@ func _build(p: Dictionary, rng: RandomNumberGenerator) -> void:
 				for h in per_side:
 					var role := ROLE_CRYSTAL if h == per_side - 1 else (ROLE_STRUCTURE if h == 0 else ROLE_LIGHT)
 					add_block(TOWER, role, Vector3(side * tower_x, h * size_of(TOWER).y, z))
-
-
-## Golden Core resting in a ring_hanger cradle whose base is at `base`.
-func _cradle(base: Vector3) -> void:
-	add_block(HANGER, ROLE_LIGHT, base)
-	var bar_top := 0.0
-	for c: Dictionary in GameConfig.shape(HANGER)["colliders"]:
-		var pos := ShapeBuilder.to_vec3(c["pos"])
-		if is_zero_approx(pos.x):  # the bottom bar
-			bar_top = pos.y + float(c["size"][1]) / 2.0
-	add_core(base + Vector3(0, bar_top, 0))
 
 
 ## Inner edge of the arch legs (from the arch's leg colliders in shapes.json).

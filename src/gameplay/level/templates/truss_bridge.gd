@@ -67,4 +67,4 @@ func _build(p: Dictionary, _rng: RandomNumberGenerator) -> void:
 			for side: float in [-1.0, 1.0]:
 				add_block(LOAD, ROLE_STRUCTURE, Vector3(side * load_x, y + fl * load.y, z))
 		if front and p_bool(p, "core", true):
-			add_core(Vector3(0, y, z))
+			add_protected_core(Vector3(0, y, z), p_int(p, "core_protection", 0))

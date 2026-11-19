@@ -5,8 +5,9 @@ extends TowerTemplate
 ## seed. The lean is limited so that, for every row, the combined centre of mass of everything
 ## above stays at least 3 x physics.support_margin inside the row below (SupportCheck confirms).
 ## Keystone: the bottom crystal cube under the leaning wall (front layer): break it and the
-## wall tips over.
-## Params: block_count (-> base), depth_layers, symmetry (lower = more lean), core (default true).
+## wall tips over. The Golden Core waits on the lowest step at the other end.
+## Params: block_count (-> base), depth_layers, symmetry (lower = more lean), lean (explicit lean per
+## row, overrides symmetry; still capped by the balance limit), core (default true), core_protection.
 
 const SHAPE := "cube"
 const MIN_BASE := 2
@@ -35,7 +36,7 @@ func _build(p: Dictionary, rng: RandomNumberGenerator) -> void:
 	while base < max_base and depth * (base + 1) * (base + 2) / 2 <= budget:
 		base += 1
 	var dir := -1.0 if rng.randf() < 0.5 else 1.0
-	var lean := snappedf(MAX_LEAN * (1.0 - p_float(p, "symmetry", 1.0)), LEAN_STEP)
+	var lean := snappedf(p_float(p, "lean", MAX_LEAN * (1.0 - p_float(p, "symmetry", 1.0))), LEAN_STEP)
 	var margin := MARGIN_FACTOR * float(GameConfig.rule("physics.support_margin"))
 	while lean > 0.0 and not _balanced(base, lean, step_x, size.x, margin):
 		lean -= LEAN_STEP
@@ -43,7 +44,7 @@ func _build(p: Dictionary, rng: RandomNumberGenerator) -> void:
 
 	# Centre the footprint of the bottom row on the origin.
 	var x0 := -(base - 1) / 2.0 * step_x
-	var top := Vector3.ZERO
+	var step_z_front := (depth - 1) / 2.0 * step_z
 	for row in base:
 		var count := base - row
 		for i in count:
@@ -58,10 +59,17 @@ func _build(p: Dictionary, rng: RandomNumberGenerator) -> void:
 				if key or (row == base - 1):
 					role = ROLE_CRYSTAL
 				add_block(SHAPE, role, Vector3(x, row * size.y, z), Vector3.ZERO, key)
-				if front:
-					top = Vector3(x, (row + 1) * size.y, z)
 	if p_bool(p, "core", true):
-		add_core(top)
+		# The core sits on the lowest step (row 0, outer end): that cube carries nothing and
+		# stands on the platform. On top of the leaning wall it rocked past max_settle_drift
+		# (measured: any lean > 0 with the core on top failed, without it lean 0.1 passed).
+		# A cradle is shifted outwards just enough to clear the next step up.
+		var protection := p_int(p, "core_protection", 0)
+		var u := x0
+		if protection >= 1:
+			var cradle_half := size_of(CRADLE).x / 2.0
+			u -= maxf(0.0, cradle_half + gap - (step_x + lean - size.x / 2.0))
+		add_protected_core(Vector3(u * dir, size.y, step_z_front), protection)
 
 
 ## Every row: COM of all rows above (equal cubes) within [left, right] of the row's top face, by margin.

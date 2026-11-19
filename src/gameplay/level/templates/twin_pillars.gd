@@ -51,12 +51,14 @@ func _build(p: Dictionary, rng: RandomNumberGenerator) -> void:
 			y += pillar.y
 			add_block(plank, ROLE_LIGHT, Vector3(0, y, z))
 			y += plank_size.y
-		_add_load(load, plank_size, pillar_x, y, z, gap, front and p_bool(p, "core", true))
+		_add_load(load, plank_size, pillar_x, y, z, gap, front and p_bool(p, "core", true),
+				p_int(p, "core_protection", 0))
 
 
 ## Load cubes on the top plank: stacks over the pillars, alternating sides; core in the middle
 ## when the plank is wide enough, else on top of the first stack.
-func _add_load(count: int, plank_size: Vector3, pillar_x: float, y: float, z: float, gap: float, core: bool) -> void:
+func _add_load(count: int, plank_size: Vector3, pillar_x: float, y: float, z: float, gap: float, core: bool,
+		protection: int) -> void:
 	var cube := size_of(LOAD)
 	var core_d := 2.0 * float(GameConfig.shape(str(GameConfig.rule("objective_defaults.core_shape")))["colliders"][0]["radius"])
 	var middle_free := pillar_x - cube.x / 2.0 - gap >= core_d / 2.0
@@ -71,6 +73,6 @@ func _add_load(count: int, plank_size: Vector3, pillar_x: float, y: float, z: fl
 		heights[x] = level_y + cube.y
 	if core:
 		if middle_free:
-			add_core(Vector3(0, y, z))
+			add_protected_core(Vector3(0, y, z), protection)
 		else:
-			add_core(Vector3(xs[0], heights.get(xs[0], y), z))
+			add_protected_core(Vector3(xs[0], heights.get(xs[0], y), z), protection)

@@ -4,7 +4,8 @@ extends TowerTemplate
 ## Keystone: the front domino of the middle row (wood: it must topple, not shatter).
 ## The back domino of every row carries a crystal; the Golden Core waits behind the middle row's
 ## last domino, near the back edge, so a complete chain pushes it off (jackpot).
-## Params: block_count (-> rows x dominoes), core (default true).
+## Params: block_count (-> rows x dominoes), core (default true). Dominoes keep their light
+## material (keep_role) so they topple; the chain itself protects the core (no cradle).
 ## Dominoes are always pillar_3: in physics pillar_2 (too squat) never started a chain, pillar_3
 ## toppled 5/5 at spacing 0.4–0.5 x height (measured in Faz 3 Step 5).
 
@@ -46,7 +47,7 @@ func _build(p: Dictionary, _rng: RandomNumberGenerator) -> void:
 		for i in per_row:
 			var z := z_front - i * spacing
 			var key := r == mid and i == 0
-			add_block(shape, ROLE_LIGHT, Vector3(x, 0, z), Vector3.ZERO, key)
+			keep_role(add_block(shape, ROLE_LIGHT, Vector3(x, 0, z), Vector3.ZERO, key))
 			if i == per_row - 1:
 				add_block(CROWN, ROLE_CRYSTAL, Vector3(x, dom.y, z))
 		if r == mid and p_bool(p, "core", true):

@@ -32,6 +32,10 @@
     "boss":     { "structure_count_min": 2, "shots_bonus": 1 },
     "new_mechanic": { "favor_intro_ball_materials": true }
   },
+  "intro_ball": {
+    "strong_material_share": 0.6,
+    "_doc": "Top tanitim bolumu (docs/03 6.3 ve 7): bolumun intro_ball'u veya tutorial_level_id'si bu bolum olan top varsa, kristal olmayan bloklarin en az strong_material_share orani o topun guclu oldugu (balls.json damage_mult > 1) palet malzemelerinden secilir. Ornek: Alev Topu -> ahsap %60 (W1 L08)."
+  },
   "sim_targets": {
     "samples": 200,
     "one_shot_solve_rate": {

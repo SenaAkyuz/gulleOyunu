@@ -6,7 +6,7 @@ extends RefCounted
 ## - Each structure: params = DifficultyCalc.params(level difficulty) overridden by structure.params;
 ##   rng seeded with structure.seed; result moved to (x, 0, z) and turned by ry (degrees, about +Y).
 ## - Template block ids get the structure prefix "s<n>_" (s1_b01, ...); roles become materials
-##   (MaterialPicker, world palette).
+##   (MaterialPicker.assign: world palette, heavy_ratio, level role, intro ball).
 ## - A template that is not written yet is skipped with a warning (returned in "_expand_warnings").
 ## - The result is marked "_expanded": expanding it again returns it unchanged.
 
@@ -38,14 +38,13 @@ static func expand(level: Dictionary) -> Dictionary:
 		var rng := RandomNumberGenerator.new()
 		rng.seed = int(st.get("seed", 0))
 		var res := tpl.generate(p, rng)
+		MaterialPicker.assign(res["blocks"], res["keystones"], world, p, material_context(level), rng)
 		var origin := Vector3(float(st.get("x", 0)), 0.0, float(st.get("z", 0)))
 		var ry := float(st.get("ry", 0))
 		var prefix := ID_PREFIX % n
 		for b: Dictionary in res["blocks"]:
 			var nb := _place(b, origin, ry)
 			nb["id"] = prefix + str(b["id"])
-			if not nb.has("mat"):
-				nb["mat"] = MaterialPicker.pick(str(nb.get("role", "")), world, p, rng)
 			blocks.append(nb)
 		for k: String in res["keystones"]:
 			keystones.append(prefix + k)
@@ -60,6 +59,21 @@ static func expand(level: Dictionary) -> Dictionary:
 	for w in warnings:
 		push_warning("LevelExpander %s: %s" % [level.get("id", "?"), w])
 	return out
+
+
+## What MaterialPicker needs to know about the level: its rhythm role and its intro ball
+## (level.intro_ball, else the ball whose balls.json tutorial_level_id is this level).
+static func material_context(level: Dictionary) -> Dictionary:
+	var role := str(level.get("role", ""))
+	if role.is_empty():
+		role = DifficultyCalc.role_for(int(level.get("index", 1)))
+	var intro: Variant = level.get("intro_ball")
+	var intro_id := str(intro) if intro != null else ""
+	if intro_id.is_empty():
+		for b: Dictionary in GameConfig.balls():
+			if str(b.get("tutorial_level_id", "")) == str(level.get("id", "")):
+				intro_id = str(b["id"])
+	return {"level_role": role, "intro_ball": intro_id}
 
 
 ## The level's difficulty: its "difficulty" field, else computed from world index + level index.

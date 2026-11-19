@@ -36,7 +36,7 @@ func test_physics_does_not_drift() -> void:
 
 func test_arch_core_in_cradle_inside_and_top() -> void:
 	for mode: String in ["inside", "top"]:
-		var lv := Kit.level("arch_shrine", 20.0, 1, {"core": mode})
+		var lv := Kit.level("arch_shrine", 20.0, 1, {"core": mode, "core_protection": 1})
 		assert_eq((lv["cores"] as Array).size(), 1, mode)
 		var has_hanger := false
 		for b: Dictionary in lv["blocks"]:

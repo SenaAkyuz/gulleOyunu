@@ -4,7 +4,8 @@ extends TowerTemplate
 ## Keystone: the bottom-middle cube of the front (camera-side) layer, made of crystal so one hit
 ## breaks it and the cubes above lose half their support.
 ## Params: block_count (size: the largest pyramid that fits the budget), depth_layers (1–3),
-## symmetry (< 1: the upper rows may lose a cube on one side), core (default true).
+## symmetry (< 1: the upper rows may lose a cube on one side), core (default true),
+## core_protection (0 loose on the apex, 1 cradle, 2 cradle + lid).
 
 const SHAPE := "cube"
 const MIN_BASE := 2
@@ -54,4 +55,4 @@ func _build(p: Dictionary, rng: RandomNumberGenerator) -> void:
 				add_block(SHAPE, role, Vector3(x, y, z), Vector3.ZERO, key)
 		top_y = y + size.y
 	if p_bool(p, "core", true):
-		add_core(Vector3(0, top_y, front_z))
+		add_protected_core(Vector3(0, top_y, front_z), p_int(p, "core_protection", 0))
