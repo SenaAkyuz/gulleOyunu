@@ -483,6 +483,9 @@ Level (Node3D)  ← level_loader.gd: JSON okur, world'ü kurar
 1. **Tek doğruluk kaynağı:** `game_data/*.json`. JSON'da yorum olmadığı için her nesnede açıklama alanı `"_doc"` kullanılır (kod `_` ile başlayan anahtarları yok sayar).
 2. **Doğrulama:** `tools/validate_game_data.py` (CI/commit öncesi) + `GameConfig` açılışta tekrar doğrular, hata varsa **dev build'de kırmızı ekran**, release'te güvenli varsayılan.
 3. **Canlı ayar (dev):** Oyun içinde gizli **Dev Panel** (5 parmak dokunuş veya F1): yerçekimi, top hızı, malzeme hp, yıldız eşikleri canlı değiştir, "JSON'a kaydet" butonu.
+   Kaydırıcılar `rules.dev.panel` listesinden gelir (yeni kaydırıcı = JSON'a bir satır). Sadece debug build'de açılır; değişiklikler bellekte
+   kalır (R ile yeniden başlatınca korunur, oyun kapanınca JSON'a döner). "JSON'a kaydet" yalnızca editörden çalışırken görünür
+   (export'ta `res://` salt okunur) ve sadece değişen sayıları yerinde yazar (biçim ve `_doc` satırları korunur); sonra validator çalıştırılır.
 4. **Uzaktan ayar (Faz 10):** Firebase Remote Config (veya benzeri) → yalnızca `rules`, `economy`, `difficulty` alanlarında **override**. Mağaza güncellemesi olmadan fiyat/ödül değiştirme.
 5. **Bölüm dosyaları** ayrı ayrı JSON → bir bölümü düzeltmek diğerlerini etkilemez; git geçmişinde net görünür.
 
@@ -576,6 +579,9 @@ Kural: Alan eklenince `save_version` artar ve `SaveManager._migrate_vN_to_vN1()`
 - Android: Godot Android export şablonu, Google Play Billing eklentisi (resmi `GodotGooglePlayBilling` veya güncel topluluk eklentisi), AAB.
 - iOS: **Codemagic** (bulut macOS + Xcode) ile build ve TestFlight yüklemesi (K-015); yerel Mac gerekmez. StoreKit eklentisi. Sena'nın Ordino App Store Connect hesabında Admin rolü var → TestFlight dağıtımı yapılabilir.
 - Eklenti seçimi Faz 10'da güncel duruma göre yapılır; arayüz soyutlaması sayesinde değiştirilebilir.
+- **Export preset'ine `*.json` filtresi eklenmeli (game_data).** Godot `.json` gibi kaynak olmayan dosyaları kendiliğinden paketlemez
+  (preset → Resources → "Filters to export non-resource files": `*.json`). Unutulursa oyun açılışta GameConfig hatası verir.
+  Export sonrası `--export-pack` + `--main-pack` ile duman testi yap (skill: `godot-export`).
 
 ## 11. Opsiyonel: Godot MCP (Claude'un Godot'u çalıştırıp hata okuması)
 Claude Code'a bir Godot MCP sunucusu eklenirse Claude projeyi çalıştırıp hata çıktısını kendisi okuyabilir. Örnek (topluluk projesi, üçüncü taraf):
@@ -1730,6 +1736,22 @@ Faz 0–1: 1 hafta · Faz 2–4: 2 hafta · Faz 5–6: 1.5 hafta · Faz 7–8: 2
     "stress_block_count": 120,
     "nudge_impulse": 1.0,
     "_doc_nudge": "Ok tuslariyla secili cisme (Tab) uygulanan itme impulsu (N*s). Kenar kurali testi icin.",
+    "panel_open_touches": 5,
+    "panel": [
+      { "label": "Yerçekimi", "file": "rules", "key": "physics.gravity", "min": 2, "max": 30, "step": 0.1 },
+      { "label": "Top hızı", "file": "balls", "ids": ["heavy"], "key": "launch_speed", "min": 8, "max": 40, "step": 0.5 },
+      { "label": "Top kütlesi", "file": "balls", "ids": ["heavy"], "key": "mass", "min": 1, "max": 30, "step": 0.5 },
+      { "label": "Taş hp", "file": "materials", "ids": ["stone"], "key": "hp", "min": 10, "max": 400, "step": 5, "restart": true },
+      { "label": "Taş eşik", "file": "materials", "ids": ["stone"], "key": "impact_threshold", "min": 0, "max": 60, "step": 0.5, "restart": true },
+      { "label": "Ahşap hp", "file": "materials", "ids": ["wood"], "key": "hp", "min": 5, "max": 200, "step": 5, "restart": true },
+      { "label": "Ahşap eşik", "file": "materials", "ids": ["wood"], "key": "impact_threshold", "min": 0, "max": 40, "step": 0.5, "restart": true },
+      { "label": "Kristal hp", "file": "materials", "ids": ["crystal_amber", "crystal_cyan"], "key": "hp", "min": 5, "max": 100, "step": 1, "restart": true },
+      { "label": "Kristal eşik", "file": "materials", "ids": ["crystal_amber", "crystal_cyan"], "key": "impact_threshold", "min": 0, "max": 30, "step": 0.5, "restart": true },
+      { "label": "Sarsıntı / impuls", "file": "rules", "key": "feel.shake_trauma_per_impulse", "min": 0, "max": 0.05, "step": 0.001 },
+      { "label": "Kıvılcım eşiği", "file": "rules", "key": "feel.spark_min_impulse", "min": 0, "max": 40, "step": 0.5, "restart": true },
+      { "label": "Kıvılcım boyutu", "file": "rules", "key": "feel.spark_size", "min": 0.02, "max": 0.5, "step": 0.01, "restart": true }
+    ],
+    "_doc_panel": "Dev Panel (F1 veya panel_open_touches parmak): kaydiricilar. file: rules|balls|materials; ids: balls/materials kayit id'leri (hepsi ayni degeri alir); key: noktali yol; restart: true ise bolum yeniden baslayinca uygulanir. Sadece debug build'de acilir; 'JSON'a kaydet' sadece editorden calisinca gorunur.",
     "_doc": "Gelistirici araclari. stress_block_count: P tusuyla kurulan performans test kulesindeki blok sayisi (S-008)."
   },
   "quality": {

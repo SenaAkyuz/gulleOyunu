@@ -3,7 +3,8 @@ extends Node3D
 ## Aiming is only enabled while the referee is in AIMING (EventBus.referee_state_changed).
 ## Play: left mouse / touch = aim at a surface, release = fire.
 ## Dev keys: G = play-area guide, Space = wake every body, Tab = select body,
-## arrows = push selected body (rules.dev.nudge_impulse), H = hp labels, R = restart level.
+## arrows = push selected body (rules.dev.nudge_impulse), H = hp labels, R = restart level,
+## F1 = Dev Panel (src/ui/dev_panel).
 
 ## Empty = rules.dev.start_level_id
 @export var level_id: String = ""
@@ -48,7 +49,7 @@ func _ready() -> void:
 	_cannon.setup(_balls, GameConfig.starting_ball_id(), int(dots))
 
 	_build_area_guide()
-	_info_static = "%s · %s · %d blok + %d küre · top: %s\nSol tık: nişan · bırak: ateş   H hp · G alan · Boşluk · Tab seç · Oklar it · R baştan · F12" % [
+	_info_static = "%s · %s · %d blok + %d küre · top: %s\nSol tık: nişan · bırak: ateş   H hp · G alan · Boşluk · Tab seç · Oklar it · R baştan · F1 panel · F12" % [
 		level_id, _referee.objective_type, _tower.blocks.size(), _tower.cores.size(), _cannon.ball_id]
 
 

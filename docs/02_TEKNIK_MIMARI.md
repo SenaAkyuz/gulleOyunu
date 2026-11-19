@@ -175,6 +175,9 @@ Level (Node3D)  ← level_loader.gd: JSON okur, world'ü kurar
 1. **Tek doğruluk kaynağı:** `game_data/*.json`. JSON'da yorum olmadığı için her nesnede açıklama alanı `"_doc"` kullanılır (kod `_` ile başlayan anahtarları yok sayar).
 2. **Doğrulama:** `tools/validate_game_data.py` (CI/commit öncesi) + `GameConfig` açılışta tekrar doğrular, hata varsa **dev build'de kırmızı ekran**, release'te güvenli varsayılan.
 3. **Canlı ayar (dev):** Oyun içinde gizli **Dev Panel** (5 parmak dokunuş veya F1): yerçekimi, top hızı, malzeme hp, yıldız eşikleri canlı değiştir, "JSON'a kaydet" butonu.
+   Kaydırıcılar `rules.dev.panel` listesinden gelir (yeni kaydırıcı = JSON'a bir satır). Sadece debug build'de açılır; değişiklikler bellekte
+   kalır (R ile yeniden başlatınca korunur, oyun kapanınca JSON'a döner). "JSON'a kaydet" yalnızca editörden çalışırken görünür
+   (export'ta `res://` salt okunur) ve sadece değişen sayıları yerinde yazar (biçim ve `_doc` satırları korunur); sonra validator çalıştırılır.
 4. **Uzaktan ayar (Faz 10):** Firebase Remote Config (veya benzeri) → yalnızca `rules`, `economy`, `difficulty` alanlarında **override**. Mağaza güncellemesi olmadan fiyat/ödül değiştirme.
 5. **Bölüm dosyaları** ayrı ayrı JSON → bir bölümü düzeltmek diğerlerini etkilemez; git geçmişinde net görünür.
 
@@ -268,6 +271,9 @@ Kural: Alan eklenince `save_version` artar ve `SaveManager._migrate_vN_to_vN1()`
 - Android: Godot Android export şablonu, Google Play Billing eklentisi (resmi `GodotGooglePlayBilling` veya güncel topluluk eklentisi), AAB.
 - iOS: **Codemagic** (bulut macOS + Xcode) ile build ve TestFlight yüklemesi (K-015); yerel Mac gerekmez. StoreKit eklentisi. Sena'nın Ordino App Store Connect hesabında Admin rolü var → TestFlight dağıtımı yapılabilir.
 - Eklenti seçimi Faz 10'da güncel duruma göre yapılır; arayüz soyutlaması sayesinde değiştirilebilir.
+- **Export preset'ine `*.json` filtresi eklenmeli (game_data).** Godot `.json` gibi kaynak olmayan dosyaları kendiliğinden paketlemez
+  (preset → Resources → "Filters to export non-resource files": `*.json`). Unutulursa oyun açılışta GameConfig hatası verir.
+  Export sonrası `--export-pack` + `--main-pack` ile duman testi yap (skill: `godot-export`).
 
 ## 11. Opsiyonel: Godot MCP (Claude'un Godot'u çalıştırıp hata okuması)
 Claude Code'a bir Godot MCP sunucusu eklenirse Claude projeyi çalıştırıp hata çıktısını kendisi okuyabilir. Örnek (topluluk projesi, üçüncü taraf):

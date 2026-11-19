@@ -100,6 +100,41 @@ if quality.get("default") not in quality.get("levels", {}):
 for qname, q in quality.get("levels", {}).items():
     if not is_num(q.get("particles_mult")) or not 0 <= q["particles_mult"] <= 1:
         errors.append(f"rules.quality.levels.{qname}.particles_mult 0..1 olmali")
+# Dev Panel kaydiricilari (Faz 1 Adim 11)
+dev = rules.get("dev", {})
+if not isinstance(dev.get("panel_open_touches"), int) or dev.get("panel_open_touches") < 2:
+    errors.append("rules.dev.panel_open_touches 2 veya daha buyuk tam sayi olmali")
+balls_by_id = {b.get("id"): b for b in balls_doc.get("balls", [])}
+for i, entry in enumerate(dev.get("panel", [])):
+    where = f"rules.dev.panel[{i}] ({entry.get('label')})"
+    if not entry.get("label"):
+        errors.append(f"{where}: label eksik")
+    if not (is_num(entry.get("min")) and is_num(entry.get("max")) and is_num(entry.get("step")))             or entry["min"] >= entry["max"] or entry["step"] <= 0:
+        errors.append(f"{where}: min < max ve step > 0 olmali")
+        continue
+    file = entry.get("file")
+    if file == "rules":
+        targets = [rules]
+    elif file in ("materials", "balls"):
+        pool = materials if file == "materials" else balls_by_id
+        ids = entry.get("ids") or []
+        if not ids:
+            errors.append(f"{where}: ids eksik")
+        missing = [x for x in ids if x not in pool]
+        if missing:
+            errors.append(f"{where}: bilinmeyen id {missing}")
+        targets = [pool[x] for x in ids if x in pool]
+    else:
+        errors.append(f"{where}: file rules|materials|balls olmali")
+        continue
+    for t in targets:
+        node = t
+        for part in str(entry.get("key", "")).split("."):
+            node = node.get(part) if isinstance(node, dict) else None
+        if not is_num(node):
+            errors.append(f"{where}: '{entry.get('key')}' sayisal bir deger degil")
+        elif not entry["min"] <= node <= entry["max"]:
+            errors.append(f"{where}: mevcut deger {node} araligin disinda [{entry['min']}, {entry['max']}]")
 obj_def = rules.get("objective_defaults", {})
 # K-018: varsayilan hedef clear_percent, Altin Kure jackpot
 if obj_def.get("type") not in VALID_OBJECTIVES:

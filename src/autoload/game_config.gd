@@ -30,6 +30,7 @@ const REQUIRED_RULES: PackedStringArray = [
 	"quality.default",
 	"platform.thickness", "platform.friction", "platform.bounce",
 	"dev.start_level_id", "dev.play_area_guide", "dev.stress_block_count", "dev.nudge_impulse",
+	"dev.panel_open_touches", "dev.panel",
 ]
 const VALID_AIM_MODES: PackedStringArray = ["tap_target", "drag_release"]
 const VALID_EDGE_RULES: PackedStringArray = ["com_outside_platform"]
@@ -46,6 +47,8 @@ var _difficulty: Dictionary = {}
 var _economy: Dictionary = {}
 var _level_paths: Dictionary = {} # level id -> res:// path
 var _level_cache: Dictionary = {}
+## Dev Panel: original JSON value per panel entry label, recorded on the first live change.
+var _dev_original: Dictionary = {}
 
 
 func _ready() -> void:
@@ -65,6 +68,7 @@ func is_valid() -> bool:
 func load_all() -> void:
 	errors.clear()
 	_level_cache.clear()
+	_dev_original.clear()
 	_rules = _load_json("rules.json")
 	_materials = _load_json("materials.json").get("materials", {})
 	_shapes = _load_json("shapes.json").get("shapes", {})
@@ -155,6 +159,72 @@ func level(id: String) -> Dictionary:
 	var data: Dictionary = _parse_file(_level_paths[id])
 	_level_cache[id] = data
 	return data
+
+
+# --- Dev Panel (live tuning, docs/02 §5.3). Entries come from rules.dev.panel. ---
+# Changes live only in memory: they survive a level restart (R) but not quitting the game,
+# unless DevPanel writes them back to the JSON files.
+
+## Current value of a panel entry (the first id's value for multi-id entries).
+func dev_get(entry: Dictionary) -> float:
+	var targets := _dev_targets(entry)
+	if targets.is_empty():
+		return 0.0
+	return float(_dig(targets[0], str(entry["key"])))
+
+
+func dev_set(entry: Dictionary, value: float) -> void:
+	var label := str(entry["label"])
+	if not _dev_original.has(label):
+		_dev_original[label] = dev_get(entry)
+	var parts := str(entry["key"]).split(".")
+	for target in _dev_targets(entry):
+		var node: Dictionary = target
+		for i in parts.size() - 1:
+			node = node[parts[i]]
+		node[parts[parts.size() - 1]] = value
+	if str(entry["file"]) == "rules" and str(entry["key"]).begins_with("physics."):
+		apply_physics_settings()
+
+
+## Labels of entries whose value differs from what was loaded from JSON.
+func dev_changed_labels() -> PackedStringArray:
+	var out := PackedStringArray()
+	for entry: Dictionary in rule("dev.panel"):
+		var label := str(entry["label"])
+		if _dev_original.has(label) and not is_equal_approx(float(_dev_original[label]), dev_get(entry)):
+			out.append(label)
+	return out
+
+
+## Source file for a panel entry's `file` field.
+func dev_file_path(entry: Dictionary) -> String:
+	return DATA_DIR + str(entry["file"]) + ".json"
+
+
+func _dev_targets(entry: Dictionary) -> Array[Dictionary]:
+	var out: Array[Dictionary] = []
+	match str(entry["file"]):
+		"rules":
+			out.append(_rules)
+		"materials":
+			for id: String in entry.get("ids", []):
+				if _materials.has(id):
+					out.append(_materials[id])
+		"balls":
+			for id: String in entry.get("ids", []):
+				if _balls.has(id):
+					out.append(_balls[id])
+	return out
+
+
+func _dig(root: Dictionary, path: String) -> Variant:
+	var node: Variant = root
+	for part in path.split("."):
+		if not (node is Dictionary) or not (node as Dictionary).has(part):
+			return null
+		node = (node as Dictionary)[part]
+	return node
 
 
 # --- Internals ---

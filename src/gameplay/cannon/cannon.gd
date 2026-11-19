@@ -9,7 +9,6 @@ const BALL_SCENE: PackedScene = preload("res://src/gameplay/balls/ball.tscn")
 var ball_id: String = ""
 
 var _balls_parent: Node3D
-var _gravity: float = 0.0
 var _arc: String = ""
 var _smoothing: float = 0.0
 var _target_dir: Vector3 = Vector3.FORWARD
@@ -27,7 +26,6 @@ var _preview_on: bool = false
 func setup(balls_parent: Node3D, start_ball_id: String, preview_dots: int) -> void:
 	_balls_parent = balls_parent
 	ball_id = start_ball_id
-	_gravity = float(GameConfig.rule("physics.gravity"))
 	_arc = str(GameConfig.rule("aim.arc"))
 	_smoothing = float(GameConfig.rule("aim.aim_smoothing"))
 	_preview.setup(preview_dots, float(GameConfig.rule("aim.preview_dot_interval_sec")))
@@ -45,13 +43,14 @@ func launch_speed() -> float:
 	return float(GameConfig.ball(ball_id)["launch_speed"])
 
 
+## Read live so the Dev Panel's gravity slider applies to the next shot.
 func gravity() -> float:
-	return _gravity
+	return float(GameConfig.rule("physics.gravity"))
 
 
 ## {"velocity": Vector3, "reachable": bool} from the muzzle to target.
 func solve_to(target: Vector3) -> Dictionary:
-	return Ballistics.solve(muzzle_position(), target, launch_speed(), _gravity, _arc)
+	return Ballistics.solve(muzzle_position(), target, launch_speed(), gravity(), _arc)
 
 
 func aim_at(target: Vector3) -> void:
@@ -91,7 +90,7 @@ func _process(delta: float) -> void:
 		# Recomputed every frame: the muzzle moves while the barrel turns.
 		var from := muzzle_position()
 		var velocity: Vector3 = solve_to(_preview_target)["velocity"]
-		_preview.show_path(from, velocity, _gravity,
+		_preview.show_path(from, velocity, gravity(),
 				Ballistics.time_to_reach(from, _preview_target, velocity))
 
 

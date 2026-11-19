@@ -10,6 +10,7 @@
 [ext_resource type="Script" path="res://src/gameplay/fx/slowmo.gd" id="8_slowmo"]
 [ext_resource type="Script" path="res://src/gameplay/fx/camera_shake.gd" id="9_shake"]
 [ext_resource type="Script" path="res://src/gameplay/fx/fx_pool.gd" id="10_fxpool"]
+[ext_resource type="Script" path="res://src/ui/dev_panel/dev_panel.gd" id="11_devpanel"]
 
 [sub_resource type="Environment" id="Env_grey"]
 background_mode = 1
@@ -65,3 +66,6 @@ script = ExtResource("10_fxpool")
 material_override = SubResource("Mat_guide")
 
 [node name="HUD" parent="." instance=ExtResource("7_hud")]
+
+[node name="DevPanel" type="CanvasLayer" parent="."]
+script = ExtResource("11_devpanel")
