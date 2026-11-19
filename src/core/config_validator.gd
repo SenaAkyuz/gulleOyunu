@@ -125,7 +125,8 @@ func _check_economy(economy: Dictionary) -> void:
 	var ratio: Variant = rewards.get("replay_ratio")
 	if not _is_num(ratio) or float(ratio) < 0.0 or float(ratio) > 1.0:
 		errors.append("economy.rewards.replay_ratio 0..1 olmalı")
-	for key in ["core_jackpot_gold", "crystal_coin_cap_per_level"]:
+	for key in ["core_jackpot_gold", "crystal_coin_cap_per_level", "world_complete_bonus",
+			"world_perfect_bonus", "boss_mult"]:
 		if not _is_num(rewards.get(key)) or float(rewards[key]) < 0.0:
 			errors.append("economy.rewards.%s 0 veya pozitif sayı olmalı" % key)
 

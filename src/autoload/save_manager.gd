@@ -83,6 +83,7 @@ func load_game() -> LoadStatus:
 			if version < CURRENT_VERSION and load_status == LoadStatus.LOADED:
 				load_status = LoadStatus.MIGRATED
 			data = _fill_missing(migrate(parsed as Dictionary))
+	data["gold"] = int(data.get("gold", 0))  # JSON numbers load as float
 	print("SaveManager: %s (%s)" % [STATUS_NAMES[load_status], save_path])
 	loaded.emit(load_status)
 	if load_status in [LoadStatus.NEW, LoadStatus.MIGRATED, LoadStatus.RECOVERED_BACKUP, LoadStatus.RESET_CORRUPT]:
@@ -95,7 +96,20 @@ func request_save() -> void:
 	if _save_queued:
 		return
 	_save_queued = true
-	save_game.call_deferred()
+	_flush.call_deferred(save_path)
+
+
+## Deferred half of request_save(): skipped if cancelled or if the target file changed meanwhile
+## (e.g. a test sandbox restored the real path), so a queued write never lands in the wrong file.
+func _flush(path: String) -> void:
+	if not _save_queued or path != save_path:
+		_save_queued = false
+		return
+	save_game()
+
+
+func cancel_pending_save() -> void:
+	_save_queued = false
 
 
 ## Atomic write. Returns OK or an Error code; never overwrites a newer-version save.

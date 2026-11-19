@@ -11,6 +11,7 @@ var _data: Dictionary
 
 
 func enter() -> void:
+	SaveManager.cancel_pending_save()
 	if _path.is_empty():
 		_path = SaveManager.save_path
 		_backup = SaveManager.backup_path
@@ -23,6 +24,7 @@ func enter() -> void:
 
 
 func exit() -> void:
+	SaveManager.cancel_pending_save()
 	SaveManager.save_path = _path
 	SaveManager.backup_path = _backup
 	SaveManager.data = _data

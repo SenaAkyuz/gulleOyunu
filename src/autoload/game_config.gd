@@ -145,6 +145,16 @@ func world(id: String) -> Dictionary:
 	return _worlds.get(id, {})
 
 
+## All worlds in worlds.json order.
+func worlds() -> Array:
+	return _worlds.values()
+
+
+## All balls in balls.json order.
+func balls() -> Array:
+	return _balls.values()
+
+
 func difficulty() -> Dictionary:
 	return _difficulty
 

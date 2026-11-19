@@ -24,9 +24,13 @@ signal clear_progress_changed(ratio: float, target: float)
 signal referee_state_changed(state_name: String)
 signal level_completed(stars: int, shots_left: int)
 signal level_failed()
+## Gold paid for a level (Progress): {stars, jackpot, crystal, bonus, total, first_clear}.
+## Sent on the win, and again (jackpot only) if the core falls after the win.
+signal level_rewarded(level_id: String, breakdown: Dictionary)
 
 # --- Meta (Faz 2+) ---
 signal currency_changed(currency: String, amount: int)
 signal ball_unlocked(ball_id: String)
+signal world_unlocked(world_id: String)
 
 @warning_ignore_restore("unused_signal")

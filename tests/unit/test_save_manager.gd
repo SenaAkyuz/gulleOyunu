@@ -117,3 +117,17 @@ func test_missing_settings_key_is_filled() -> void:
 	assert_almost_eq(float(SaveManager.data["settings"]["sfx"]), 0.2, 0.0001, "oyuncunun ayarı korunur")
 	assert_true(SaveManager.data["settings"].has("music"))
 	assert_true(SaveManager.data["settings"].has("haptics"))
+
+
+func test_queued_save_never_lands_in_a_changed_path() -> void:
+	SaveManager.load_game()
+	var other := DIR + "other.json"
+	SaveManager.data["gold"] = 4321
+	SaveManager.request_save()
+	SaveManager.save_path = other
+	await wait_process_frames(2)
+	assert_false(FileAccess.file_exists(other), "bekleyen kayıt yeni yola yazılmadı")
+	assert_ne(int(_read(PATH)["gold"]), 4321, "eski yola da sonradan yazılmadı")
+	SaveManager.save_path = PATH
+	if FileAccess.file_exists(other):
+		DirAccess.remove_absolute(ProjectSettings.globalize_path(other))
