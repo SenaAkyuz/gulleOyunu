@@ -111,6 +111,11 @@ crack = rules.get("feel", {}).get("crack_hp_ratio")
 if not is_num(crack) or not 0 < crack < 1:
     errors.append("rules.feel.crack_hp_ratio 0 < x < 1 olmali")
 feel = rules.get("feel", {})
+if not isinstance(feel.get("slowmo_enabled"), bool):
+    errors.append("rules.feel.slowmo_enabled true/false olmali")
+refire = rules.get("shots", {}).get("refire_cooldown_sec")
+if not is_num(refire) or refire < 0:
+    errors.append("rules.shots.refire_cooldown_sec 0 veya pozitif sayi olmali")
 for key in ("shake_trauma_per_impulse", "shake_frequency", "shake_decay", "shake_max_offset",
             "spark_min_impulse", "spark_lifetime_sec", "spark_speed", "spark_size"):
     if not is_num(feel.get(key)) or feel.get(key) <= 0:

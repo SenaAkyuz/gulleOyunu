@@ -15,6 +15,7 @@ var behavior: BallBehavior
 var _life_left: float = 0.0
 var _kill_y: float = 0.0
 var _expired: bool = false
+var _hit: bool = false
 
 
 func setup(id: String) -> bool:
@@ -47,6 +48,9 @@ func setup(id: String) -> bool:
 	add_child(mi)
 
 	continuous_cd = true
+	contact_monitor = true
+	max_contacts_reported = 1
+	body_entered.connect(_on_body_entered)
 	can_sleep = true
 	collision_layer = PhysicsLayers.BALL
 	collision_mask = PhysicsLayers.PLATFORM | PhysicsLayers.BLOCK | PhysicsLayers.CORE
@@ -75,6 +79,14 @@ func _physics_process(delta: float) -> void:
 	_life_left -= delta
 	if _life_left <= 0.0 or global_position.y < _kill_y or sleeping:
 		expire()
+
+
+## First contact only (refire cooldown, LevelReferee).
+func _on_body_entered(_body: Node) -> void:
+	if _hit:
+		return
+	_hit = true
+	EventBus.ball_hit.emit(ball_id)
 
 
 func expire() -> void:

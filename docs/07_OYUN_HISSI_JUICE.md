@@ -24,10 +24,12 @@
 ## 3. Çöküş anı (SATISFACTION)
 - Zincirleme düşüş sayacı: "x5 ZİNCİR!" yazısı (blok-blok kırılmaları sayılır).
 - **Doluluk çubuğu (K-018):** HUD'da (üst orta, gülle göstergesinin altında) temizlenen blok hacmi / hedef. Her düşen blokla yumuşakça dolar,
-  %80 hedef çizgisi işaretli; hedefe yaklaşınca nabız atar, ulaşınca parlar + "TEMİZ!" + yükselen nota. Bloklar ancak durulunca kesinleştiği için
-  çubuk SETTLING boyunca anlık tahmini gösterir, kesin değer sonunda oturur.
-- **Altın Küre jackpot:** küre platformdan ayrıldığı an → ağır çekim (`feel.final_slowmo_scale` 0.3, `final_slowmo_duration_sec` 0.6), kamera küreye
-  hafif zoom, sonra normal → altın ışık patlaması + "ding" + **konfeti** + büyük "JACKPOT! +N 🪙" yazısı, altınlar HUD sayacına uçar. Yıldızı etkilemez.
+  %80 hedef çizgisi işaretli; hedefe yaklaşınca nabız atar, ulaşınca parlar + "TEMİZ!" + yükselen nota. Çubuk anlık
+  (canlı) değeri gösterir; hedefe ulaşıldığı an bölüm kazanılır (sürekli atış).
+- **Ağır çekim kapalı (Faz 1 oynanış geri bildirimi, 2026-11-19):** `rules.feel.slowmo_enabled = false` → jackpot'ta ve küre düşüşünde ağır çekim yok
+  (sürekli atışla çakışıyor ve akışı kesiyordu). **Faz 8'de** yalnızca **kazanma anında kısa vurgu** olarak yeniden denenecek (`final_slowmo_*` değerleri saklı).
+- **Altın Küre jackpot:** küre platformdan ayrıldığı an → (ağır çekim kapalı), kamera küreye
+  hafif zoom → altın ışık patlaması + "ding" + **konfeti** + büyük "JACKPOT! +N 🪙" yazısı, altınlar HUD sayacına uçar. Yıldızı etkilemez.
 - Otomatik final temizliği **yok**: hedef tutunca kalan bloklar platformda kalır (oyuncu kendi yıkımını görür).
 - Platform dışına düşen her blok kısa "whoosh" + düşme sesi (uzakta, düşük ses).
 

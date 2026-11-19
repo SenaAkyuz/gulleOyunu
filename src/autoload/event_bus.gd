@@ -8,6 +8,8 @@ extends Node
 signal ball_fired(ball_id: String)
 signal ball_impact(position: Vector3, impulse: float, material_id: String)
 signal ball_expired(ball_id: String)
+## First contact of a fired ball with anything (block, core, platform): starts the refire cooldown.
+signal ball_hit(ball_id: String)
 
 # --- Blocks / objective ---
 signal block_damaged(block: Node3D, hp_left: float)

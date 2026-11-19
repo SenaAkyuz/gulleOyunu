@@ -163,7 +163,9 @@ flowchart LR
 | `shatter_crystals` | Tüm kristal blokları (turuncu/turkuaz) kır | Kristal ağırlıklı özel bölümler |
 | `drop_all_cores` | Birden fazla küre (çift kule bölümleri) | Boss / çift kule |
 
-Kazanma kontrolü: son atıştan sonra fizik **durulana kadar** (tüm cisimler uyuyana veya ⚙️ `rules.settle_timeout_sec` dolana kadar) beklenir.
+**Sürekli atış:** gülle bir yere çarptıktan ⚙️ `rules.shots.refire_cooldown_sec` (0.5 sn) sonra yeni atış yapılabilir; kulenin durulması beklenmez.
+Kazanma her an kontrol edilir: hedefe (%80) ulaşıldığı an kazanılır. Kaybetme yalnızca son gülle atılıp fizik **durulunca** (veya ⚙️ `rules.physics.settle_timeout_sec`) değerlendirilir.
+Yıldızlar kullanılan gülle sayısına göre.
 
 **Altın Küre jackpot (K-018):** `clear_percent` bölümlerinde küre kulenin içine, kemer altına veya tepeye **gömülü** durur.
 Bölüm sırasında düşerse: ağır çekim + konfeti + büyük altın ödülü (⚙️ `economy.rewards.core_jackpot_gold`). **Yıldızı etkilemez.**
@@ -360,7 +362,7 @@ Tek risk IAP/reklam eklentileri → `IAPService` / `AdsService` arayüzleriyle s
   1. **Ağırlık merkezinin yatay izdüşümü (x, z) platform üst yüzeyinin dışındaysa** (tolerans: `rules.physics.edge_margin`), **veya**
   2. `y < rules.physics.fall_kill_y` (platformun altına inmişse).
 - Kenarda asılı kalan ama ağırlık merkezi platform dışında olan cisim **düşmüş** sayılır; ağırlık merkezi platform içindeyse **düşmemiş** sayılır. Ara durum yok.
-- Kontrol sürekli yapılır: Altın Küre'nin ağırlık merkezi platform dışına çıktığı an "düştü" sayılır (jackpot ağır çekimi başlar; `drop_core` bölümlerinde kazanma). Bloklar için sonuç SETTLING sonunda kesinleşir; temizlik oranı (`clear_percent`, K-018) bu kesinleşmiş sonuçlardan hesaplanır.
+- Kontrol sürekli yapılır: Altın Küre'nin ağırlık merkezi platform dışına çıktığı an "düştü" sayılır (jackpot ağır çekimi başlar; `drop_core` bölümlerinde kazanma). Bloklar için temizlik oranı (`clear_percent`, K-018) her karede canlı hesaplanır ve hedefe ulaşıldığı an kazanılır; kesin hüküm (kaybetme için) son gülle durulunca verilir.
 - Ayrık platformlarda (Gökyüzü Adaları) "platform" = tüm platform üst yüzeylerinin birleşimi.
 - Oyuncuya görünür: kenarda asılı ama düşmüş sayılan cisim hafif gri parıltı alır.
 
@@ -559,14 +561,18 @@ hp <= 0  → kırıl (fracture) ; hp < %50 → çatlak dokusu (decal/overlay)
 - Kesici Çark ve Alev joint'i koparabilir → asılı **Altın Küre** düşer (zincire asılı küre görseldeki Yanardağ kulesi).
 
 ### 6.6 Kazanma kontrolü (`level_referee.gd`)
-Durum makinesi: `AIMING → BALL_IN_FLIGHT → SETTLING → EVALUATE → (AIMING | WON | LOST)`.
-SETTLING: tüm aktif gövdeler uyuyana ya da `settle_timeout_sec` dolana kadar. "Atlama" butonu (hızlı ileri) opsiyonel.
-EVALUATE: her hedef cisim için **kenar kuralı** (§2, `rules.physics.edge_rule`) uygulanır: ağırlık merkezi (x,z) platform dışında veya `fall_kill_y` altında → düştü.
+**Sürekli atış (Faz 1 oynanış geri bildirimi, 2026-11-19):**
+`AIMING → BALL_IN_FLIGHT → COOLDOWN → AIMING …` (gülle kaldıkça) · son gülleden sonra `BALL_IN_FLIGHT → SETTLING → EVALUATE → WON | LOST`.
+- Gülle ilk temasında (`EventBus.ball_hit`) ya da kaybolunca `rules.shots.refire_cooldown_sec` (0.5) beklenir, sonra yeni atış serbest; kulenin durulması beklenmez.
+- **Kazanma her karede kontrol edilir** ve hedefe ulaşıldığı an WON (temizlik oranı canlı: ağırlık merkezi platform dışında olan bloklar düşmüş sayılır).
+- **Kaybetme** yalnızca son gülle çarpıp her şey durulunca (gövdeler uyur / `settle_linear_velocity_threshold` altı, canlı gülle yok) ya da `settle_timeout_sec` dolunca, EVALUATE'te.
+- EVALUATE: her blok için **kenar kuralı** (§2, `rules.physics.edge_rule`) kesinleşir: ağırlık merkezi (x,z) platform dışında veya `fall_kill_y` altında → düştü.
 - `clear_percent` (varsayılan, K-018): düşen blokların hacmi / tüm blokların hacmi (`rules.objective_defaults.clear_measure = volume`; `count` = adet)
   ≥ `clear_percent_target` (bölümde `objective.target` ile ezilebilir) → WON. Küre ve joint'ler orana katılmaz;
   kırılan bloklar temizlenmiş sayılır (`rules.objective_defaults.broken_counts_as_cleared = true`).
 - Gülle bitti ve oran hedefin altında → LOST. Otomatik final temizliği yok.
-- Küre düşerse (`clear_percent`): `EventBus.core_dropped` → jackpot (ağır çekim, konfeti, altın); yıldızı etkilemez. `drop_core`: küre düşünce WON.
+- Küre düşerse (`clear_percent`): `EventBus.core_dropped` → jackpot (altın; konfeti Faz 8; ağır çekim `rules.feel.slowmo_enabled` ile kapalı); yıldızı etkilemez, kazandıktan sonra düşse de sayılır. `drop_core`: küre düşünce WON.
+- Yıldız: kazanma anında kalan gülleye göre (= kullanılan gülle sayısı, `rules.stars`).
 
 ---
 
@@ -1329,10 +1335,12 @@ Faz 0–1: 1 hafta · Faz 2–4: 2 hafta · Faz 5–6: 1.5 hafta · Faz 7–8: 2
 ## 3. Çöküş anı (SATISFACTION)
 - Zincirleme düşüş sayacı: "x5 ZİNCİR!" yazısı (blok-blok kırılmaları sayılır).
 - **Doluluk çubuğu (K-018):** HUD'da (üst orta, gülle göstergesinin altında) temizlenen blok hacmi / hedef. Her düşen blokla yumuşakça dolar,
-  %80 hedef çizgisi işaretli; hedefe yaklaşınca nabız atar, ulaşınca parlar + "TEMİZ!" + yükselen nota. Bloklar ancak durulunca kesinleştiği için
-  çubuk SETTLING boyunca anlık tahmini gösterir, kesin değer sonunda oturur.
-- **Altın Küre jackpot:** küre platformdan ayrıldığı an → ağır çekim (`feel.final_slowmo_scale` 0.3, `final_slowmo_duration_sec` 0.6), kamera küreye
-  hafif zoom, sonra normal → altın ışık patlaması + "ding" + **konfeti** + büyük "JACKPOT! +N 🪙" yazısı, altınlar HUD sayacına uçar. Yıldızı etkilemez.
+  %80 hedef çizgisi işaretli; hedefe yaklaşınca nabız atar, ulaşınca parlar + "TEMİZ!" + yükselen nota. Çubuk anlık
+  (canlı) değeri gösterir; hedefe ulaşıldığı an bölüm kazanılır (sürekli atış).
+- **Ağır çekim kapalı (Faz 1 oynanış geri bildirimi, 2026-11-19):** `rules.feel.slowmo_enabled = false` → jackpot'ta ve küre düşüşünde ağır çekim yok
+  (sürekli atışla çakışıyor ve akışı kesiyordu). **Faz 8'de** yalnızca **kazanma anında kısa vurgu** olarak yeniden denenecek (`final_slowmo_*` değerleri saklı).
+- **Altın Küre jackpot:** küre platformdan ayrıldığı an → (ağır çekim kapalı), kamera küreye
+  hafif zoom → altın ışık patlaması + "ding" + **konfeti** + büyük "JACKPOT! +N 🪙" yazısı, altınlar HUD sayacına uçar. Yıldızı etkilemez.
 - Otomatik final temizliği **yok**: hedef tutunca kalan bloklar platformda kalır (oyuncu kendi yıkımını görür).
 - Platform dışına düşen her blok kısa "whoosh" + düşme sesi (uzakta, düşük ses).
 
@@ -1683,7 +1691,9 @@ Faz 0–1: 1 hafta · Faz 2–4: 2 hafta · Faz 5–6: 1.5 hafta · Faz 7–8: 2
     "default_per_level": 3,
     "extra_shot_price_gold": 50,
     "extra_shot_via_rewarded_ad": true,
-    "max_extra_shots_per_attempt": 2
+    "max_extra_shots_per_attempt": 2,
+    "refire_cooldown_sec": 0.5,
+    "_doc_refire": "Surekli atis: gulle ilk carptiktan (veya kaybolduktan) bu kadar sn sonra yeni atisa izin verilir; kulenin durulmasi beklenmez. Kazanma (hedef) her karede kontrol edilir; kaybetme yalnizca son gulle carpip her sey durulunca (veya physics.settle_timeout_sec) degerlendirilir."
   },
   "stars": {
     "mode": "shots_left",
@@ -1747,6 +1757,8 @@ Faz 0–1: 1 hafta · Faz 2–4: 2 hafta · Faz 5–6: 1.5 hafta · Faz 7–8: 2
     "shake_max_offset": 0.25,
     "shake_max_rotation_deg": 1.5,
     "shake_decay": 1.8,
+    "slowmo_enabled": false,
+    "_doc_slowmo": "false: jackpot/kure dususunde agir cekim yok (Faz 1 oynanis geri bildirimi). Faz 8'de yalnizca kazanma aninda kisa vurgu olarak denenecek (docs/07).",
     "final_slowmo_scale": 0.3,
     "final_slowmo_duration_sec": 0.6,
     "max_concurrent_bursts": 4,

@@ -17,7 +17,7 @@ const REQUIRED_RULES: PackedStringArray = [
 	"objective_defaults.core_shape", "objective_defaults.core_material",
 	"objective_defaults.type", "objective_defaults.clear_percent_target",
 	"objective_defaults.clear_measure", "objective_defaults.broken_counts_as_cleared",
-	"shots.default_per_level",
+	"shots.default_per_level", "shots.refire_cooldown_sec", "feel.slowmo_enabled",
 	"feel.final_slowmo_scale", "feel.final_slowmo_duration_sec",
 	"stars.mode", "stars.three_star_min_shots_left_offset", "stars.two_star_min_shots_left_offset",
 	"physics.gravity", "physics.tick_rate", "physics.settle_timeout_sec",

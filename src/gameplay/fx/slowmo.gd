@@ -1,6 +1,6 @@
 class_name SlowMo
 extends Node
-## Golden Core slow motion (docs/07 §3): when the core leaves the platform,
+## Golden Core slow motion (docs/07 §3), only if rules.feel.slowmo_enabled: when the core leaves the platform,
 ## Engine.time_scale = rules.feel.final_slowmo_scale for final_slowmo_duration_sec (real time).
 ## Listens to EventBus only. Always restores normal time when the level is left (e.g. R restart).
 ## Uses a child Timer (freed with this node) so a restart mid-slowmo leaves nothing pending.
@@ -24,7 +24,7 @@ func _exit_tree() -> void:
 
 
 func _on_core_dropped(_core: Node3D) -> void:
-	if not _timer.is_stopped():
+	if not bool(GameConfig.rule("feel.slowmo_enabled")) or not _timer.is_stopped():
 		return
 	Engine.time_scale = float(GameConfig.rule("feel.final_slowmo_scale"))
 	_timer.start(float(GameConfig.rule("feel.final_slowmo_duration_sec")))

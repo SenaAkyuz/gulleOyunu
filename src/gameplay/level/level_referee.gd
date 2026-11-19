@@ -1,25 +1,29 @@
 class_name LevelReferee
 extends Node
-## Level rules (docs/02 §6.6, K-018):
-##   AIMING -> BALL_IN_FLIGHT -> SETTLING -> EVALUATE -> AIMING | WON | LOST
-## - BALL_IN_FLIGHT starts on EventBus.ball_fired (one shot used), SETTLING on ball_expired.
-## - SETTLING ends when every body in play rests (asleep or slower than
-##   rules.physics.settle_linear_velocity_threshold) or after rules.physics.settle_timeout_sec.
-## - EVALUATE applies the edge rule to every block and checks the objective:
-##     clear_percent (default): cleared volume (or count) / total >= target; cleared = fallen,
-##       or broken when rules.objective_defaults.broken_counts_as_cleared. Core/joints excluded.
+## Level rules (docs/02 §6.6, K-018) with continuous fire (Faz 1 play-test feedback):
+##   AIMING -> BALL_IN_FLIGHT -> COOLDOWN -> AIMING ...   (shots left)
+##                            -> SETTLING -> EVALUATE -> WON | LOST   (last shot)
+## - BALL_IN_FLIGHT starts on EventBus.ball_fired (one shot used). The ball's first contact
+##   (EventBus.ball_hit) or its expiry ends it: with shots left the player may fire again after
+##   rules.shots.refire_cooldown_sec (the tower is NOT waited for); after the last shot SETTLING
+##   waits until every body rests (asleep or slower than rules.physics.settle_linear_velocity_threshold,
+##   no ball alive) or rules.physics.settle_timeout_sec.
+## - WIN is checked every tick and happens the moment the objective is met:
+##     clear_percent (default): cleared volume (or count) / total >= target; cleared = centre of mass
+##       outside the platform (edge rule), or broken when rules.objective_defaults.broken_counts_as_cleared.
+##       Core/joints excluded.
 ##     drop_core / drop_all_cores: the core(s) fell off.
-##   Not met: shots left -> AIMING, none left -> LOST (no automatic final clear).
-## - Golden Core: checked every tick; dropping it emits EventBus.core_dropped (jackpot in
-##   clear_percent levels, never affects stars).
-## - Stars (rules.stars, mode shots_left) from shots left at the win.
+## - LOSS only in EVALUATE after the last shot settled (no automatic final clear).
+## - Golden Core: checked every tick, also after the win; dropping it emits EventBus.core_dropped
+##   (jackpot in clear_percent levels, never affects stars).
+## - Stars (rules.stars, mode shots_left) from shots left at the win (= shots used).
 ## Talks to the rest of the game only through EventBus.
 
-enum State { AIMING, BALL_IN_FLIGHT, SETTLING, EVALUATE, WON, LOST }
+enum State { AIMING, BALL_IN_FLIGHT, COOLDOWN, SETTLING, EVALUATE, WON, LOST }
 
 const STATE_NAMES := {
-	State.AIMING: "AIMING", State.BALL_IN_FLIGHT: "BALL_IN_FLIGHT", State.SETTLING: "SETTLING",
-	State.EVALUATE: "EVALUATE", State.WON: "WON", State.LOST: "LOST",
+	State.AIMING: "AIMING", State.BALL_IN_FLIGHT: "BALL_IN_FLIGHT", State.COOLDOWN: "COOLDOWN",
+	State.SETTLING: "SETTLING", State.EVALUATE: "EVALUATE", State.WON: "WON", State.LOST: "LOST",
 }
 const OBJ_CLEAR_PERCENT := "clear_percent"
 const OBJ_DROP_CORE := "drop_core"
@@ -49,6 +53,9 @@ var _settle_elapsed: float = 0.0
 var _measure_volume: bool = true
 var _broken_counts: bool = true
 var _last_ratio: float = -1.0
+var _refire_cooldown: float = 0.0
+var _cooldown_left: float = 0.0
+var _balls_alive: int = 0
 
 
 func setup(level: Dictionary, tower: TowerBuilder, platform: Platform) -> void:
@@ -63,6 +70,7 @@ func setup(level: Dictionary, tower: TowerBuilder, platform: Platform) -> void:
 	_settle_threshold = float(GameConfig.rule("physics.settle_linear_velocity_threshold"))
 	_measure_volume = str(GameConfig.rule("objective_defaults.clear_measure")) == MEASURE_VOLUME
 	_broken_counts = bool(GameConfig.rule("objective_defaults.broken_counts_as_cleared"))
+	_refire_cooldown = float(GameConfig.rule("shots.refire_cooldown_sec"))
 
 	var shots: Variant = level.get("shots", GameConfig.rule("shots.default_per_level"))
 	shots_total = int(shots)
@@ -78,6 +86,7 @@ func setup(level: Dictionary, tower: TowerBuilder, platform: Platform) -> void:
 
 	EventBus.ball_fired.connect(_on_ball_fired)
 	EventBus.ball_expired.connect(_on_ball_expired)
+	EventBus.ball_hit.connect(_on_ball_hit)
 	_announce_start.call_deferred(str(level.get("id", "")))
 
 
@@ -108,12 +117,28 @@ func _on_ball_fired(_ball_id: String) -> void:
 	if state != State.AIMING:
 		return
 	shots_left -= 1
+	_balls_alive += 1
 	EventBus.shots_changed.emit(shots_left, shots_total)
 	_set_state(State.BALL_IN_FLIGHT)
 
 
-func _on_ball_expired(_ball_id: String) -> void:
+func _on_ball_hit(_ball_id: String) -> void:
 	if state == State.BALL_IN_FLIGHT:
+		_ball_landed()
+
+
+func _on_ball_expired(_ball_id: String) -> void:
+	_balls_alive = maxi(0, _balls_alive - 1)
+	if state == State.BALL_IN_FLIGHT:
+		_ball_landed()
+
+
+## The current ball touched something (or vanished): refire cooldown, or settle after the last shot.
+func _ball_landed() -> void:
+	if shots_left > 0:
+		_cooldown_left = _refire_cooldown
+		_set_state(State.COOLDOWN)
+	else:
 		_settle_elapsed = 0.0
 		_set_state(State.SETTLING)
 
@@ -121,15 +146,24 @@ func _on_ball_expired(_ball_id: String) -> void:
 func _physics_process(delta: float) -> void:
 	if _tower == null:
 		return
-	if state != State.WON and state != State.LOST:
-		_check_cores()
+	_check_cores()
 	_mark_settled_blocks()
 	_retire_lost_bodies()
 	_update_progress(false)
-	if state == State.SETTLING:
-		_settle_elapsed += delta
-		if _all_settled() or _settle_elapsed >= _settle_timeout:
-			_evaluate()
+	if state == State.WON or state == State.LOST:
+		return
+	if _objective_met():
+		_win()
+		return
+	match state:
+		State.COOLDOWN:
+			_cooldown_left -= delta
+			if _cooldown_left <= 0.0:
+				_set_state(State.AIMING)
+		State.SETTLING:
+			_settle_elapsed += delta
+			if (_all_settled() and _balls_alive == 0) or _settle_elapsed >= _settle_timeout:
+				_evaluate()
 
 
 func _check_cores() -> void:
@@ -166,6 +200,7 @@ func _all_settled() -> bool:
 	return true
 
 
+## Last shot settled: final verdicts, then WON (met at the very end) or LOST.
 func _evaluate() -> void:
 	_set_state(State.EVALUATE)
 	for b in _tower.blocks:
@@ -173,14 +208,16 @@ func _evaluate() -> void:
 			b.set_fallen(_is_out(b))
 	_update_progress(true)
 	if _objective_met():
-		stars = _stars_for(shots_left)
-		_set_state(State.WON)
-		EventBus.level_completed.emit(stars, shots_left)
-	elif shots_left > 0:
-		_set_state(State.AIMING)
+		_win()
 	else:
 		_set_state(State.LOST)
 		EventBus.level_failed.emit()
+
+
+func _win() -> void:
+	stars = _stars_for(shots_left)
+	_set_state(State.WON)
+	EventBus.level_completed.emit(stars, shots_left)
 
 
 func _objective_met() -> bool:

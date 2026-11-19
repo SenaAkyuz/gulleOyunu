@@ -47,7 +47,7 @@ Tek risk IAP/reklam eklentileri → `IAPService` / `AdsService` arayüzleriyle s
   1. **Ağırlık merkezinin yatay izdüşümü (x, z) platform üst yüzeyinin dışındaysa** (tolerans: `rules.physics.edge_margin`), **veya**
   2. `y < rules.physics.fall_kill_y` (platformun altına inmişse).
 - Kenarda asılı kalan ama ağırlık merkezi platform dışında olan cisim **düşmüş** sayılır; ağırlık merkezi platform içindeyse **düşmemiş** sayılır. Ara durum yok.
-- Kontrol sürekli yapılır: Altın Küre'nin ağırlık merkezi platform dışına çıktığı an "düştü" sayılır (jackpot ağır çekimi başlar; `drop_core` bölümlerinde kazanma). Bloklar için sonuç SETTLING sonunda kesinleşir; temizlik oranı (`clear_percent`, K-018) bu kesinleşmiş sonuçlardan hesaplanır.
+- Kontrol sürekli yapılır: Altın Küre'nin ağırlık merkezi platform dışına çıktığı an "düştü" sayılır (jackpot ağır çekimi başlar; `drop_core` bölümlerinde kazanma). Bloklar için temizlik oranı (`clear_percent`, K-018) her karede canlı hesaplanır ve hedefe ulaşıldığı an kazanılır; kesin hüküm (kaybetme için) son gülle durulunca verilir.
 - Ayrık platformlarda (Gökyüzü Adaları) "platform" = tüm platform üst yüzeylerinin birleşimi.
 - Oyuncuya görünür: kenarda asılı ama düşmüş sayılan cisim hafif gri parıltı alır.
 
@@ -246,14 +246,18 @@ hp <= 0  → kırıl (fracture) ; hp < %50 → çatlak dokusu (decal/overlay)
 - Kesici Çark ve Alev joint'i koparabilir → asılı **Altın Küre** düşer (zincire asılı küre görseldeki Yanardağ kulesi).
 
 ### 6.6 Kazanma kontrolü (`level_referee.gd`)
-Durum makinesi: `AIMING → BALL_IN_FLIGHT → SETTLING → EVALUATE → (AIMING | WON | LOST)`.
-SETTLING: tüm aktif gövdeler uyuyana ya da `settle_timeout_sec` dolana kadar. "Atlama" butonu (hızlı ileri) opsiyonel.
-EVALUATE: her hedef cisim için **kenar kuralı** (§2, `rules.physics.edge_rule`) uygulanır: ağırlık merkezi (x,z) platform dışında veya `fall_kill_y` altında → düştü.
+**Sürekli atış (Faz 1 oynanış geri bildirimi, 2026-11-19):**
+`AIMING → BALL_IN_FLIGHT → COOLDOWN → AIMING …` (gülle kaldıkça) · son gülleden sonra `BALL_IN_FLIGHT → SETTLING → EVALUATE → WON | LOST`.
+- Gülle ilk temasında (`EventBus.ball_hit`) ya da kaybolunca `rules.shots.refire_cooldown_sec` (0.5) beklenir, sonra yeni atış serbest; kulenin durulması beklenmez.
+- **Kazanma her karede kontrol edilir** ve hedefe ulaşıldığı an WON (temizlik oranı canlı: ağırlık merkezi platform dışında olan bloklar düşmüş sayılır).
+- **Kaybetme** yalnızca son gülle çarpıp her şey durulunca (gövdeler uyur / `settle_linear_velocity_threshold` altı, canlı gülle yok) ya da `settle_timeout_sec` dolunca, EVALUATE'te.
+- EVALUATE: her blok için **kenar kuralı** (§2, `rules.physics.edge_rule`) kesinleşir: ağırlık merkezi (x,z) platform dışında veya `fall_kill_y` altında → düştü.
 - `clear_percent` (varsayılan, K-018): düşen blokların hacmi / tüm blokların hacmi (`rules.objective_defaults.clear_measure = volume`; `count` = adet)
   ≥ `clear_percent_target` (bölümde `objective.target` ile ezilebilir) → WON. Küre ve joint'ler orana katılmaz;
   kırılan bloklar temizlenmiş sayılır (`rules.objective_defaults.broken_counts_as_cleared = true`).
 - Gülle bitti ve oran hedefin altında → LOST. Otomatik final temizliği yok.
-- Küre düşerse (`clear_percent`): `EventBus.core_dropped` → jackpot (ağır çekim, konfeti, altın); yıldızı etkilemez. `drop_core`: küre düşünce WON.
+- Küre düşerse (`clear_percent`): `EventBus.core_dropped` → jackpot (altın; konfeti Faz 8; ağır çekim `rules.feel.slowmo_enabled` ile kapalı); yıldızı etkilemez, kazandıktan sonra düşse de sayılır. `drop_core`: küre düşünce WON.
+- Yıldız: kazanma anında kalan gülleye göre (= kullanılan gülle sayısı, `rules.stars`).
 
 ---
 

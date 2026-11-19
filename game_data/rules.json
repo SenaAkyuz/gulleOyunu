@@ -29,7 +29,9 @@
     "default_per_level": 3,
     "extra_shot_price_gold": 50,
     "extra_shot_via_rewarded_ad": true,
-    "max_extra_shots_per_attempt": 2
+    "max_extra_shots_per_attempt": 2,
+    "refire_cooldown_sec": 0.5,
+    "_doc_refire": "Surekli atis: gulle ilk carptiktan (veya kaybolduktan) bu kadar sn sonra yeni atisa izin verilir; kulenin durulmasi beklenmez. Kazanma (hedef) her karede kontrol edilir; kaybetme yalnizca son gulle carpip her sey durulunca (veya physics.settle_timeout_sec) degerlendirilir."
   },
   "stars": {
     "mode": "shots_left",
@@ -93,6 +95,8 @@
     "shake_max_offset": 0.25,
     "shake_max_rotation_deg": 1.5,
     "shake_decay": 1.8,
+    "slowmo_enabled": false,
+    "_doc_slowmo": "false: jackpot/kure dususunde agir cekim yok (Faz 1 oynanis geri bildirimi). Faz 8'de yalnizca kazanma aninda kisa vurgu olarak denenecek (docs/07).",
     "final_slowmo_scale": 0.3,
     "final_slowmo_duration_sec": 0.6,
     "max_concurrent_bursts": 4,
