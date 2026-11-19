@@ -1603,9 +1603,9 @@ Faz 0–1: 1 hafta · Faz 2–4: 2 hafta · Faz 5–6: 1.5 hafta · Faz 7–8: 2
     "lava_rock":     { "name_tr": "Lav Taşı",      "density": 2.8, "hp": 150, "impact_threshold": 7.0, "friction": 0.8, "bounce": 0.03, "flags": ["thermal_shock"], "coin_on_break": 0, "fx": "embers", "sfx": "stone_heavy", "texture": "lava_rock" },
     "wood":          { "name_tr": "Ahşap",         "density": 0.8, "hp": 60,  "impact_threshold": 3.0, "friction": 0.7, "bounce": 0.1, "flags": ["flammable", "cuttable"], "coin_on_break": 0, "fx": "splinters", "sfx": "wood", "texture": "wood" },
     "crate":         { "name_tr": "Sandık",        "density": 0.5, "hp": 35,  "impact_threshold": 2.0, "friction": 0.7, "bounce": 0.1, "flags": ["flammable", "cuttable"], "coin_on_break": 0, "fx": "splinters", "sfx": "crate", "texture": "crate" },
-    "crystal_amber": { "name_tr": "Amber Kristal", "density": 1.6, "hp": 25,  "impact_threshold": 2.5, "friction": 0.4, "bounce": 0.15, "flags": ["conductive", "shatter", "freezable"], "coin_on_break": 1, "fx": "glass_amber", "sfx": "glass", "texture": "crystal_amber" },
-    "crystal_cyan":  { "name_tr": "Turkuaz Kristal","density": 1.6, "hp": 25, "impact_threshold": 2.5, "friction": 0.4, "bounce": 0.15, "flags": ["conductive", "shatter", "freezable"], "coin_on_break": 1, "fx": "glass_cyan", "sfx": "glass", "texture": "crystal_cyan" },
-    "crystal_purple":{ "name_tr": "Mor Kristal",   "density": 1.6, "hp": 30,  "impact_threshold": 2.5, "friction": 0.4, "bounce": 0.15, "flags": ["conductive", "shatter", "freezable"], "coin_on_break": 2, "fx": "glass_purple", "sfx": "glass", "texture": "crystal_purple" },
+    "crystal_amber": { "name_tr": "Amber Kristal", "density": 1.6, "hp": 10,  "impact_threshold": 2.5, "friction": 0.4, "bounce": 0.15, "flags": ["conductive", "shatter", "freezable"], "coin_on_break": 1, "fx": "glass_amber", "sfx": "glass", "texture": "crystal_amber" },
+    "crystal_cyan":  { "name_tr": "Turkuaz Kristal","density": 1.6, "hp": 10, "impact_threshold": 2.5, "friction": 0.4, "bounce": 0.15, "flags": ["conductive", "shatter", "freezable"], "coin_on_break": 1, "fx": "glass_cyan", "sfx": "glass", "texture": "crystal_cyan" },
+    "crystal_purple":{ "name_tr": "Mor Kristal",   "density": 1.6, "hp": 10,  "impact_threshold": 2.5, "friction": 0.4, "bounce": 0.15, "flags": ["conductive", "shatter", "freezable"], "coin_on_break": 2, "fx": "glass_purple", "sfx": "glass", "texture": "crystal_purple" },
     "ice":           { "name_tr": "Buz",           "density": 0.9, "hp": 45,  "impact_threshold": 3.0, "friction": 0.1, "bounce": 0.1, "flags": ["shatter"], "coin_on_break": 0, "fx": "ice_shards", "sfx": "ice", "texture": "ice" },
     "metal":         { "name_tr": "Metal",         "density": 4.0, "hp": 300, "impact_threshold": 10.0, "friction": 0.5, "bounce": 0.2, "flags": ["conductive"], "coin_on_break": 0, "fx": "sparks", "sfx": "metal", "texture": "metal" },
     "rope":          { "name_tr": "Halat",         "density": 0.3, "hp": 20,  "impact_threshold": 1.0, "friction": 0.6, "bounce": 0.0, "flags": ["joint", "flammable", "cuttable"], "coin_on_break": 0, "fx": "fibers", "sfx": "rope", "texture": "rope", "break_force": 400 },
@@ -1886,25 +1886,28 @@ Faz 0–1: 1 hafta · Faz 2–4: 2 hafta · Faz 5–6: 1.5 hafta · Faz 7–8: 2
   "shots": 3,
   "objective": { "type": "clear_percent" },
   "aim_preview_dots": 20,
-  "platform": { "width": 4, "depth": 3, "style": "limestone_plinth" },
+  "platform": { "width": 3, "depth": 2, "style": "limestone_plinth" },
+  "camera_override": { "distance": 14, "look_at_height": 3.0 },
   "structures": [],
   "blocks": [
-    { "id": "b01", "shape": "cube",    "mat": "stone",         "x": -1.0, "y": 0.0, "z": 0.0, "rot": [0, 0, 0] },
-    { "id": "b02", "shape": "cube",    "mat": "crystal_amber", "x":  0.0, "y": 0.0, "z": 0.0, "rot": [0, 0, 0] },
-    { "id": "b03", "shape": "cube",    "mat": "stone",         "x":  1.0, "y": 0.0, "z": 0.0, "rot": [0, 0, 0] },
-    { "id": "b04", "shape": "cube",    "mat": "crystal_cyan",  "x": -1.0, "y": 1.0, "z": 0.0, "rot": [0, 0, 0] },
-    { "id": "b05", "shape": "cube",    "mat": "crystal_cyan",  "x":  1.0, "y": 1.0, "z": 0.0, "rot": [0, 0, 0] },
-    { "id": "b06", "shape": "plank_s", "mat": "wood",          "x":  0.0, "y": 2.0, "z": 0.0, "rot": [0, 0, 0] },
-    { "id": "b07", "shape": "cube",    "mat": "crystal_amber", "x":  0.0, "y": 2.4, "z": 0.0, "rot": [0, 0, 0] }
+    { "id": "b01", "shape": "pillar_2", "mat": "stone", "x": -0.4, "y": 0, "z": 0.0, "rot": [0, 0, 0] },
+    { "id": "b02", "shape": "pillar_2", "mat": "crystal_amber", "x": 0.7, "y": 0, "z": 0.3, "rot": [0, 0, 0] },
+    { "id": "b03", "shape": "plank_s", "mat": "wood", "x": 0, "y": 2, "z": 0.0, "rot": [0, 0, 0] },
+    { "id": "b04", "shape": "pillar_2", "mat": "stone", "x": -0.75, "y": 2.4, "z": 0.0, "rot": [0, 0, 0] },
+    { "id": "b05", "shape": "pillar_2", "mat": "stone", "x": 0.75, "y": 2.4, "z": 0.0, "rot": [0, 0, 0] },
+    { "id": "b06", "shape": "plank_s", "mat": "wood", "x": 0, "y": 4.4, "z": 0.0, "rot": [0, 0, 0] },
+    { "id": "b07", "shape": "cube", "mat": "crystal_cyan", "x": 0, "y": 4.8, "z": 0.0, "rot": [0, 0, 0] }
   ],
   "joints": [],
-  "cores": [ { "x": 0.0, "y": 1.0, "z": 0.0, "attach": "rest" } ],
+  "cores": [
+    { "x": 0, "y": 2.4, "z": 0, "attach": "rest" }
+  ],
   "keystones": ["b02"],
   "tutorial": { "type": "hand_tap", "target_block": "b02", "text_tr": "Dokun ve ateşle!" },
   "intro_ball": null,
   "free_balls": {},
   "baked": true,
-  "_doc": "FTUE bolumu (K-018: clear_percent). Dar platform (4x3) ki bloklar dusebilsin. Altin Kure kulenin icine gomulu: alttaki amber kristalin (b02) ustunde, iki turkuaz kristalin (b04, b05) arasinda, kalasin (b06) altinda. Keystone b02: vurulunca ust yapi cokup arkaya/yanlara devrilir, kure de buyuk ihtimalle duser (ilk jackpot). Tek sira (z=0); derinlik W1 B3+ ile gelir. Tek atisla %80 temizlenip temizlenmedigi Faz 1 Adim 9'da oynanarak dogrulanacak (taslak)."
+  "_doc": "FTUE bolumu (K-018 clear_percent), sablon twin_pillars 'Kristal Ayakli Masa'. Masa: sol tas ayak (b01, x -0.4) + sag amber kristal ayak (b02 KEYSTONE, x +0.7, z +0.3 one cekik -> kameradan ilk gorunen blok). Ustte ahsap kalas, iki tas sutun arasinda gomulu Altin Kure, ahsap cati ve turkuaz kup. Keystone vurulunca (kristal tek vurusta kirilir) masa saga devrilir, yuk sag kenardan dokulur, kure de duser (ilk jackpot). Sol ayak konumu hassas: x -0.3 ve daha icerisi -> masa devrilmeden coker; x -0.5 ve disari -> kalas ayagin ustunde kalir; -0.35..-0.4 arasi en saglam. Sim 2026-11-19 (top kutlesi 2, kristal hp 10, nisan sapmasi +-0.25): keystone atisi 40/40 kazanma, %86 temizlik, jackpot 40/40. camera_override: kule kucuk kaliyordu (varsayilan distance 18 / bakis 4); 14 / 3.0 ile top hala kadrajda (13'te topun tabani kesiliyor, 12'de top cikiyor)."
 }
 ```
 
