@@ -111,6 +111,8 @@ Her şablon parametreli bir fonksiyondur (`src/gameplay/level/templates/*.gd`), 
 | `ring_fort` | **Derinlikli:** kare planlı 4 duvar, iç avluda yükseltilmiş küre | Ön duvarın orta-altı veya lob atış | 40–90 |
 | `l_tower` | **Derinlikli:** L planlı asimetrik kule, yük tek kola binmiş | Kolların birleştiği köşe | 30–80 |
 
+**Yazılan şablonlar (Faz 3):** `stack_pyramid` (keystone: ön sıranın alt-orta kristal küpü; bütçeye sığan en büyük piramit, tepede küre), `twin_pillars` (keystone: ön çerçevenin alt katındaki bir kristal sütun; kat sayısı `height`'tan, yük yığını en fazla 2 küp). Her şablon testlerde zorluk 1/15/25 × 3 seed ile `LayoutCheck` (oyun alanı, kenar payı, keystone, kristal), `SupportCheck`, `KeystoneCheck` (kameradan görünürlük + toptan ulaşılabilirlik, kural 3) ve fizik kayma kontrolünden geçer (`tests/unit/test_templates_basic.gd`).
+
 Her şablon ayrıca `depth_layers` (1–3) parametresi alır: kulenin z yönünde kaç sıra olduğu (`difficulty.json → curves.depth_layers`).
 Düşük zorlukta 1 sıra (okunur, neredeyse düz), yüksek zorlukta 2–3 sıra (arkadaki destekler bulmacayı derinleştirir).
 
@@ -128,7 +130,7 @@ Düşük zorlukta 1 sıra (okunur, neredeyse düz), yüksek zorlukta 2–3 sıra
    (düz–düz, köşe ve kenar–kenar temasları). Altın Küre yalnızca yüktür. Testler: `tests/unit/test_support_check.gd`.
 2. **Keystone garantisi:** Şablon en az 1 keystone işaretler (keystone = en büyük çöküşü başlatan blok); simülasyon bu bloğa vurulunca hedefin
    (varsayılan: blok hacminin `clear_percent_target` oranı platformdan düşer) gerçekleştiğini doğrular.
-3. **Görüş hattı (S-007):** v1'de kamera sabittir; bu yüzden **her keystone varsayılan kamera açısından (`rules.camera`) görünür olmalı** — en az bir yüzü önden/üstten açıkça görünür, başka bloğun arkasında saklı değil. Ayrıca toptan **doğrudan ya da lob atışla** ulaşılabilir olmalı. Arkada saklı veya önü tamamen kapalı keystone yasak. (Kamera döndürme v2'de gelirse bu kural yeniden değerlendirilir.)
+3. **Görüş hattı (S-007):** *(Otomatik kontrol: `src/gameplay/level/keystone_check.gd`; kameraya bakan yüzlerde `rules.level_checks.face_samples`² örnek nokta, görünür oran ≥ `keystone_min_visible_ratio`; ulaşılabilirlik: gülle yarıçapıyla `aim.arc` atışı veya `drag_pitch_max_deg`'e kadar sürükle-bırak lobu, ilk çarptığı keystone olmalı.)* v1'de kamera sabittir; bu yüzden **her keystone varsayılan kamera açısından (`rules.camera`) görünür olmalı** — en az bir yüzü önden/üstten açıkça görünür, başka bloğun arkasında saklı değil. Ayrıca toptan **doğrudan ya da lob atışla** ulaşılabilir olmalı. Arkada saklı veya önü tamamen kapalı keystone yasak. (Kamera döndürme v2'de gelirse bu kural yeniden değerlendirilir.)
 4. **Simetri ayarı:** `symmetry` parametresi 0–1; düşük zorlukta simetrik (okunur), yüksekte asimetrik (şaşırtıcı).
 5. **Kenar payı:** Bloklar platform kenarından en az 0.3 birim (`rules.physics.spawn_edge_inset`) içeride doğar; aksi halde kenar kuralı (`02` §2) bölüm başında yanlış "düştü" sayabilir.
 6. **Altın Küre yerleşimi (K-018):**

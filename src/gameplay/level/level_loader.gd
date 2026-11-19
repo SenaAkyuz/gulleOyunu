@@ -14,6 +14,8 @@ extends Node3D
 static var stress_mode: bool = false
 ## N / B keys: level chosen in this session (until menus arrive in Faz 4). Survives a reload.
 static var dev_level_id: String = ""
+## Dev / editor "Test Et": a level dictionary to play instead of a file (cleared by N/B).
+static var dev_level_data: Dictionary = {}
 
 var level_data: Dictionary = {}
 ## Peak active bodies since the level started (S-008 budget check).
@@ -36,7 +38,13 @@ var _hp_visible: bool = false
 func _ready() -> void:
 	if level_id.is_empty():
 		level_id = dev_level_id if not dev_level_id.is_empty() else str(GameConfig.rule("dev.start_level_id"))
-	level_data = StressLevel.build() if stress_mode else LevelExpander.expand(GameConfig.level(level_id))
+	if stress_mode:
+		level_data = StressLevel.build()
+	elif not dev_level_data.is_empty():
+		level_data = LevelExpander.expand(dev_level_data)
+		level_id = str(level_data.get("id", level_id))
+	else:
+		level_data = LevelExpander.expand(GameConfig.level(level_id))
 	if level_data.is_empty():
 		push_error("Level: bölüm yüklenemedi: " + level_id)
 		return
@@ -115,6 +123,7 @@ func _switch_level(step: int) -> void:
 	if ids.is_empty():
 		return
 	dev_level_id = ids[posmod(ids.find(level_id) + step, ids.size())]
+	dev_level_data = {}
 	stress_mode = false
 	get_tree().reload_current_scene()
 

@@ -120,6 +120,16 @@
     "bounce": 0.05,
     "_doc": "Platform (kaide) fizik degerleri. Boyut (width x depth) bolum JSON'undan gelir; ust yuzey y=0."
   },
+  "generator": {
+    "block_gap": 0.02,
+    "platform_margin": 0.5,
+    "_doc": "Kule sablonlari / generator (docs/03 4, Faz 3). block_gap: yan yana bloklar arasindaki bosluk (birim; dogarken birbirine gomulup titremesin). platform_margin: sablonla uretilen bolumde platform, kulenin ayak izinden her yone bu kadar genis (docs/03 2 dar platform: 0.5-1)."
+  },
+  "level_checks": {
+    "keystone_min_visible_ratio": 0.3,
+    "face_samples": 3,
+    "_doc": "Bolum kontrolleri (docs/03 4 kural 3, S-007; src/gameplay/level/keystone_check.gd). Keystone'un kameraya bakan yuzlerinde face_samples x face_samples nokta ornegi alinir; kameradan onu baska blok kapatmadan gorulen noktalarin orani en az keystone_min_visible_ratio olmali. Ulasilabilirlik: alcak atis (aim.arc) veya drag_release acilariyla (aim.drag_pitch_max_deg) gulle once keystone'a carpmali."
+  },
   "dev": {
     "start_level_id": "w01_l01",
     "play_area_guide": { "min": [-5, 0, -3], "max": [5, 12, 3] },

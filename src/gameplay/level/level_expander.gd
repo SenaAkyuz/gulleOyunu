@@ -8,13 +8,15 @@ extends RefCounted
 ## - Template block ids get the structure prefix "s<n>_" (s1_b01, ...); roles become materials
 ##   (MaterialPicker, world palette).
 ## - A template that is not written yet is skipped with a warning (returned in "_expand_warnings").
+## - The result is marked "_expanded": expanding it again returns it unchanged.
 
 const ID_PREFIX := "s%d_"
+const EXPANDED := "_expanded"
 
 
 static func expand(level: Dictionary) -> Dictionary:
 	var structures: Array = level.get("structures", [])
-	if bool(level.get("baked", false)) or structures.is_empty():
+	if bool(level.get("baked", false)) or bool(level.get(EXPANDED, false)) or structures.is_empty():
 		return level
 	var out := level.duplicate(true)
 	var blocks: Array = out.get("blocks", [])
@@ -54,6 +56,7 @@ static func expand(level: Dictionary) -> Dictionary:
 	out["keystones"] = keystones
 	out["cores"] = cores
 	out["_expand_warnings"] = warnings
+	out[EXPANDED] = true
 	for w in warnings:
 		push_warning("LevelExpander %s: %s" % [level.get("id", "?"), w])
 	return out
