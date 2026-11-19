@@ -58,12 +58,13 @@ Bitince bana masaüstünde nasıl çalıştıracağımı ve neyi test etmem gere
 **Bitti kriteri:** F5 ile oyun açılıyor; atış hissi iyi; kule ilk atışa kadar kıpırdamıyor; blokların %80'i düşünce "KAZANDIN ⭐⭐⭐" yazıyor, küre de düşerse jackpot kutlaması;
 Sena 10 kez oynayıp "eğlenceli" diyor. Değilse **Faz 1'de kal** ve hissi düzelt (top hızı, kütle, kamera).
 
-## FAZ 2 — Veri omurgası ve kayıt (2–3 gün)
+## FAZ 2 — Veri omurgası ve kayıt (2–3 gün) ✅ tamam (2026-11-19)
 ```
 Faz 2: GameConfig'i tam şema doğrulamalı yap, Progress/Economy/Inventory/SaveManager autoload'larını yaz (docs/02 §4.1, §8),
 GUT kur ve bu servisler için birim testleri yaz. tools/validate_game_data.py ile uyumlu kal.
 ```
 **Bitti:** Testler yeşil; oyunu kapat-aç → ilerleme ve altın korunuyor.
+**Sonuç (2026-11-19):** 8 adım: GUT 9.7.1 · ConfigValidator · SaveManager · Economy · Progress · Inventory · entegrasyon (HUD altın/en iyi yıldız/ödül, kalıcılık testi) · dokümanlar. GUT 83/83 yeşil; iki ayrı süreçle kazan → kapat → aç denemesinde altın + yıldız + jackpot korundu.
 
 ## FAZ 3 — Kule şablonları, generator, bölüm editörü (5–7 gün)
 ```

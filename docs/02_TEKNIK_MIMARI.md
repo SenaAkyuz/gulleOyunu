@@ -140,12 +140,12 @@ flowchart TB
 ### 4.1 Autoload'lar (singleton)
 | Autoload | Sorumluluk | Kural |
 |---|---|---|
-| `EventBus` | Global sinyaller (`src/autoload/event_bus.gd`): atış `ball_fired(ball_id)`, `ball_impact(pos, impulse, material)`, `ball_hit(ball_id)` (ilk temas → yeniden atış beklemesi), `ball_expired(ball_id)` · bloklar `block_damaged(block, hp_left)`, `block_broken(block, material)`, `core_dropped(core)` · akış `level_started(level_id)`, `shots_changed(left, total)`, `clear_progress_changed(ratio, target)`, `referee_state_changed(state)`, `level_completed(stars, shots_left)`, `level_failed` · meta `currency_changed(currency, amount)`, `ball_unlocked(ball_id)` | Sistemler birbirini doğrudan çağırmaz |
+| `EventBus` | Global sinyaller (`src/autoload/event_bus.gd`): atış `ball_fired(ball_id)`, `ball_impact(pos, impulse, material)`, `ball_hit(ball_id)` (ilk temas → yeniden atış beklemesi), `ball_expired(ball_id)` · bloklar `block_damaged(block, hp_left)`, `block_broken(block, material)`, `core_dropped(core)` · akış `level_started(level_id)`, `shots_changed(left, total)`, `clear_progress_changed(ratio, target)`, `referee_state_changed(state)`, `level_completed(stars, shots_left)`, `level_failed` · ödül `level_rewarded(level_id, breakdown)` (yıldız/jackpot/kristal/bonus/toplam) · meta `currency_changed(currency, amount)`, `ball_unlocked(ball_id)`, `world_unlocked(world_id)`, `inventory_changed(ball_id, count)` | Sistemler birbirini doğrudan çağırmaz |
 | `GameConfig` | Tüm JSON'ları açılışta yükler, doğrular, tipli erişim verir: `GameConfig.ball("fire").price_gold`. Doğrulama: zorunlu `rules` anahtarları + dosyalar arası referanslar (`src/core/config_validator.gd`: bölüm blok şekli/malzemesi, keystone/tutorial hedefi, `camera_override` anahtarları, dünya paleti, top `damage_mult`, ekonomi sayıları). Hata → oyun başlamaz, ana ekranda kırmızı Türkçe liste; eksik özel top davranışı yalnızca uyarı. Tam şema `tools/validate_game_data.py`'de, ikisi tutarlı tutulur | Yalnızca okunur. Remote config override katmanı (Faz 10) |
 | `SaveManager` | `user://save.json`, **sürümlü** (`save_version`), migrasyon fonksiyonları, atomik yazma (önce `.tmp`) | Bulut kaydı ileride |
-| `Progress` | Bölüm yıldızları, en iyi skor, açık dünyalar, toplam yıldız | Açılma koşullarını `GameConfig`'ten değerlendirir |
+| `Progress` | Bölüm yıldızları, en iyi skor, açık dünyalar, toplam yıldız; kazanınca ödülü öder (docs/05 formülü: ilk kazanma tam, iyileştirme farkı, tekrar `replay_ratio`; jackpot aynı mantık, kazanmadan sonra düşen küre de sayılır; kristal altını bölüm başına `crystal_coin_cap_per_level`; dünya bonusları bir kez) ve `level_rewarded` yayar | Açılma koşullarını `GameConfig`'ten değerlendirir (top: `level_cleared`, dünya: toplam yıldız, bölüm: sırayla) |
 | `Economy` | Altın bakiyesi, `earn(amount, reason)`, `spend(amount, reason) -> bool` | Her işlem `reason` ile loglanır (analytics + hata ayıklama) |
-| `Inventory` | Top adetleri, `consume(ball_id)`, `grant(ball_id, n)` | Ağır top sınırsız |
+| `Inventory` | Top adetleri, `consume(ball_id)` (her `ball_fired`), `grant(ball_id, n)`, açılınca `gift_on_unlock` hediye | Ağır top sınırsız (`gift_on_unlock = -1`); kilitli top 0 |
 | `AudioManager` | SFX havuzu, pitch varyasyonu, müzik geçişleri, ses grupları | |
 | `Haptics` | `Input.vibrate_handheld(ms, amplitude)` sarmalayıcı, ayardan kapatılabilir | |
 | `SceneRouter` | Sahne geçişleri + geçiş animasyonu + yükleme | |
@@ -277,7 +277,7 @@ hp <= 0  → kırıl (fracture) ; hp < %50 → çatlak dokusu (decal/overlay)
   "save_version": 1,
   "gold": 0,
   "inventory": { "heavy": -1, "fire": 3 },
-  "levels": { "w01_l01": { "stars": 3, "best_shots_left": 2, "cleared": true } },
+  "levels": { "w01_l01": { "stars": 3, "best_shots_left": 2, "cleared": true, "jackpot": true } },
   "unlocked_balls": ["heavy", "fire"],
   "settings": { "sfx": 1.0, "music": 0.7, "haptics": true, "lang": "tr" },
   "flags": { "tutorial_done": true, "seen_ball_intro_fire": true }
@@ -289,10 +289,11 @@ Kural: Alan eklenince `save_version` artar ve `SaveManager._migrate_vN_to_vN1()`
   Bozuk dosya → yedekten kurtar (yoksa sıfırla; bozuk dosya `.corrupt` olarak saklanır). `save_version` olmayan kayıt = v0 → `_migrate_v0_to_v1`.
   **Daha yeni sürümün kaydı asla ezilmez** (salt okunur). Eksik alanlar varsayılanla doldurulur (`rules.save.default_settings`, `feel.haptics_default_on`,
   `economy.currencies.gold.start_amount`). Economy/Progress/Inventory `SaveManager.data`'daki kendi bölümlerini değiştirip `request_save()` çağırır (kare başına en fazla 1 yazma).
-  Dev Panel: kayıt durumu + "Kaydı sıfırla". Testler: `tests/unit/test_save_manager.gd`.
+  Dev Panel: kayıt durumu + "Kaydı sıfırla". HUD: sağ üstte altın, bölüm adının yanında en iyi yıldız, kazanınca kazanılan altın.
+  Testler: `tests/unit/test_save_manager.gd`, uçtan uca kazan → diske yaz → yeniden yükle: `tests/integration/test_persistence.gd`.
 
 ## 9. Test stratejisi
-- **GUT birim testleri** (GUT 9.7.1, `addons/gut`, `tests/unit/test_*.gd`, `.gutconfig.json`; komut CLAUDE.md §7): Economy (harca/kazan/yetersiz bakiye), Inventory, Progress açılma koşulları, yıldız hesabı, save migrasyonu, GameConfig doğrulama. Faz 1 çekirdeği de testli: balistik, hasar formülü, kenar kuralı.
+- **GUT birim testleri** (GUT 9.7.1, `addons/gut`, `tests/unit/test_*.gd` + `tests/integration/`, `.gutconfig.json`; komut CLAUDE.md §7): Economy (harca/kazan/yetersiz bakiye), Inventory, Progress açılma koşulları ve ödüller, yıldız hesabı, save migrasyonu, GameConfig doğrulama, HUD, kalıcılık (kapat-aç). Faz 1 çekirdeği de testli: balistik, hasar formülü, kenar kuralı. Testler kayıt için `tests/helpers/save_sandbox.gd` kullanır (oyuncunun gerçek kaydına dokunmaz).
 - **Headless bölüm simülasyonu** (`src/tools/sim`): her bölüm için örnek atış noktaları dener → "çözülebilir mi, kaç atışta" raporu (bkz. `03` §8).
 - **Python doğrulayıcı:** JSON şema, referans bütünlüğü (level'daki malzeme `materials.json`'da var mı, top id'leri geçerli mi).
 - **Cihaz testi:** Her faz sonunda en az 1 orta segment Android + 1 iPhone'da 60 FPS kontrolü.
