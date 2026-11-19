@@ -1,3 +1,4 @@
+class_name LevelLoader
 extends Node3D
 ## Builds a level from its JSON (docs/02 §4.2): camera, platform, tower, referee, cannon, HUD.
 ## Aiming is only enabled while the referee is in AIMING (EventBus.referee_state_changed).

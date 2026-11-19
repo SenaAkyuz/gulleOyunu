@@ -36,6 +36,7 @@ func _build(p: Dictionary, rng: RandomNumberGenerator) -> void:
 		trim_side = -1 if rng.randf() < 0.5 else 1
 
 	var top_y := 0.0
+	var front_z := (depth - 1) / 2.0 * step_z  # core on the front layer, never in a gap
 	for row in base:
 		var count := base - row
 		var y := row * size.y
@@ -53,4 +54,4 @@ func _build(p: Dictionary, rng: RandomNumberGenerator) -> void:
 				add_block(SHAPE, role, Vector3(x, y, z), Vector3.ZERO, key)
 		top_y = y + size.y
 	if p_bool(p, "core", true):
-		add_core(Vector3(0, top_y, 0))
+		add_core(Vector3(0, top_y, front_z))
