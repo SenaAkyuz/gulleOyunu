@@ -22,6 +22,7 @@ GameConfig="*res://src/autoload/game_config.gd"
 SaveManager="*res://src/autoload/save_manager.gd"
 Economy="*res://src/autoload/economy.gd"
 Progress="*res://src/autoload/progress.gd"
+Inventory="*res://src/autoload/inventory.gd"
 DevTools="*res://src/autoload/dev_tools.gd"
 
 [display]

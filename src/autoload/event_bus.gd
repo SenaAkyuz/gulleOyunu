@@ -32,5 +32,7 @@ signal level_rewarded(level_id: String, breakdown: Dictionary)
 signal currency_changed(currency: String, amount: int)
 signal ball_unlocked(ball_id: String)
 signal world_unlocked(world_id: String)
+## Ball pieces owned changed (Inventory). count = -1 means unlimited.
+signal inventory_changed(ball_id: String, count: int)
 
 @warning_ignore_restore("unused_signal")
