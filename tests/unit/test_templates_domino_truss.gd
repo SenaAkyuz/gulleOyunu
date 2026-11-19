@@ -73,3 +73,16 @@ func test_truss_keystone_is_centre_post() -> void:
 			assert_eq(b["shape"], "pillar_2")
 			assert_almost_eq(float(b["x"]), 0.0, 0.001)
 			assert_true(str(b["mat"]).begins_with("crystal"))
+
+
+func test_domino_footprint_wider_than_deep() -> void:
+	# Sena: rows side by side (docs/03 §4 "yan yana"); a single row seen head-on read as one pillar.
+	for d: float in RANGES["domino_row"]:
+		for s: int in SEEDS:
+			var lv := Kit.level("domino_row", d, s)
+			var box := LevelGenerator._bounds(lv)
+			assert_gte(box.size.x, box.size.z, "domino d=%d seed=%d: genişlik %.2f < derinlik %.2f" % [d, s, box.size.x, box.size.z])
+			var rows := {}
+			for b: Dictionary in lv["blocks"]:
+				rows[snappedf(float(b["x"]), 0.01)] = true
+			assert_gte(rows.size(), 3, "domino d=%d: en az 3 sıra" % d)

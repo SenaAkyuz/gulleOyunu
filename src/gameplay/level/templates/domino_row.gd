@@ -4,7 +4,8 @@ extends TowerTemplate
 ## Keystone: the front domino of the middle row (wood: it must topple, not shatter).
 ## The back domino of every row carries a crystal; the Golden Core waits behind the middle row's
 ## last domino, near the back edge, so a complete chain pushes it off (jackpot).
-## Params: block_count (-> rows x dominoes), core (default true). Dominoes keep their light
+## Params: block_count (-> rows x dominoes; at least MIN_ROWS rows of MIN_PER_ROW, so a small
+## budget is exceeded rather than giving a single row), core (default true). Dominoes keep their light
 ## material (keep_role) so they topple; the chain itself protects the core (no cradle).
 ## Dominoes are always pillar_3: in physics pillar_2 (too squat) never started a chain, pillar_3
 ## toppled 5/5 at spacing 0.4–0.5 x height (measured in Faz 3 Step 5).
@@ -14,8 +15,14 @@ const CROWN := "cube"
 ## Centre-to-centre spacing as a fraction of the domino height (middle of the measured 0.4–0.5).
 const SPACING_RATIO := 0.45
 ## Rows stand this far apart in x (fraction of the crown width, so crowns never touch).
-const ROW_SPACING_RATIO := 1.5
+const ROW_SPACING_RATIO := 1.7
 const MIN_PER_ROW := 3
+## Sena (Faz 3 Step 8 prep): always several rows side by side so the camera reads "a row of
+## dominoes" (a single row seen head-on looked like one pillar). Rows run along z because the ball
+## only ever pushes away from the camera: measured with a real ball, a row along x never chained
+## (12/60 down, only the hit one) while rows along z did (59/60). Rows are kept short enough that
+## the footprint is at least as wide (x) as it is deep (z).
+const MIN_ROWS := 3
 const MAX_ROWS := 4
 
 
@@ -35,11 +42,14 @@ func _build(p: Dictionary, _rng: RandomNumberGenerator) -> void:
 	var depth_room := float(guide["max"][2]) - float(guide["min"][2]) - core_d - dom.z - gap
 	var max_per_row := maxi(MIN_PER_ROW, floori(depth_room / spacing) + 1)
 	var budget := p_int(p, "block_count", 6)
-	var rows := clampi(budget / (max_per_row + 1), 1, MAX_ROWS)
-	var per_row := clampi(budget / rows - 1, MIN_PER_ROW, max_per_row)
+	var rows := clampi(budget / (max_per_row + 1), MIN_ROWS, MAX_ROWS)
+	var row_dx := crown.x * ROW_SPACING_RATIO
+	# Width >= depth: depth = row length + domino + gap + core behind it.
+	var width := (rows - 1) * row_dx + crown.x
+	var fit := floori((width - dom.z - gap - core_d) / spacing) + 1
+	var per_row := clampi(budget / rows - 1, MIN_PER_ROW, maxi(MIN_PER_ROW, mini(max_per_row, fit)))
 	var length := (per_row - 1) * spacing
 	var z_front := (length + core_d + gap) / 2.0  # centre the row + core on z = 0
-	var row_dx := crown.x * ROW_SPACING_RATIO
 	var mid := rows / 2
 
 	for r in rows:
