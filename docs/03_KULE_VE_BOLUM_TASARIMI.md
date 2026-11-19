@@ -198,6 +198,10 @@ Generator blok malzemesini rastgele değil **dünya paleti + zorluk** ile seçer
 - Zorluk arttıkça `heavy_ratio`'ya göre taş/metal payı artar, kristal payı azalır (ama asla 0 olmaz — her kulede kırılacak parlak şey olmalı).
 - **Rol kuralları:** Sütunlar/temeller ağır malzeme; üst katlar hafif; keystone'lar **görsel olarak ayırt edilebilir** (ör. ahşap kiriş taş kulede).
 - Top tanıtım bölümünde paletin ağırlığı o topun güçlü olduğu malzemeye kayar (Alev → ahşap %60).
+- **Malzeme rolleri (K-022):** **kristal** tek doğrudan vuruşta kırılır (parlak, tatmin edici hedef; keystone için ideal);
+  **ahşap/sandık** orta dayanıklı (ağır topla birkaç vuruş, özel toplarla — alev, kesici — hızlı yok olur);
+  **taş/metal** neredeyse kırılmaz, **devrilerek** temizlenir (yapının iskeleti; tasarım onları düşürmeye dayanmalı, kırmaya değil).
+  Kesin hp/eşik sayıları Faz 6–9'da `/ordino-balance` ile ayarlanır.
 
 ## 7. Top tanıtım bölümü tarifi
 Örnek — Alev Topu (W1 B8):
@@ -225,6 +229,8 @@ flowchart LR
 - **Çözüm** (K-018) = bölüm hedefine ulaşmak. Varsayılan `clear_percent`: blok hacminin `clear_percent_target` (0.8) oranı platformdan düşer; `drop_core`: küre düşer.
 - `one_shot_solve_rate`: rastgele örneklenen 200 atış noktasından kaçı tek atışta çözüyor.
   - intro: %30–60 · build_up: %10–30 · challenge: %2–8 · boss: %0.5–3 (ama 0 olamaz!)
+  - **İstisna — W1 L01 (FTUE):** rastgele atış oranı ~%15 (hedefin altında) kabul edildi; tutorial eli keystone'u gösterdiği için
+    oyuncu ilk atışı keystone'a yapar (keystone atışı 20/20 çözüm, K-021).
 - `any_solve_rate_within_shots`: verilen atışla çözülebilirlik (açgözlü strateji ile) ≥ %20 olmalı.
 - `keystone_check`: her keystone'a doğrudan atış → hedef gerçekleşmeli (en az birinde).
 - `collapse_ratio`: atış başına platformdan düşen blok hacmi oranı (tatmin ölçüsü); keystone vuruşunda `min_collapse_ratio` (0.5) ve üstü tercih edilir.

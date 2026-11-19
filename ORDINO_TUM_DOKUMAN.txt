@@ -796,6 +796,10 @@ Generator blok malzemesini rastgele değil **dünya paleti + zorluk** ile seçer
 - Zorluk arttıkça `heavy_ratio`'ya göre taş/metal payı artar, kristal payı azalır (ama asla 0 olmaz — her kulede kırılacak parlak şey olmalı).
 - **Rol kuralları:** Sütunlar/temeller ağır malzeme; üst katlar hafif; keystone'lar **görsel olarak ayırt edilebilir** (ör. ahşap kiriş taş kulede).
 - Top tanıtım bölümünde paletin ağırlığı o topun güçlü olduğu malzemeye kayar (Alev → ahşap %60).
+- **Malzeme rolleri (K-022):** **kristal** tek doğrudan vuruşta kırılır (parlak, tatmin edici hedef; keystone için ideal);
+  **ahşap/sandık** orta dayanıklı (ağır topla birkaç vuruş, özel toplarla — alev, kesici — hızlı yok olur);
+  **taş/metal** neredeyse kırılmaz, **devrilerek** temizlenir (yapının iskeleti; tasarım onları düşürmeye dayanmalı, kırmaya değil).
+  Kesin hp/eşik sayıları Faz 6–9'da `/ordino-balance` ile ayarlanır.
 
 ## 7. Top tanıtım bölümü tarifi
 Örnek — Alev Topu (W1 B8):
@@ -823,6 +827,8 @@ flowchart LR
 - **Çözüm** (K-018) = bölüm hedefine ulaşmak. Varsayılan `clear_percent`: blok hacminin `clear_percent_target` (0.8) oranı platformdan düşer; `drop_core`: küre düşer.
 - `one_shot_solve_rate`: rastgele örneklenen 200 atış noktasından kaçı tek atışta çözüyor.
   - intro: %30–60 · build_up: %10–30 · challenge: %2–8 · boss: %0.5–3 (ama 0 olamaz!)
+  - **İstisna — W1 L01 (FTUE):** rastgele atış oranı ~%15 (hedefin altında) kabul edildi; tutorial eli keystone'u gösterdiği için
+    oyuncu ilk atışı keystone'a yapar (keystone atışı 20/20 çözüm, K-021).
 - `any_solve_rate_within_shots`: verilen atışla çözülebilirlik (açgözlü strateji ile) ≥ %20 olmalı.
 - `keystone_check`: her keystone'a doğrudan atış → hedef gerçekleşmeli (en az birinde).
 - `collapse_ratio`: atış başına platformdan düşen blok hacmi oranı (tatmin ölçüsü); keystone vuruşunda `min_collapse_ratio` (0.5) ve üstü tercih edilir.
@@ -1370,6 +1376,9 @@ Faz 0–1: 1 hafta · Faz 2–4: 2 hafta · Faz 5–6: 1.5 hafta · Faz 7–8: 2
 | K-016 | 2026-11-18 | Faz 1 planı onaylandı: kamera `keep_aspect = width`, top (0, 0, 6) ile başlar, atış parmak kalkınca | Sena Faz 1 planını bu kararlarla onayladı | Onaylandı |
 | K-017 | 2026-11-18 | Faz 1 kadrajı: FOV 40 (width), pitch 20, distance 18, look_at_height 4, top (0, 0, 6) | Adım 3 ekran görüntüsüyle doğrulandı: 12 birimlik kule alanı sığıyor, top görünüyor, altta top seçici payı kalıyor | Onaylandı |
 | K-018 | 2026-11-18 | **Ana hedef "masayı temizle"** (`clear_percent`, K-010'un yerine): blok **hacminin** %80'i platformdan düşünce bölüm kazanılır (`rules.objective_defaults`: `type`, `clear_percent_target = 0.8`, `clear_measure = "volume"` / `"count"`); Altın Küre ve joint'ler orana dahil değil; kırılan bloklar temizlenmiş sayılır (`broken_counts_as_cleared = true`); ekranda doluluk çubuğu; otomatik final temizliği yok. **Altın Küre = jackpot:** `clear_percent` bölümlerinde kule içine/kemer altına/tepeye gömülü; düşerse büyük altın (`economy.rewards.core_jackpot_gold`, taslak 20) + ağır çekim + konfeti; yıldızı etkilemez. `drop_core` yalnızca dünya başına 1–2 bölüm (zincire asılı küre, boss); küre korunaklı, doğrudan tek atışla düşmez. Yıldızlar değişmedi (kalan gülle, `rules.stars`). Zorluk: daha çok/ağır blok, dağınık/ikiz kuleler, daha az gülle, daha derine gömülü küre | Smash Away'in "masayı temizle" tatmini ana döngü olur; küre ustalık ve tekrar oynama motivasyonu veren ikincil hedef | Onaylandı |
+| K-020 | 2026-11-19 | Ağır top kütlesi 6 → 2 (`balls.json → heavy.mass`) | Sena Dev Panel'de oynayarak seçti | Onaylandı |
+| K-021 | 2026-11-19 | L01 = A5 "Kristal Ayaklı Masa" (taş ayak x = -0.4, amber kristal keystone ayak öne çekik); kristal hp 10 (amber/turkuaz/mor, global); L01 `camera_override` distance 14 / look_at_height 3.0 | Sim: keystone atışı 20/20 kazanma (%86 temizlik), jackpot 20/20; kristal tek doğrudan vuruşta kırılır (ölçülen hasar 11.7–19.5); kule kadrajda büyür, top görünür kalır | Onaylandı |
+| K-022 | 2026-11-19 | Malzeme rolü: kristal tek vuruşta kırılır; ahşap/sandık orta (özel toplarla hızlı yok olur); taş/metal neredeyse kırılmaz, devrilerek temizlenir (docs/03 §6.3). Kesin sayılar Faz 6–9'da `/ordino-balance` ile | Ağır top (2 kg) ile taş 7–11 vuruşta kırılıyor; temizlik fizikle devirmekten gelmeli | Onaylandı |
 
 ## Açık sorular (Sena karar verecek)
 | No | Soru | Öneri | Durum |
