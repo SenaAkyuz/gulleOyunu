@@ -13,7 +13,13 @@
     "arc": "low",
     "_doc_arc": "low: sabit launch_speed ile hedefe giden alcak yay | high: yuksek (lob) yay. Menzil disinda 45 derece ile hedef yonune atilir.",
     "on_miss": "ignore",
-    "_doc_on_miss": "ignore: dokunus hicbir seye isabet etmezse (gokyuzu) atis yapilmaz. Atis parmak kalkinca yapilir."
+    "_doc_on_miss": "ignore: dokunus hicbir seye isabet etmezse (gokyuzu) atis yapilmaz. Atis parmak kalkinca yapilir.",
+    "drag_deg_per_px": 0.06,
+    "drag_pitch_min_deg": -10,
+    "drag_pitch_max_deg": 45,
+    "drag_yaw_max_deg": 40,
+    "drag_dead_zone_px": 30,
+    "_doc_drag": "drag_release (sapan): ekranda bas, geri cek, birak. Asagi cekmek namluyu yukseltir, sola cekmek saga atar (ters yon). Aci = cekme (px, 1080 genislikli ekran) x drag_deg_per_px; pitch [min,max], yaw +-drag_yaw_max_deg. Hiz sabit (balls.json launch_speed). drag_dead_zone_px'ten kisa cekiste birakmak atis yapmaz."
   },
   "cannon": {
     "position": [0, 0, 6],

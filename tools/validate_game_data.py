@@ -79,6 +79,11 @@ if aim.get("on_miss") not in VALID_ON_MISS:
     errors.append(f"rules.aim.on_miss gecersiz: {aim.get('on_miss')} ({VALID_ON_MISS})")
 if not is_num(aim.get("preview_dot_interval_sec")) or aim.get("preview_dot_interval_sec") <= 0:
     errors.append("rules.aim.preview_dot_interval_sec pozitif sayi olmali")
+for key in ("drag_deg_per_px", "drag_yaw_max_deg", "drag_dead_zone_px"):
+    if not is_num(aim.get(key)) or aim.get(key) <= 0:
+        errors.append(f"rules.aim.{key} pozitif sayi olmali")
+if not (is_num(aim.get("drag_pitch_min_deg")) and is_num(aim.get("drag_pitch_max_deg")))         or not -90 < aim["drag_pitch_min_deg"] < aim["drag_pitch_max_deg"] < 90:
+    errors.append("rules.aim.drag_pitch_min_deg < drag_pitch_max_deg, ikisi de -90..90 arasi olmali")
 if not is_vec3(rules.get("cannon", {}).get("position")):
     errors.append("rules.cannon.position [x, y, z] olmali")
 if not is_num(phys.get("spawn_edge_inset")) or phys.get("spawn_edge_inset") < 0:

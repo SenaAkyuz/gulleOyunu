@@ -11,6 +11,8 @@ const LEVELS_DIR := "res://game_data/levels/"
 const REQUIRED_RULES: PackedStringArray = [
 	"aim.mode", "aim.default_preview_dots", "aim.aim_smoothing",
 	"aim.preview_dot_interval_sec", "aim.arc", "aim.on_miss",
+	"aim.drag_deg_per_px", "aim.drag_pitch_min_deg", "aim.drag_pitch_max_deg",
+	"aim.drag_yaw_max_deg", "aim.drag_dead_zone_px",
 	"cannon.position",
 	"objective_defaults.core_shape", "objective_defaults.core_material",
 	"objective_defaults.type", "objective_defaults.clear_percent_target",

@@ -50,3 +50,28 @@ static func time_to_reach(from: Vector3, to: Vector3, velocity: Vector3) -> floa
 ## Position after t seconds (used by the trajectory preview).
 static func point_at(from: Vector3, velocity: Vector3, gravity: float, t: float) -> Vector3:
 	return from + velocity * t + Vector3.DOWN * gravity * t * t / 2.0
+
+
+## Launch velocity for a yaw/pitch pair (drag_release). yaw 0 = towards -Z (the tower),
+## positive yaw turns right (+X); positive pitch aims up.
+static func velocity_from_angles(yaw_deg: float, pitch_deg: float, speed: float) -> Vector3:
+	var yaw := deg_to_rad(yaw_deg)
+	var pitch := deg_to_rad(pitch_deg)
+	var flat := Vector3(sin(yaw), 0.0, -cos(yaw))
+	return flat * speed * cos(pitch) + Vector3.UP * speed * sin(pitch)
+
+
+## Time until a ball from `from` with `velocity` comes down to height `y` (later root);
+## returns -1 if it never gets there.
+static func time_to_height(from: Vector3, velocity: Vector3, gravity: float, y: float) -> float:
+	# from.y + vy t - g t^2 / 2 = y
+	var a := -gravity / 2.0
+	var b := velocity.y
+	var c := from.y - y
+	if is_zero_approx(a):
+		return -c / b if b != 0.0 else -1.0
+	var disc := b * b - 4.0 * a * c
+	if disc < 0.0:
+		return -1.0
+	var root := sqrt(disc)
+	return maxf((-b - root) / (2.0 * a), (-b + root) / (2.0 * a))

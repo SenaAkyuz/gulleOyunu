@@ -47,6 +47,8 @@ flowchart LR
 ### 3.2 Nişan ve atış
 - Oyuncu ekrana dokunup sürükler → top o yöne döner, yörünge önizlemesi çizilir.
 - Parmağı bırakınca atış. ⚙️ `rules.aim.mode`: `"tap_target"` (**varsayılan**; dokunulan noktaya atış, Smash Away tarzı) | `"drag_release"`.
+  `drag_release` (sapan): ekranın herhangi bir yerine bas, geri çek, bırak. Aşağı çekmek namluyu yükseltir, sola çekmek sağa atar;
+  açı = çekme × `rules.aim.drag_deg_per_px`, hız sabit (topun `launch_speed`'i), `drag_dead_zone_px`'ten kısa çekişte atış yok.
 - ✅ Karar (S-002, Sena onayladı): Varsayılan **tap_target** + ince ayar için sürükleme. Tam 3D'de dokunulan noktadan ışın (raycast) atılır, isabet eden blok yüzeyi hedef olur. Smash Away'in başarısı kontrolün çok basit olması; bu "noktayı seç, at" hissini koruyalım.
 - Yörünge önizleme uzunluğu ⚙️ `rules.aim.preview_dots` (zor bölümlerde kısalabilir — zorluk parametresi).
 - Top fiziksel bir mermidir: kütle, hız, yerçekimi etkisi `balls.json` içinde.

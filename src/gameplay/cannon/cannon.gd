@@ -14,6 +14,9 @@ var _smoothing: float = 0.0
 var _target_dir: Vector3 = Vector3.FORWARD
 var _preview_target: Vector3 = Vector3.ZERO
 var _preview_on: bool = false
+## drag_release preview: a fixed launch velocity instead of a target point.
+var _preview_velocity: Vector3 = Vector3.ZERO
+var _preview_velocity_on: bool = false
 
 @onready var _yaw: Node3D = $Yaw
 @onready var _pitch: Node3D = $Yaw/Pitch
@@ -58,7 +61,11 @@ func aim_at(target: Vector3) -> void:
 
 
 func fire_at(target: Vector3) -> Ball:
-	var velocity: Vector3 = solve_to(target)["velocity"]
+	return fire_velocity(solve_to(target)["velocity"])
+
+
+## Fires with an explicit launch velocity (drag_release).
+func fire_velocity(velocity: Vector3) -> Ball:
 	var ball: Ball = BALL_SCENE.instantiate()
 	if not ball.setup(ball_id):
 		ball.free()
@@ -76,8 +83,21 @@ func show_target(visible_now: bool, pos: Vector3) -> void:
 	_target_marker.visible = visible_now
 	_preview_on = visible_now
 	_preview_target = pos
+	_preview_velocity_on = false
 	if visible_now:
 		_target_marker.global_position = pos
+	else:
+		_preview.hide_path()
+
+
+## drag_release: turn the barrel along `velocity` and draw its trajectory (no target marker).
+func show_velocity(visible_now: bool, velocity: Vector3) -> void:
+	_target_marker.visible = false
+	_preview_on = false
+	_preview_velocity_on = visible_now
+	_preview_velocity = velocity
+	if visible_now:
+		_target_dir = velocity.normalized()
 	else:
 		_preview.hide_path()
 
@@ -92,6 +112,10 @@ func _process(delta: float) -> void:
 		var velocity: Vector3 = solve_to(_preview_target)["velocity"]
 		_preview.show_path(from, velocity, gravity(),
 				Ballistics.time_to_reach(from, _preview_target, velocity))
+	elif _preview_velocity_on:
+		var start := muzzle_position()
+		var t_land := Ballistics.time_to_height(start, _preview_velocity, gravity(), 0.0)
+		_preview.show_path(start, _preview_velocity, gravity(), t_land if t_land > 0.0 else INF)
 
 
 ## Barrel points along -Z: yaw around Y, then pitch around X.
