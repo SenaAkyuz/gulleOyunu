@@ -33,6 +33,7 @@ const REQUIRED_RULES: PackedStringArray = [
 	"platform.thickness", "platform.friction", "platform.bounce",
 	"dev.start_level_id", "dev.play_area_guide", "dev.stress_block_count", "dev.nudge_impulse",
 	"dev.panel_open_touches", "dev.panel",
+	"dev.stress_columns", "dev.stress_rows", "dev.perf_warn_fps",
 ]
 const VALID_AIM_MODES: PackedStringArray = ["tap_target", "drag_release"]
 const VALID_EDGE_RULES: PackedStringArray = ["com_outside_platform"]

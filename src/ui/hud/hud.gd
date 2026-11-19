@@ -15,6 +15,8 @@ const BAR_BG_COLOR := Color(0.0, 0.0, 0.0, 0.45)
 const BAR_FILL_COLOR := Color(0.95, 0.95, 0.95)
 const BAR_DONE_COLOR := Color(1.0, 0.8, 0.2)
 const BAR_CORNER_RADIUS := 10
+const PERF_OK_COLOR := Color(0.75, 1.0, 0.75)
+const PERF_WARN_COLOR := Color(1.0, 0.35, 0.3)
 
 var _objective: String = ""
 var _target: float = 0.0
@@ -29,6 +31,7 @@ var _fill_style: StyleBoxFlat
 @onready var _sub_banner: Label = $SubBanner
 @onready var _jackpot: Label = $Jackpot
 @onready var _dev: Label = $DevInfo
+@onready var _perf: Label = $Top/PerfLabel
 
 
 func _ready() -> void:
@@ -59,6 +62,15 @@ func setup(level_index: int, objective_type: String) -> void:
 
 func set_dev_text(text: String) -> void:
 	_dev.text = text
+
+
+## Dev performance line (S-008): red when FPS < rules.dev.perf_warn_fps or the active-body
+## budget (rules.physics.max_active_bodies) is exceeded.
+func set_perf(fps: float, active: int, peak: int) -> void:
+	var budget := int(GameConfig.rule("physics.max_active_bodies"))
+	var warn := fps < float(GameConfig.rule("dev.perf_warn_fps")) or peak > budget
+	_perf.text = "%d FPS · aktif %d/%d · tepe %d" % [roundi(fps), active, budget, peak]
+	_perf.add_theme_color_override("font_color", PERF_WARN_COLOR if warn else PERF_OK_COLOR)
 
 
 func _on_shots_changed(left: int, total: int) -> void:

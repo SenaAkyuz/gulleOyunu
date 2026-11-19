@@ -4,12 +4,17 @@ extends Node3D
 ## Play: left mouse / touch = aim at a surface, release = fire.
 ## Dev keys: G = play-area guide, Space = wake every body, Tab = select body,
 ## arrows = push selected body (rules.dev.nudge_impulse), H = hp labels, R = restart level,
-## F1 = Dev Panel (src/ui/dev_panel).
+## F1 = Dev Panel (src/ui/dev_panel), P = stress tower on/off (StressLevel, S-008).
 
 ## Empty = rules.dev.start_level_id
 @export var level_id: String = ""
 
+## P key: the next (re)load builds the stress tower instead of the level. Survives a reload.
+static var stress_mode: bool = false
+
 var level_data: Dictionary = {}
+## Peak active bodies since the level started (S-008 budget check).
+var peak_active: int = 0
 var _info_static: String = ""
 var _selected: int = -1
 var _hp_visible: bool = false
@@ -28,7 +33,7 @@ var _hp_visible: bool = false
 func _ready() -> void:
 	if level_id.is_empty():
 		level_id = str(GameConfig.rule("dev.start_level_id"))
-	level_data = GameConfig.level(level_id)
+	level_data = StressLevel.build() if stress_mode else GameConfig.level(level_id)
 	if level_data.is_empty():
 		push_error("Level: bölüm yüklenemedi: " + level_id)
 		return
@@ -49,11 +54,14 @@ func _ready() -> void:
 	_cannon.setup(_balls, GameConfig.starting_ball_id(), int(dots))
 
 	_build_area_guide()
-	_info_static = "%s · %s · %d blok + %d küre · top: %s\nSol tık: nişan · bırak: ateş   H hp · G alan · Boşluk · Tab seç · Oklar it · R baştan · F1 panel · F12" % [
-		level_id, _referee.objective_type, _tower.blocks.size(), _tower.cores.size(), _cannon.ball_id]
+	_info_static = "%s · %s · %d blok + %d küre · top: %s\nSol tık: nişan · bırak: ateş   H hp · G alan · Boşluk · Tab seç · Oklar it · R baştan · F1 panel · P stres · F12" % [
+		str(level_data.get("id", level_id)), _referee.objective_type, _tower.blocks.size(), _tower.cores.size(), _cannon.ball_id]
 
 
 func _physics_process(_delta: float) -> void:
+	var active := active_body_count()
+	peak_active = maxi(peak_active, active)
+	_hud.set_perf(Engine.get_frames_per_second(), active, peak_active)
 	var bodies := _tower.all_bodies()
 	var sel := bodies[_selected].block_id if _selected >= 0 and _selected < bodies.size() else "-"
 	_hud.set_dev_text("%s\nDurum: %s  Duran: %d/%d  Seçili: %s  Düşen: %d  Kırılan: %d  Temizlik: %%%d" % [
@@ -89,6 +97,22 @@ func _unhandled_input(event: InputEvent) -> void:
 			_select(_selected + 1)
 		KEY_R:
 			get_tree().reload_current_scene()
+		KEY_P:
+			stress_mode = not stress_mode
+			get_tree().reload_current_scene()
+
+
+## Simulated (awake, not frozen, still in play) rigid bodies: tower pieces + balls (S-008).
+func active_body_count() -> int:
+	var n := 0
+	for b in _tower.all_bodies():
+		if b.visible and not b.sleeping and not b.freeze:
+			n += 1
+	for ball in _balls.get_children():
+		var rb := ball as RigidBody3D
+		if rb and not rb.sleeping:
+			n += 1
+	return n
 
 
 func _on_referee_state_changed(_state_name: String) -> void:

@@ -107,6 +107,11 @@ for qname, q in quality.get("levels", {}).items():
         errors.append(f"rules.quality.levels.{qname}.particles_mult 0..1 olmali")
 # Dev Panel kaydiricilari (Faz 1 Adim 11)
 dev = rules.get("dev", {})
+for key in ("stress_block_count", "stress_columns", "stress_rows", "perf_warn_fps"):
+    if not isinstance(dev.get(key), int) or dev.get(key) < 1:
+        errors.append(f"rules.dev.{key} 1 veya daha buyuk tam sayi olmali")
+if isinstance(dev.get("stress_columns"), int) and isinstance(dev.get("stress_rows"), int)         and (dev["stress_columns"] + 1 > 10 or dev["stress_rows"] + 1 > 6):
+    errors.append("rules.dev.stress_columns/rows oynanabilir alana (10 x 6) sigmali")
 if not isinstance(dev.get("panel_open_touches"), int) or dev.get("panel_open_touches") < 2:
     errors.append("rules.dev.panel_open_touches 2 veya daha buyuk tam sayi olmali")
 balls_by_id = {b.get("id"): b for b in balls_doc.get("balls", [])}
