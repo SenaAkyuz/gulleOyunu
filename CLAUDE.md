@@ -66,6 +66,7 @@ Rakip referansı: *Smash Away!* (Oakever). Hedefimiz: görsel olarak çok daha z
 Üçüncü taraf skill'ler (sabit sürüm, Apache-2.0, kaynak: gamedev-skills/awesome-gamedev-agent-skills @ c6ca6c4; lisans `.claude/skills/_third_party/`):
 `godot-gdscript`, `godot-physics`, `godot-3d-essentials`, `godot-signals-groups`, `godot-gdscript-headless-testing`,
 `physics-tuning`, `godot-ui-control`, `game-feel`, `godot-shaders`, `godot-export`.
+Üçüncü taraf eklenti: **GUT 9.7.1** (Godot 4.7 sürümü, `addons/gut/`, MIT lisansı `addons/gut/LICENSE.md`), değiştirilmeden kopyalandı.
 
 Üçüncü taraf skill'ler yardımcıdır; çelişkide CLAUDE.md, docs/ ve ordino-* skill'leri önceliklidir. game-feel ile ordino-game-feel çakışırsa ordino-game-feel geçerli.
 
@@ -75,8 +76,9 @@ Rakip referansı: *Smash Away!* (Oakever). Hedefimiz: görsel olarak çok daha z
 python3 tools/validate_game_data.py
 # Ekonomi simülasyonu (kaç bölümde kaç altın kazanılıyor, top fiyatları erişilebilir mi)
 python3 tools/economy_sim.py
-# Godot testleri (Godot kurulu ve PATH'te ise)
-godot --headless -s addons/gut/gut_cmdln.gd -gdir=res://tests -gexit
+# Godot testleri (GUT 9.7.1, addons/gut, MIT; ayarlar .gutconfig.json → res://tests, test_*.gd)
+# Taze checkout'ta önce: godot --headless --path . --import
+godot --headless --path . -s addons/gut/gut_cmdln.gd -gexit   # çıkış kodu 0 = hepsi geçti
 ```
 
 ## 8. Mevcut durum

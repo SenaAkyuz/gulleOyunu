@@ -286,7 +286,7 @@ hp <= 0  → kırıl (fracture) ; hp < %50 → çatlak dokusu (decal/overlay)
 Kural: Alan eklenince `save_version` artar ve `SaveManager._migrate_vN_to_vN1()` yazılır. Testi zorunlu.
 
 ## 9. Test stratejisi
-- **GUT birim testleri:** Economy (harca/kazan/yetersiz bakiye), Inventory, Progress açılma koşulları, yıldız hesabı, save migrasyonu, GameConfig doğrulama.
+- **GUT birim testleri** (GUT 9.7.1, `addons/gut`, `tests/unit/test_*.gd`, `.gutconfig.json`; komut CLAUDE.md §7): Economy (harca/kazan/yetersiz bakiye), Inventory, Progress açılma koşulları, yıldız hesabı, save migrasyonu, GameConfig doğrulama. Faz 1 çekirdeği de testli: balistik, hasar formülü, kenar kuralı.
 - **Headless bölüm simülasyonu** (`src/tools/sim`): her bölüm için örnek atış noktaları dener → "çözülebilir mi, kaç atışta" raporu (bkz. `03` §8).
 - **Python doğrulayıcı:** JSON şema, referans bütünlüğü (level'daki malzeme `materials.json`'da var mı, top id'leri geçerli mi).
 - **Cihaz testi:** Her faz sonunda en az 1 orta segment Android + 1 iPhone'da 60 FPS kontrolü.
@@ -298,6 +298,7 @@ Kural: Alan eklenince `save_version` artar ve `SaveManager._migrate_vN_to_vN1()`
 - **Export preset'ine `*.json` filtresi eklenmeli (game_data).** Godot `.json` gibi kaynak olmayan dosyaları kendiliğinden paketlemez
   (preset → Resources → "Filters to export non-resource files": `*.json`). Unutulursa oyun açılışta GameConfig hatası verir.
   Export sonrası `--export-pack` + `--main-pack` ile duman testi yap (skill: `godot-export`).
+  `addons/gut/` ve `tests/` export'tan hariç tutulmalı (preset → exclude filter).
 
 ## 11. Opsiyonel: Godot MCP (Claude'un Godot'u çalıştırıp hata okuması)
 Claude Code'a bir Godot MCP sunucusu eklenirse Claude projeyi çalıştırıp hata çıktısını kendisi okuyabilir. Örnek (topluluk projesi, üçüncü taraf):

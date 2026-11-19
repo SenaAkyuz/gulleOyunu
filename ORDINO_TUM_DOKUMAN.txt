@@ -75,6 +75,7 @@ Rakip referansı: *Smash Away!* (Oakever). Hedefimiz: görsel olarak çok daha z
 Üçüncü taraf skill'ler (sabit sürüm, Apache-2.0, kaynak: gamedev-skills/awesome-gamedev-agent-skills @ c6ca6c4; lisans `.claude/skills/_third_party/`):
 `godot-gdscript`, `godot-physics`, `godot-3d-essentials`, `godot-signals-groups`, `godot-gdscript-headless-testing`,
 `physics-tuning`, `godot-ui-control`, `game-feel`, `godot-shaders`, `godot-export`.
+Üçüncü taraf eklenti: **GUT 9.7.1** (Godot 4.7 sürümü, `addons/gut/`, MIT lisansı `addons/gut/LICENSE.md`), değiştirilmeden kopyalandı.
 
 Üçüncü taraf skill'ler yardımcıdır; çelişkide CLAUDE.md, docs/ ve ordino-* skill'leri önceliklidir. game-feel ile ordino-game-feel çakışırsa ordino-game-feel geçerli.
 
@@ -84,8 +85,9 @@ Rakip referansı: *Smash Away!* (Oakever). Hedefimiz: görsel olarak çok daha z
 python3 tools/validate_game_data.py
 # Ekonomi simülasyonu (kaç bölümde kaç altın kazanılıyor, top fiyatları erişilebilir mi)
 python3 tools/economy_sim.py
-# Godot testleri (Godot kurulu ve PATH'te ise)
-godot --headless -s addons/gut/gut_cmdln.gd -gdir=res://tests -gexit
+# Godot testleri (GUT 9.7.1, addons/gut, MIT; ayarlar .gutconfig.json → res://tests, test_*.gd)
+# Taze checkout'ta önce: godot --headless --path . --import
+godot --headless --path . -s addons/gut/gut_cmdln.gd -gexit   # çıkış kodu 0 = hepsi geçti
 ```
 
 ## 8. Mevcut durum
@@ -601,7 +603,7 @@ hp <= 0  → kırıl (fracture) ; hp < %50 → çatlak dokusu (decal/overlay)
 Kural: Alan eklenince `save_version` artar ve `SaveManager._migrate_vN_to_vN1()` yazılır. Testi zorunlu.
 
 ## 9. Test stratejisi
-- **GUT birim testleri:** Economy (harca/kazan/yetersiz bakiye), Inventory, Progress açılma koşulları, yıldız hesabı, save migrasyonu, GameConfig doğrulama.
+- **GUT birim testleri** (GUT 9.7.1, `addons/gut`, `tests/unit/test_*.gd`, `.gutconfig.json`; komut CLAUDE.md §7): Economy (harca/kazan/yetersiz bakiye), Inventory, Progress açılma koşulları, yıldız hesabı, save migrasyonu, GameConfig doğrulama. Faz 1 çekirdeği de testli: balistik, hasar formülü, kenar kuralı.
 - **Headless bölüm simülasyonu** (`src/tools/sim`): her bölüm için örnek atış noktaları dener → "çözülebilir mi, kaç atışta" raporu (bkz. `03` §8).
 - **Python doğrulayıcı:** JSON şema, referans bütünlüğü (level'daki malzeme `materials.json`'da var mı, top id'leri geçerli mi).
 - **Cihaz testi:** Her faz sonunda en az 1 orta segment Android + 1 iPhone'da 60 FPS kontrolü.
@@ -613,6 +615,7 @@ Kural: Alan eklenince `save_version` artar ve `SaveManager._migrate_vN_to_vN1()`
 - **Export preset'ine `*.json` filtresi eklenmeli (game_data).** Godot `.json` gibi kaynak olmayan dosyaları kendiliğinden paketlemez
   (preset → Resources → "Filters to export non-resource files": `*.json`). Unutulursa oyun açılışta GameConfig hatası verir.
   Export sonrası `--export-pack` + `--main-pack` ile duman testi yap (skill: `godot-export`).
+  `addons/gut/` ve `tests/` export'tan hariç tutulmalı (preset → exclude filter).
 
 ## 11. Opsiyonel: Godot MCP (Claude'un Godot'u çalıştırıp hata okuması)
 Claude Code'a bir Godot MCP sunucusu eklenirse Claude projeyi çalıştırıp hata çıktısını kendisi okuyabilir. Örnek (topluluk projesi, üçüncü taraf):
