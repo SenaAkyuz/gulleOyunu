@@ -104,7 +104,7 @@ ordino-games/
 │   │   ├── world/      world_modifiers.gd  background_parallax.gd  platform.gd
 │   │   └── fx/         camera_shake.gd  hit_stop.gd  fx_pool.gd  slowmo.gd
 │   ├── ui/             hud/  world_map/  level_select/  results/  shop/  settings/  dev_panel/
-│   └── tools/          level_editor/ (Godot editör eklentisi)  sim/ (headless doğrulama)
+│   └── tools/          level_editor/ (Godot editör paneli, K-024)  sim/ (headless doğrulama)
 ├── tests/              # GUT testleri
 ├── tools/              # Python: validate_game_data.py, economy_sim.py, blender/
 └── .claude/skills/     # proje skill'leri
@@ -154,7 +154,7 @@ flowchart TB
 
 ### 4.2 Gameplay sahnesi (`level.tscn`)
 ```
-Level (Node3D)  ← level_loader.gd: JSON okur, world'ü kurar
+Level (Node3D)  ← level_loader.gd: JSON okur (LevelExpander ile şablonları açar), world'ü kurar
 ├── WorldEnvironment (dünya başına .tres: glow, tonemap, ambient)
 ├── DirectionalLight3D (dünya başına renk/açı)
 ├── Background (paralaks katmanları: Sprite3D veya CanvasLayer)
@@ -167,6 +167,11 @@ Level (Node3D)  ← level_loader.gd: JSON okur, world'ü kurar
 ├── FxPool (parçacık/parça havuzu)
 └── HUD (CanvasLayer)
 ```
+**Şablonlu bölümler (Faz 3):** `LevelExpander.expand(level)` → `structures` dizisindeki her şablon çağrısını bloklara çevirir
+(`baked: true` bölümler olduğu gibi kalır). Parametreler: `DifficultyCalc.params(difficulty)` (`src/core/difficulty_calc.gd`, `difficulty.json → curves`)
+üzerine yapının `params`'ı; rastgelelik yapının `seed`'inden (aynı dosya = aynı kule). Şablonlar `src/gameplay/level/templates/<id>.gd`
+(`TowerTemplate`'ten türer, `TemplateRegistry` bulur), blokları yerel çerçevede ve **rol** ile (`structure` / `light` / `crystal`) verir;
+`MaterialPicker` rolü dünya paletinden malzemeye çevirir. Blok id'leri `s<n>_b01…`. Dev: **N / B** sonraki/önceki bölüm dosyası (menüler Faz 4'e kadar).
 
 ---
 

@@ -4,13 +4,16 @@ extends Node3D
 ## Play: left mouse / touch = aim at a surface, release = fire.
 ## Dev keys: G = play-area guide, Space = wake every body, Tab = select body,
 ## arrows = push selected body (rules.dev.nudge_impulse), H = hp labels, R = restart level,
-## F1 = Dev Panel (src/ui/dev_panel), P = stress tower on/off (StressLevel, S-008).
+## F1 = Dev Panel (src/ui/dev_panel), P = stress tower on/off (StressLevel, S-008),
+## N / B = next / previous level file. Template levels are expanded by LevelExpander.
 
-## Empty = rules.dev.start_level_id
+## Empty = the dev-selected level (N/B keys), else rules.dev.start_level_id
 @export var level_id: String = ""
 
 ## P key: the next (re)load builds the stress tower instead of the level. Survives a reload.
 static var stress_mode: bool = false
+## N / B keys: level chosen in this session (until menus arrive in Faz 4). Survives a reload.
+static var dev_level_id: String = ""
 
 var level_data: Dictionary = {}
 ## Peak active bodies since the level started (S-008 budget check).
@@ -32,8 +35,8 @@ var _hp_visible: bool = false
 
 func _ready() -> void:
 	if level_id.is_empty():
-		level_id = str(GameConfig.rule("dev.start_level_id"))
-	level_data = StressLevel.build() if stress_mode else GameConfig.level(level_id)
+		level_id = dev_level_id if not dev_level_id.is_empty() else str(GameConfig.rule("dev.start_level_id"))
+	level_data = StressLevel.build() if stress_mode else LevelExpander.expand(GameConfig.level(level_id))
 	if level_data.is_empty():
 		push_error("Level: bölüm yüklenemedi: " + level_id)
 		return
@@ -54,7 +57,7 @@ func _ready() -> void:
 	_cannon.setup(_balls, GameConfig.starting_ball_id(), int(dots))
 
 	_build_area_guide()
-	_info_static = "%s · %s · %d blok + %d küre · top: %s\nSol tık: nişan · bırak: ateş   H hp · G alan · Boşluk · Tab seç · Oklar it · R baştan · F1 panel · P stres · F12" % [
+	_info_static = "%s · %s · %d blok + %d küre · top: %s\nSol tık: nişan · bırak: ateş   H hp · G alan · Boşluk · Tab seç · Oklar it · R baştan · N/B bölüm · F1 panel · P stres · F12" % [
 		str(level_data.get("id", level_id)), _referee.objective_type, _tower.blocks.size(), _tower.cores.size(), _cannon.ball_id]
 
 
@@ -100,6 +103,20 @@ func _unhandled_input(event: InputEvent) -> void:
 		KEY_P:
 			stress_mode = not stress_mode
 			get_tree().reload_current_scene()
+		KEY_N:
+			_switch_level(1)
+		KEY_B:
+			_switch_level(-1)
+
+
+## Dev: next / previous level file (sorted ids), wraps around.
+func _switch_level(step: int) -> void:
+	var ids := GameConfig.level_ids()
+	if ids.is_empty():
+		return
+	dev_level_id = ids[posmod(ids.find(level_id) + step, ids.size())]
+	stress_mode = false
+	get_tree().reload_current_scene()
 
 
 ## Simulated (awake, not frozen, still in play) rigid bodies: tower pieces + balls (S-008).

@@ -1,7 +1,7 @@
 class_name TowerBuilder
 extends Node3D
-## Spawns the level's blocks and cores (docs/03 §2.1). Faz 1: only explicit "blocks";
-## template "structures" arrive in Faz 3. Bodies spawn asleep (rules.physics.spawn_sleeping)
+## Spawns the level's blocks and cores (docs/03 §2.1). Template "structures" must already be
+## expanded into "blocks" (LevelExpander). Bodies spawn asleep (rules.physics.spawn_sleeping)
 ## so the tower does not move before the first hit.
 ## Jolt ignores a sleep request made before the body's first physics tick, so bodies spawn
 ## frozen (static) for exactly one tick and are then released straight into sleep.
@@ -14,9 +14,6 @@ var cores: Array[Block] = []
 
 func build(level: Dictionary) -> void:
 	clear()
-	if not bool(level.get("baked", false)) and not (level.get("structures", []) as Array).is_empty():
-		push_warning("Tower: şablonlar (structures) Faz 3'te gelecek; şimdilik yalnızca 'blocks' kuruluyor")
-
 	var keystones: Array = level.get("keystones", [])
 	var index := 0
 	for bd: Dictionary in level.get("blocks", []):

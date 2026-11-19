@@ -91,9 +91,9 @@ godot --headless --path . -s addons/gut/gut_cmdln.gd -gexit   # çıkış kodu 0
 ```
 
 ## 8. Mevcut durum
-- **Faz:** 1 — Gri Kutu **tamam** (2026-11-19). **Faz 2 — Veri omurgası ve kayıt tamam** (2026-11-19). Sıradaki: **Faz 3** — kule şablonları, generator, bölüm editörü (plan Sena onayı bekliyor; bkz. `docs/06_YOL_HARITASI.md`). Her faz bitince bu satırı güncelle.
+- **Faz:** 1 — Gri Kutu **tamam** (2026-11-19). **Faz 2 — Veri omurgası ve kayıt tamam** (2026-11-19). **Faz 3 — kule şablonları, generator, bölüm editörü sürüyor** (11 adımlık plan onaylandı 2026-11-19; bkz. `docs/06_YOL_HARITASI.md`). Her faz bitince bu satırı güncelle.
 - Faz 1 çıktısı: L01 oynanır (tap_target + drag_release, sürekli atış K-023), hakem/doluluk çubuğu/yıldız/jackpot, hasar, sarsıntı + kıvılcım, Dev Panel (F1), stres testi (P).
-  Dev tuşları: G alan · Boşluk uyandır · Tab seç · Oklar it · H hp · R baştan · F1 panel · P stres · F12 ekran görüntüsü.
+  Dev tuşları: G alan · Boşluk uyandır · Tab seç · Oklar it · H hp · R baştan · N/B sonraki/önceki bölüm · F1 panel · P stres · F12 ekran görüntüsü.
 - Faz 2 çıktısı: `SaveManager` (sürümlü, atomik, bozuk kayda dayanıklı `user://save.json`), `Economy`, `Progress` (ödül + açılmalar), `Inventory`, `ConfigValidator`; HUD'da altın + en iyi yıldız + kazanılan altın; Dev Panel'de "Kaydı sıfırla"; GUT testleri (`tests/`).
 - Açık: Android performans ölçümü (S-008), tutorial elinin çizimi, hit-stop + konfeti (Faz 8).
 
@@ -422,7 +422,7 @@ ordino-games/
 │   │   ├── world/      world_modifiers.gd  background_parallax.gd  platform.gd
 │   │   └── fx/         camera_shake.gd  hit_stop.gd  fx_pool.gd  slowmo.gd
 │   ├── ui/             hud/  world_map/  level_select/  results/  shop/  settings/  dev_panel/
-│   └── tools/          level_editor/ (Godot editör eklentisi)  sim/ (headless doğrulama)
+│   └── tools/          level_editor/ (Godot editör paneli, K-024)  sim/ (headless doğrulama)
 ├── tests/              # GUT testleri
 ├── tools/              # Python: validate_game_data.py, economy_sim.py, blender/
 └── .claude/skills/     # proje skill'leri
@@ -472,7 +472,7 @@ flowchart TB
 
 ### 4.2 Gameplay sahnesi (`level.tscn`)
 ```
-Level (Node3D)  ← level_loader.gd: JSON okur, world'ü kurar
+Level (Node3D)  ← level_loader.gd: JSON okur (LevelExpander ile şablonları açar), world'ü kurar
 ├── WorldEnvironment (dünya başına .tres: glow, tonemap, ambient)
 ├── DirectionalLight3D (dünya başına renk/açı)
 ├── Background (paralaks katmanları: Sprite3D veya CanvasLayer)
@@ -485,6 +485,11 @@ Level (Node3D)  ← level_loader.gd: JSON okur, world'ü kurar
 ├── FxPool (parçacık/parça havuzu)
 └── HUD (CanvasLayer)
 ```
+**Şablonlu bölümler (Faz 3):** `LevelExpander.expand(level)` → `structures` dizisindeki her şablon çağrısını bloklara çevirir
+(`baked: true` bölümler olduğu gibi kalır). Parametreler: `DifficultyCalc.params(difficulty)` (`src/core/difficulty_calc.gd`, `difficulty.json → curves`)
+üzerine yapının `params`'ı; rastgelelik yapının `seed`'inden (aynı dosya = aynı kule). Şablonlar `src/gameplay/level/templates/<id>.gd`
+(`TowerTemplate`'ten türer, `TemplateRegistry` bulur), blokları yerel çerçevede ve **rol** ile (`structure` / `light` / `crystal`) verir;
+`MaterialPicker` rolü dünya paletinden malzemeye çevirir. Blok id'leri `s<n>_b01…`. Dev: **N / B** sonraki/önceki bölüm dosyası (menüler Faz 4'e kadar).
 
 ---
 
@@ -878,6 +883,7 @@ flowchart LR
 - `core_direct_hit_check` (`drop_core`): küreye doğrudan tek atış küreyi düşürmemeli (§4 kural 6b).
 
 ### 8.2 Bölüm editörü (Godot editör eklentisi, Faz 3)
+> **K-024:** Faz 3'te özel ızgara editörü yerine Godot editör paneli yapılır: butonlar aşağıdaki gibi, bloklar Godot'un 3D gizmo'su ile taşınır. Aşağıdaki üç panelli düzen ileride değerlendirilir.
 - Sol panel: şablon/blok paleti · Orta: grid üzerinde sürükle-bırak · Sağ: seçili bloğun malzemesi, döndürme, keystone işareti.
 - Butonlar: **Test Et** (oyunu bu bölümle başlat) · **Simüle Et** (metrikleri göster) · **Kaydet (JSON)** · **Yeniden Üret (seed)**.
 - Claude'a da yaptırılabilir: `/ordino-level-designer w02 bölüm 6'yı daha zor yap, halat ekle`.
@@ -1425,6 +1431,7 @@ Faz 0–1: 1 hafta · Faz 2–4: 2 hafta · Faz 5–6: 1.5 hafta · Faz 7–8: 2
 | K-021 | 2026-11-19 | L01 = A5 "Kristal Ayaklı Masa" (taş ayak x = -0.4, amber kristal keystone ayak öne çekik); kristal hp 10 (amber/turkuaz/mor, global); L01 `camera_override` distance 14 / look_at_height 3.0 | Sim: keystone atışı 20/20 kazanma (%86 temizlik), jackpot 20/20; kristal tek doğrudan vuruşta kırılır (ölçülen hasar 11.7–19.5); kule kadrajda büyür, top görünür kalır | Onaylandı |
 | K-022 | 2026-11-19 | Malzeme rolü: kristal tek vuruşta kırılır; ahşap/sandık orta (özel toplarla hızlı yok olur); taş/metal neredeyse kırılmaz, devrilerek temizlenir (docs/03 §6.3). Kesin sayılar Faz 6–9'da `/ordino-balance` ile | Ağır top (2 kg) ile taş 7–11 vuruşta kırılıyor; temizlik fizikle devirmekten gelmeli | Onaylandı |
 | K-023 | 2026-11-19 | **Sürekli atış:** gülle ilk temasından `rules.shots.refire_cooldown_sec` (0.3 sn) sonra yeni atış serbest, kulenin durulması beklenmez; kazanma her karede kontrol edilir (hedefe ulaşıldığı an WON), kaybetme yalnızca son gülle durulunca (veya `settle_timeout_sec`); yıldız kullanılan gülleye göre. **Ağır çekim kapalı** (`rules.feel.slowmo_enabled = false`); Faz 8'de yalnızca kazanma anında kısa vurgu olarak denenecek | Faz 1 oynanış testi: durulmayı beklemek ve ağır çekim akışı kesiyordu; 0.5 sn yavaş bulundu → 0.3 | Onaylandı |
+| K-024 | 2026-11-19 | **Bölüm editörü = Godot editör paneli** (Üret/seed, Simüle Et, Test Et, Kaydet/Pişir); bloklar Godot'un 3D sahnesinde kendi gizmo'su ile taşınır/döndürülür, sonra JSON'a yazılır. docs/03 §8.2'deki özel ızgara sürükle-bırak editörü şimdilik yapılmaz | Daha hızlı; Godot'un hazır 3D araçları yeterli; özel editör Faz 3'e 2–3 gün eklerdi | Onaylandı (Sena) |
 
 ## Açık sorular (Sena karar verecek)
 | No | Soru | Öneri | Durum |

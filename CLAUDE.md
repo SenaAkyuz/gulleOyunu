@@ -82,8 +82,8 @@ godot --headless --path . -s addons/gut/gut_cmdln.gd -gexit   # çıkış kodu 0
 ```
 
 ## 8. Mevcut durum
-- **Faz:** 1 — Gri Kutu **tamam** (2026-11-19). **Faz 2 — Veri omurgası ve kayıt tamam** (2026-11-19). Sıradaki: **Faz 3** — kule şablonları, generator, bölüm editörü (plan Sena onayı bekliyor; bkz. `docs/06_YOL_HARITASI.md`). Her faz bitince bu satırı güncelle.
+- **Faz:** 1 — Gri Kutu **tamam** (2026-11-19). **Faz 2 — Veri omurgası ve kayıt tamam** (2026-11-19). **Faz 3 — kule şablonları, generator, bölüm editörü sürüyor** (11 adımlık plan onaylandı 2026-11-19; bkz. `docs/06_YOL_HARITASI.md`). Her faz bitince bu satırı güncelle.
 - Faz 1 çıktısı: L01 oynanır (tap_target + drag_release, sürekli atış K-023), hakem/doluluk çubuğu/yıldız/jackpot, hasar, sarsıntı + kıvılcım, Dev Panel (F1), stres testi (P).
-  Dev tuşları: G alan · Boşluk uyandır · Tab seç · Oklar it · H hp · R baştan · F1 panel · P stres · F12 ekran görüntüsü.
+  Dev tuşları: G alan · Boşluk uyandır · Tab seç · Oklar it · H hp · R baştan · N/B sonraki/önceki bölüm · F1 panel · P stres · F12 ekran görüntüsü.
 - Faz 2 çıktısı: `SaveManager` (sürümlü, atomik, bozuk kayda dayanıklı `user://save.json`), `Economy`, `Progress` (ödül + açılmalar), `Inventory`, `ConfigValidator`; HUD'da altın + en iyi yıldız + kazanılan altın; Dev Panel'de "Kaydı sıfırla"; GUT testleri (`tests/`).
 - Açık: Android performans ölçümü (S-008), tutorial elinin çizimi, hit-stop + konfeti (Faz 8).
