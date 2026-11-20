@@ -396,6 +396,25 @@ Pencereli çalıştırılırsa her adayın ekran görüntüsü alınır. Çıkt�
 **`game_data`'ya hiçbir şey yazılmaz:** elle bölümler (L01, L04, L09, L10) ve dosyası olan bölümler için yalnızca öneridir; seçilen aday Adım 11'de pişirilir.
 Komut: `godot --fixed-fps 60 --path . -s src/tools/sim/candidates_cli.gd -- --world akdeniz` (veya `--level w01_l05`).
 
+**İlk aday hattı çalıştırması — Dünya 1, 5 aday × 10 bölüm, 200 örnek (2026-11-20): toplam 33.2 dk** (bölüm başına 1–6 dk; geçemeyen adaylar 12 denemeyi
+simülasyonla tükettiği için uzun sürer). Her bölümün 1. sıradaki adayı:
+
+| Bölüm | Rol | 1. aday | Hedef tutan | Tek atış (hedef) | Keystone merkez | Gülleyle çözüm | Geçen aday |
+|---|---|---|---|---|---|---|---|
+| L01 | intro | ikiz sütun (öneri; dosya elle) | 2/4 | %27 (30–60) | ✘ %63 | %69 | 3/5 |
+| L02 | build_up | yük. piramit | 3/4 | **%30 ✔** (10–30) | ✘ %63 | %92 | 4/5 |
+| L03 | build_up | kemer (öneri; dosya var) | 3/4 | %46 (10–30) | ✔ %93 | %91 | 3/5 |
+| L04 | breather | yük. piramit (öneri) | 3/4 | %31 ✔ | ✘ %59 | %93 | 5/5 |
+| L05 | new_mechanic | kemer | 3/4 | %46 (10–35) | ✔ %93 | %92 | 2/5 |
+| L06 | combine | ikiz sütun | 2/4 | %14 ✔ (6–20) | ✘ %40 | %73 | 5/5 |
+| L07 | combine | kemer | 3/4 | %47 (6–20) — 4.–5. sıradaki yük. piramit %16/%20 ✔ | ✔ %93 | %85 | 5/5 |
+| L08 | challenge | ikiz sütun | 2/4 | %9 (2–8) | ✘ %63 | %49 | 5/5 |
+| L09 | breather | kemer (öneri) | **4/4** | %48 ✔ | ✔ %93 | %68 | 4/5 |
+| L10 | boss | tek kemer (öneri; elle tasarlanacak) | 3/4 | %18 (1–3) | ✔ %82 | %55 | 5/5 |
+
+Not: sıralama hedef tutan metrik sayısına göre; L07'de tek atış hedefini tutan adaylar (yük. piramit) keystone merkez atışını tutmadığı için 4.–5. sırada.
+Tam tablolar ve ekran görüntüleri `_candidates/` altında.
+
 ### 8.2 Bölüm editörü (Godot editör eklentisi, Faz 3)
 > **K-024:** Faz 3'te özel ızgara editörü yerine Godot editör paneli yapılır: butonlar aşağıdaki gibi, bloklar Godot'un 3D gizmo'su ile taşınır. Aşağıdaki üç panelli düzen ileride değerlendirilir.
 - Sol panel: şablon/blok paleti · Orta: grid üzerinde sürükle-bırak · Sağ: seçili bloğun malzemesi, döndürme, keystone işareti.
