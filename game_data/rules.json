@@ -126,7 +126,10 @@
     "material_texture_dir": "res://assets/textures/materials/",
     "platform_texture_dir": "res://assets/textures/platform/",
     "texture_world_scale": 0.5,
-    "_doc": "Faz 7 (docs/04): dunyanin background_dir + background_far / background_front 3D sahnenin ARKASINDA iki katman (ekran yuksekligini doldurur, yanlar kirpilir, K-035). Bloklar materials.<id>.texture adli dokuyu material_texture_dir'den, kaide worlds.platform_style dokusunu platform_texture_dir'den alir (yoksa gri kutu rengi). background_front bos = on katman kapali (2026-11-20: far gorselinin koselerinde zaten amfora/cicek var, front.png ikinci kez ekleyip kalabaliklastiriyordu; dosya assets'te duruyor, paralaks gelince kucultulup kullanilabilir). texture_world_scale: doku tekrari (1 doku = 1 / scale birim; 0.5 -> her 2 birimde bir)."
+    "block_bevel": 0.06,
+    "cannon_model": "res://assets/models/cannon/cannon.glb",
+    "plinth": { "cap_height": 0.22, "body_inset": 0.1, "pedestal_depth": 0.9, "body_tint": 0.72, "bevel": 0.05 },
+    "_doc": "Faz 7 (docs/04): dunyanin background_dir + background_far / background_front 3D sahnenin ARKASINDA iki katman (ekran yuksekligini doldurur, yanlar kirpilir, K-035). Bloklar materials.<id>.texture adli dokuyu material_texture_dir'den, kaide worlds.platform_style dokusunu platform_texture_dir'den alir (yoksa gri kutu rengi). background_front bos = on katman kapali (2026-11-20: far gorselinin koselerinde zaten amfora/cicek var, front.png ikinci kez ekleyip kalabaliklastiriyordu; dosya assets'te duruyor, paralaks gelince kucultulup kullanilabilir). block_bevel: kutu bloklarin kenar pahi (birim; carpisma kutusu degismez). plinth: kaide gorunumu = ustte cap_height kalinliginda pahli kapak (oyun yuzeyi, carpisma boyutunda) + altinda body_inset kadar iceride, pedestal_depth derinligine inen, body_tint ile koyulastirilmis govde (kapak one cikar, govde golgede kalir; 4.0 ekranin alt ortasini kapliyordu). cannon_model: tools/blender/make_cannon.py ciktisi (Carriage Yaw ile doner, Barrel Pitch ile egilir; bos = gri kutu top). texture_world_scale: doku tekrari (1 doku = 1 / scale birim; 0.5 -> her 2 birimde bir)."
   },
   "generator": {
     "block_gap": 0.02,

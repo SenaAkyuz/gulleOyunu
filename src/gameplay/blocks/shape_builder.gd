@@ -6,9 +6,13 @@ extends RefCounted
 ## Dynamic bodies only use box / sphere / cylinder / convex compounds — never concave/trimesh.
 
 const HULL_EPSILON := 1e-5
+## A chamfer never takes more than this share of the box's smallest side.
+const BEVEL_MAX_SHARE := 0.25
 
 
-static func build(body: CollisionObject3D, shape_def: Dictionary, visual_mat: Material) -> float:
+## bevel > 0: box colliders get a chamfered mesh (Faz 7, rules.visuals.block_bevel); the collider
+## itself stays an exact box, so physics never changes.
+static func build(body: CollisionObject3D, shape_def: Dictionary, visual_mat: Material, bevel: float = 0.0) -> float:
 	var volume := 0.0
 	for c: Dictionary in shape_def.get("colliders", []):
 		var col := CollisionShape3D.new()
@@ -20,9 +24,12 @@ static func build(body: CollisionObject3D, shape_def: Dictionary, visual_mat: Ma
 				var box := BoxShape3D.new()
 				box.size = size
 				col.shape = box
-				var bm := BoxMesh.new()
-				bm.size = size
-				mesh = bm
+				if bevel > 0.0:
+					mesh = bevel_box_mesh(size, bevel)
+				else:
+					var bm := BoxMesh.new()
+					bm.size = size
+					mesh = bm
 				xform.origin = to_vec3(c["pos"])
 				volume += size.x * size.y * size.z
 			"sphere":
@@ -87,6 +94,31 @@ static func _axis_basis(axis: String) -> Basis:
 		"z":
 			return Basis(Vector3.RIGHT, PI / 2.0)
 	return Basis.IDENTITY
+
+
+static var _bevel_cache: Dictionary = {}
+
+
+## Box of `size` with every edge chamfered at 45° by `bevel` (capped at BEVEL_MAX_SHARE of the
+## smallest side): the convex hull of three boxes, each full along one axis and shrunk by the bevel
+## on the other two. Cached per size.
+static func bevel_box_mesh(size: Vector3, bevel: float) -> Mesh:
+	var b := minf(bevel, BEVEL_MAX_SHARE * minf(size.x, minf(size.y, size.z)))
+	var key := "%.4f|%.4f|%.4f|%.4f" % [size.x, size.y, size.z, b]
+	if _bevel_cache.has(key):
+		return _bevel_cache[key]
+	var h := size / 2.0
+	var pts := PackedVector3Array()
+	for axis in 3:
+		var e := Vector3(h.x - b, h.y - b, h.z - b)
+		e[axis] = h[axis]
+		for sx in [-1.0, 1.0]:
+			for sy in [-1.0, 1.0]:
+				for sz in [-1.0, 1.0]:
+					pts.append(Vector3(e.x * sx, e.y * sy, e.z * sz))
+	var mesh := _faces_to_mesh(hull_faces(pts))
+	_bevel_cache[key] = mesh
+	return mesh
 
 
 ## Faces of the convex hull of a small point set, each an ordered polygon (CCW seen from outside).

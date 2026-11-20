@@ -48,7 +48,8 @@ static func build(level: Dictionary, data: Dictionary) -> Node3D:
 			color = color.lerp(KEYSTONE_COLOR, 0.35)
 		var mat := StandardMaterial3D.new()
 		mat.albedo_color = color
-		ShapeBuilder.build(body, shapes.get(str(b["shape"]), {}), mat)
+		ShapeBuilder.build(body, shapes.get(str(b["shape"]), {}), mat,
+				float((rules.get("visuals", {}) as Dictionary).get("block_bevel", 0.0)))
 		body.position = Vector3(float(b["x"]), float(b["y"]), float(b["z"]))
 		body.rotation_degrees = ShapeBuilder.to_vec3(b.get("rot", [0, 0, 0]))
 		body.set_meta(META_BLOCK, {"shape": b["shape"], "mat": b["mat"], "role": b.get("role", ""),

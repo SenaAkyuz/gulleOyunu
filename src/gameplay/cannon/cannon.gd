@@ -25,6 +25,34 @@ var _preview_velocity_on: bool = false
 @onready var _preview: TrajectoryPreview = $TrajectoryPreview
 
 
+func _ready() -> void:
+	_apply_model(str(GameConfig.rule("visuals.cannon_model")))
+
+
+## Faz 7: the Blender model (tools/blender/make_cannon.py) replaces the grey-box Base / Barrel.
+## Its "Carriage" turns with Yaw, its "Barrel" pitches with Pitch; both share the pivot (Pitch
+## origin), so the Muzzle marker and the ballistics stay exactly as before. "" = keep grey box.
+func _apply_model(path: String) -> void:
+	if path.is_empty() or not ResourceLoader.exists(path):
+		return
+	var model := (load(path) as PackedScene).instantiate()
+	var carriage := model.find_child("Carriage", true, false) as Node3D
+	var barrel := model.find_child("Barrel", true, false) as Node3D
+	if carriage == null or barrel == null:
+		model.free()
+		return
+	for n: Node3D in [carriage, barrel]:
+		n.get_parent().remove_child(n)
+		n.owner = null
+		n.transform = Transform3D.IDENTITY
+	carriage.position = _pitch.position
+	_yaw.add_child(carriage)
+	_pitch.add_child(barrel)
+	model.free()
+	$Base.queue_free()
+	$Yaw/Pitch/Barrel.queue_free()
+
+
 ## preview_dots: the level's aim_preview_dots (or rules.aim.default_preview_dots).
 func setup(balls_parent: Node3D, start_ball_id: String, preview_dots: int) -> void:
 	_balls_parent = balls_parent

@@ -281,4 +281,12 @@ Use the attached image ONLY as a style and color reference.
 - Dünya ortamı `src/gameplay/world/env/akdeniz.tres` (sıcak ambient, glow) + `worlds.akdeniz.light` (güneş rengi).
 - Blok ve kaide dokuları `SurfaceTexture` ile nesne uzayında triplanar (UV gerekmez; `rules.visuals.texture_world_scale`).
 - Kalite notları: far'da kemerler kenara çok yakın (19.5:9'da büyük kısmı kırpılıyor, sorun değil); sol üstteki çiçekler HUD şeridine taşıyor (yazılar okunuyor).
-  Kaide şimdilik düz kutu: oymalı kaide + pahlı blok mesh'leri Blender adımında.
+- **Pahlı bloklar ve kaide (Godot'ta prosedürel, Blender değil):** blok ve kaide boyutları bölümden bölüme değişir; sabit bir mesh'i
+  ölçeklemek pahları bozar. `ShapeBuilder.bevel_box_mesh` kutu bloklara `rules.visuals.block_bevel` pahı verir (çarpışma kutusu aynı).
+  Kaide (`Platform`): pahlı kapak (oyun yüzeyi) + altında içeride, koyulaştırılmış kısa gövde (`rules.visuals.plinth`). İlk deneme
+  `pedestal_depth` 4.0 ekranın alt ortasını kaplıyordu → 0.9 + `body_tint` 0.72.
+- **Top modeli (Blender):** `tools/blender/make_cannon.py` → `assets/models/cannon/cannon.glb` (kırmızı + altın, tekerlekli).
+  İki parça: `Carriage` Yaw ile döner, `Barrel` Pitch ile eğilir; pivot ve Muzzle aynı kaldı (balistik değişmedi).
+  Altın düşük metalik (0.35): Canvas arka planda gökyüzü yansıması yok, tam metal altın siyah görünüyordu.
+  Yeniden üretmek: `blender -b --python tools/blender/make_cannon.py -- assets/models/cannon/cannon.glb`. Yol: `rules.visuals.cannon_model`.
+- Kadraj (top büyük, arkadan, alttan kırpık) **Sena onayı bekliyor** (K-016 top konumu değişirse).

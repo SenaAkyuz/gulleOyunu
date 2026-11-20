@@ -86,7 +86,7 @@ func setup(id: String, shape_name: String, material_name: String, pos: Vector3, 
 	_base_emission_enabled = _visual_mat.emission_enabled
 	_base_emission = _visual_mat.emission
 	_base_emission_energy = _visual_mat.emission_energy_multiplier
-	volume = ShapeBuilder.build(self, shape_def, _visual_mat)
+	volume = ShapeBuilder.build(self, shape_def, _visual_mat, float(GameConfig.rule("visuals.block_bevel")))
 	mass = volume * float(mat["density"])
 	var pm := PhysicsMaterial.new()
 	pm.friction = float(mat["friction"])
