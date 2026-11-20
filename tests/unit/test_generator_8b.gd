@@ -6,8 +6,12 @@ const WORLD := "akdeniz"
 const Kit = preload("res://tests/helpers/template_kit.gd")
 
 
+
+func before_all() -> void:
+	LevelGenerator.use_disk_cache = false  # tests always generate for real
+	LevelGenerator.clear_cache()
+
 func test_accepted_levels_meet_the_sim_checks() -> void:
-	var share := float(GameConfig.rule("generator.keystone_shot_success_share"))
 	var within := float(GameConfig.difficulty()["sim_targets"]["min_solve_rate_within_shots"])
 	for k in range(1, 11):
 		var id := LevelGenerator.level_id(1, k)
@@ -20,7 +24,7 @@ func test_accepted_levels_meet_the_sim_checks() -> void:
 			gut.p("%s üretilemedi: %s" % [id, "; ".join(res["report"]["last_problems"])])
 			continue
 		var r: Dictionary = res["report"]
-		assert_gte(float(r["keystone_share"]), share, id + ": keystone atışı hedefi tutmalı")
+		assert_gte(float(r["keystone_share"]), LevelGenerator.keystone_share_required(DifficultyCalc.role_for(k)), id + ": keystone atışı hedefi tutmalı")
 		assert_gte(float(r["within_shots"]), within, id + ": gülleyle çözüm oranı")
 
 

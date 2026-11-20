@@ -245,6 +245,7 @@ static func _trial(level: Dictionary, trial: Dictionary, host: Node, offset: Vec
 	trial["solved"] = solved
 	trial["ratio"] = _ratio(tower, offset, level)
 	trial["jackpot"] = _core_fallen(tower, offset, level)
+	trial["remaining"] = _remaining(tower, offset, level)
 	trial["shots_used"] = used
 	for b in balls:
 		if is_instance_valid(b):
@@ -304,6 +305,19 @@ static func _ratio(tower: TowerBuilder, offset: Vector3, level: Dictionary) -> f
 		if gone:
 			cleared += w
 	return cleared / total if total > 0.0 else 0.0
+
+
+## Blocks still on the platform (not broken, not fallen): [{id, shape, mat, volume}] — for reports.
+static func _remaining(tower: TowerBuilder, offset: Vector3, level: Dictionary) -> Array:
+	var p: Dictionary = level.get("platform", {})
+	var out: Array = []
+	for b in tower.blocks:
+		if b.is_broken:
+			continue
+		if not EdgeRule.is_fallen(b.world_center_of_mass() - offset, float(p.get("width")) / 2.0, float(p.get("depth")) / 2.0,
+				float(GameConfig.rule("physics.edge_margin")), float(GameConfig.rule("physics.fall_kill_y"))):
+			out.append({"id": b.block_id, "shape": b.shape_id, "mat": b.material_id, "volume": snappedf(b.volume, 0.01)})
+	return out
 
 
 static func _core_fallen(tower: TowerBuilder, offset: Vector3, level: Dictionary) -> bool:

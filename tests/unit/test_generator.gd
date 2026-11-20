@@ -8,6 +8,7 @@ const WORLD := "akdeniz"
 
 
 func before_all() -> void:
+	LevelGenerator.use_disk_cache = false  # tests always generate for real
 	LevelGenerator.clear_cache()
 
 

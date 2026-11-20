@@ -6,6 +6,11 @@ const Kit = preload("res://tests/helpers/template_kit.gd")
 const WORLD := "akdeniz"
 
 
+
+func before_all() -> void:
+	LevelGenerator.use_disk_cache = false  # tests always generate for real
+	LevelGenerator.clear_cache()
+
 func _b(shape: String, x: float, y: float, mat: String = "stone") -> Dictionary:
 	return {"id": "%s_%s_%s" % [shape, x, y], "shape": shape, "mat": mat, "x": x, "y": y, "z": 0, "rot": [0, 0, 0]}
 

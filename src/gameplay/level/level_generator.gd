@@ -36,6 +36,15 @@ const SEED_ATTEMPT := 7919
 const SEED_BASE := 1000003
 
 static var _cache: Dictionary = {}
+## Disk cache of generated levels (git-ignored, user://). Key = world + level + seed + rules hash;
+## any change to game_data or to the generation code makes old entries unreachable.
+static var use_disk_cache: bool = true
+static var cache_dir: String = "user://level_cache/"
+static var _rules_hash: String = ""
+## What the rules hash covers: all game data + the code that shapes a generated level.
+const HASH_DIRS: PackedStringArray = ["res://game_data/", "res://src/gameplay/level/", "res://src/gameplay/blocks/",
+		"res://src/gameplay/balls/", "res://src/core/", "res://src/tools/sim/"]
+const HASH_EXTENSIONS: PackedStringArray = ["json", "gd"]
 
 
 static func level_id(world_index: int, index: int) -> String:
@@ -64,6 +73,55 @@ static func is_handmade_slot(index: int) -> bool:
 
 static func clear_cache() -> void:
 	_cache.clear()
+
+
+## MD5 over every game_data JSON and generation script (sorted paths), once per session.
+static func rules_hash() -> String:
+	if _rules_hash.is_empty():
+		var files := PackedStringArray()
+		for d in HASH_DIRS:
+			_collect(d, files)
+		files.sort()
+		var ctx := HashingContext.new()
+		ctx.start(HashingContext.HASH_MD5)
+		for f in files:
+			ctx.update(f.to_utf8_buffer())
+			ctx.update(FileAccess.get_file_as_bytes(f))
+		_rules_hash = ctx.finish().hex_encode()
+	return _rules_hash
+
+
+static func _collect(dir: String, out: PackedStringArray) -> void:
+	for f in DirAccess.get_files_at(dir):
+		if HASH_EXTENSIONS.has(f.get_extension()):
+			out.append(dir + f)
+	for sub in DirAccess.get_directories_at(dir):
+		_collect(dir + sub + "/", out)
+
+
+static func cache_key(world_id: String, index: int, base_seed: int, hash: String) -> String:
+	return "%s_l%02d_s%d_%s" % [world_id, index, base_seed, hash.substr(0, 16)]
+
+
+static func _cache_read(key: String) -> Dictionary:
+	var path := cache_dir + key + ".json"
+	if not FileAccess.file_exists(path):
+		return {}
+	var parsed: Variant = JSON.parse_string(FileAccess.get_file_as_string(path))
+	return parsed if parsed is Dictionary else {}
+
+
+## Writes the entry and removes older entries of the same level (other seeds' are kept).
+static func _cache_write(key: String, world_id: String, index: int, base_seed: int, data: Dictionary) -> void:
+	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(cache_dir))
+	var prefix := "%s_l%02d_s%d_" % [world_id, index, base_seed]
+	for f in DirAccess.get_files_at(cache_dir):
+		if f.begins_with(prefix) and f != key + ".json":
+			DirAccess.remove_absolute(ProjectSettings.globalize_path(cache_dir + f))
+	var file := FileAccess.open(cache_dir + key + ".json", FileAccess.WRITE)
+	if file:
+		file.store_string(JSON.stringify(data))
+		file.close()
 
 
 ## Template of a level file: its first structure's template, or HANDMADE for hand-placed blocks.
@@ -222,7 +280,7 @@ static func generate(world_id: String, index: int, node: Node, opts: Dictionary 
 			# 8b: a direct keystone shot must clear the objective (difficulty = finding / hitting it).
 			var clears: Dictionary = await LevelSim.keystone_clears(expanded, node, int(GameConfig.rule("generator.keystone_shots")), rng)
 			key_share = _best_keystone_share(clears, clear_target)
-			if key_share < float(GameConfig.rule("generator.keystone_shot_success_share")):
+			if key_share < keystone_share_required(role):
 				failed = LevelChecks.KEYSTONE_CLEAR
 				problems[LevelChecks.KEYSTONE_CLEAR] = PackedStringArray(["keystone atışı %%%d hedefi tutmuyor: %s" % [roundi(clear_target * 100.0), _clears_text(clears)]])
 		if failed.is_empty():
@@ -272,11 +330,21 @@ static func resolve(id: String, node: Node) -> Dictionary:
 	var world := world_by_index(wi.x)
 	if world.is_empty() or wi.y < 1 or wi.y > int(world.get("level_count", 0)):
 		return {"ok": false, "level": {}, "source": "", "report": {}}
+	var base_seed := int(GameConfig.rule("generator.base_seed"))
+	var key := cache_key(str(world["id"]), wi.y, base_seed, rules_hash())
+	if use_disk_cache:
+		var cached := _cache_read(key)
+		if not cached.is_empty():
+			cached["from_disk_cache"] = true
+			_cache[id] = cached
+			return cached
 	var res: Dictionary = await generate(str(world["id"]), wi.y, node)
 	var out := {"ok": res["ok"], "level": res["expanded"], "report": res["report"],
 			"source": SOURCE_CANDIDATE if is_handmade_slot(wi.y) else SOURCE_GENERATED}
-	if res["ok"]:
-		_cache[id] = out
+	# Failures are cached too (with their report), so N/B does not retry 12 attempts every time.
+	_cache[id] = out
+	if use_disk_cache:
+		_cache_write(key, str(world["id"]), wi.y, base_seed, out)
 	return out
 
 
@@ -292,6 +360,8 @@ static func describe(res: Dictionary) -> String:
 		text += " · plan %s geçmedi" % planned
 	if bool(r.get("single_fallback", false)):
 		text += " · zincir kurulamadı, tek yapı"
+	if bool(res.get("from_disk_cache", false)):
+		text += " · önbellekten"
 	if not (r.get("warnings", []) as Array).is_empty():
 		text += " · UYARI: " + "; ".join(PackedStringArray(r["warnings"]))
 	return text
@@ -342,6 +412,12 @@ static func _build_level(world: Dictionary, wi: int, index: int, d: float, role:
 	level["platform"] = LayoutCheck.platform_for(final_blocks)
 	level["platform"]["style"] = str(world.get("platform_style", ""))
 	return level
+
+
+## Keystone shots that must reach the objective on the best keystone, for a role (K-032).
+static func keystone_share_required(role: String) -> float:
+	var by_role: Dictionary = GameConfig.rule("generator.keystone_shot_success_share_by_role")
+	return float(by_role.get(role, GameConfig.rule("generator.keystone_shot_success_share")))
 
 
 ## Share of shots reaching `target` on the best keystone.

@@ -489,7 +489,7 @@ Level (Node3D)  ← level_loader.gd: JSON okur (LevelExpander ile şablonları a
 (`baked: true` bölümler olduğu gibi kalır). Parametreler: `DifficultyCalc.params(difficulty)` (`src/core/difficulty_calc.gd`, `difficulty.json → curves`)
 üzerine yapının `params`'ı; rastgelelik yapının `seed`'inden (aynı dosya = aynı kule). Şablonlar `src/gameplay/level/templates/<id>.gd`
 (`TowerTemplate`'ten türer, `TemplateRegistry` bulur), blokları yerel çerçevede ve **rol** ile (`structure` / `light` / `crystal`) verir;
-`MaterialPicker` rolü dünya paletinden malzemeye çevirir. Blok id'leri `s<n>_b01…`. Dev: **N / B** dünyanın sonraki/önceki bölümü — dosyası varsa dosya, yoksa `LevelGenerator` çıktısı (docs/03 §8; kaynak Dev Panel'de).
+`MaterialPicker` rolü dünya paletinden malzemeye çevirir. Blok id'leri `s<n>_b01…`. Dev: **N / B** dünyanın sonraki/önceki bölümü — dosyası varsa dosya, yoksa `LevelGenerator` çıktısı (docs/03 §8; kaynak Dev Panel'de). Üretilen bölümler `user://level_cache/`'e önbelleğe alınır (anahtar: dünya + bölüm + seed + kural hash'i; K-032): ilk açılış üretir (simülasyon dahil, birkaç saniye–dakika), sonrakiler anında.
 
 ---
 
@@ -996,6 +996,40 @@ hedefin çok üstüne çıktı** (combine %30–46, hedef %6–20) — rastgele 
 tutturamadı → **üretilemedi** (kural gevşetilmedi). Merkezden tek keystone atışı bazı kabul edilen bölümlerde ✘ (L02, L04, L06): generator 3 atışın yarısını
 yeterli sayıyor (merkez dışı noktalar tutuyor). Süre: Dünya 1 ~1.4 dk; test seti 6 dk 45 sn → ~30 sn (`--fixed-fps`).
 Not: 8b'nin ara ölçümü `Engine.time_scale` ile hızlandırılmıştı ve bu fizik adımını büyüttüğü için geçersizdi (yayınlanmadı); yukarıdaki tablo doğru adımla.
+
+**K-032 — rol bazlı keystone oranı, önbellek (Sena, 2026-11-20):**
+- Kabul oranı `rules.generator.keystone_shot_success_share` = **1/3** (3 atıştan 1'i; §8.1 "en az birinde") varsayılan; kolay rollerde
+  (`intro`, `build_up`, `breather`, `new_mechanic`) `keystone_shot_success_share_by_role` = **2/3**. Listede olmayan `combine` varsayılanı (1/3) kullanır.
+  Not: §8.1'deki "en az birinde" keystone'lardan en az biri demektir; atış oranı bundan ayrı bir eşiktir.
+- **Önbellek:** üretilen bölümler (başarısızlar raporlarıyla) `user://level_cache/<dünya>_lNN_s<seed>_<kural hash'i>.json` dosyasına yazılır;
+  kural hash'i = `game_data`'daki tüm JSON + üretimi etkileyen kod (`src/gameplay/level`, `blocks`, `balls`, `src/core`, `src/tools/sim`) MD5'i.
+  Herhangi biri değişince eski kayıt kullanılmaz. Testler önbelleği kapatır (`LevelGenerator.use_disk_cache = false`).
+- **Boss = çoklu yapı'dan sapma (L10):** iki yapılı denemelerde ikinci yapı (taş sütunlu ikiz) birincinin devrilmesiyle devrilmiyor → tek keystone en çok
+  %4–37 temizlik (teşhis: kalan bloklar ikinci yapının tamamı + yan kuleler + taş ayaklar + yerdeki yuva). Oyun alanını genişletmek (kamerayı uzaklaştırma
+  eşdeğeri ±6.5 / ±8) alana sığmama hatalarını kaldırdı ama hiçbir zincir %80'e ulaşmadı → kalıcı `camera_override` eklenmedi. Tek yapıya dönüş de
+  12 denemede %80'i 1/3 atışla tutturamadı (en iyi %75; yarım ayaklı tek kemer merkez atışında %82 verebiliyor ama o tohumla değil) → **L10 üretilemiyor**.
+  "Daha geniş platform" yapılmadı: K-018 / §2 dar platform kuralına aykırı (geniş platformda %80 düşmez) ve sorun platform değil zincir aktarımı.
+- **Faz 1 / K-021 yeniden doğrulama (`--fixed-fps 60`):** `time_scale` hatası 8b'den önceki ölçümlere girmedi (hızlandırma yalnız 8b'de vardı).
+  L01 keystone'una 20 atış (yüzünde rastgele noktalar): kazanma 15/20, jackpot 20/20; ön yüzün merkezine yakın vuruşlar kristali ilk temasta kırıyor
+  ve %86–100 temizlik veriyor (K-021 ile uyumlu), kenar/köşe vuruşları ilk temasta 3.9–8.4 hasar (kristal hp 10) → kırmıyor. Aynı hedef iki kopyada
+  farklı sonuç verebiliyor (kayan nokta farkları, kaotik çöküş) — bu yüzden sim dağılım ölçer.
+
+**Dördüncü ölçüm — K-032 sonrası (200 örnek). 8b → şimdi:**
+
+| Bölüm | Rol | Şablon | Tek atış (hedef) | Keystone (merkez atış) | Gülleyle çözüm | Not |
+|---|---|---|---|---|---|---|
+| L01 | intro | elle | %37 → %37 ✔ | ✔ %86 | %53 ✔ | |
+| L02 | build_up | yük. piramit | %37 → %37 ⚠ (10–30) | ✘ %63 | %90 ✔ | Sena oynayınca karar verecek |
+| L03 | build_up | yarım ayaklı kemer | %14 → %14 ✔ | ✔ %82 | %59 ✔ | |
+| L04 | breather | ikiz sütun | %23 → %23 ⚠ (25–55) | ✘ %40 | %73 ✔ | hedefin biraz altı |
+| L05 | new_mechanic | kemer (plan merdiven geçmedi) | %45 → %45 ⚠ (10–35) | ✔ %93 | %88 ✔ | **kalibrasyon bekliyor (Faz 6–9 hasar dengesi)** |
+| L06 | combine | yük. piramit → **ikiz sütun** | %30 → **%19 ✔** (6–20) | ✘ %40 | %63 ✔ | artık hedefte |
+| L07 | combine | kemer | %46 → %46 ⚠ (6–20) | ✔ %93 | %89 ✔ | **kalibrasyon bekliyor (Faz 6–9 hasar dengesi)** |
+| L08 | challenge | üretilemedi → **merdiven** | – → %12 ⚠ (2–8) | ✘ %21 (kabul: 3 atıştan 1'i ≥%80) | %59 ✔ | **kalibrasyon bekliyor**; merkez atışı zayıf |
+| L09 | breather | kemer (plan piramit geçmedi) | %54 → %54 ✔ | ✔ %93 | %60 ✔ | |
+| L10 | boss | **üretilemedi** | – | – | – | yukarıdaki sapma notu |
+
+`sim_targets` değişmedi. Süre: Dünya 1 ~1 dk (üretim önbellekten).
 
 ### 8.2 Bölüm editörü (Godot editör eklentisi, Faz 3)
 > **K-024:** Faz 3'te özel ızgara editörü yerine Godot editör paneli yapılır: butonlar aşağıdaki gibi, bloklar Godot'un 3D gizmo'su ile taşınır. Aşağıdaki üç panelli düzen ileride değerlendirilir.
@@ -1554,6 +1588,7 @@ Faz 0–1: 1 hafta · Faz 2–4: 2 hafta · Faz 5–6: 1.5 hafta · Faz 7–8: 2
 | K-029 | 2026-11-20 | **Yere değen hacim tavanı + bütçe üst sınırı:** `difficulty.curves.ground_contact_max_ratio` (d1 %30 → d50 %40 → d100 %50), kolay rollerde (intro/build_up/breather) %30 tavan; generator bunu ve `rules.generator.budget_max_over` (%25) sınırını yeniden deneme koşulu olarak uygular; geniş tabanlı şablonlar kolay rollerde yükseltilmiş / yarım ayaklı varyantla gelir. K-018 ve `sim_targets` değişmedi | Sim: yalnız yere değen hacmi düşük kuleler (L01 %27, L05 %21) %80'e ulaşıyordu; tavan sonrası hedefteki bölüm 2 → 3, gülleyle çözülebilen 3 → 6 | Onaylandı (Sena) |
 | K-030 | 2026-11-19 | **Altın Küre bölümü asla bitirmez:** her bölümde kazanma = temizlik (`clear_percent`); küre her zaman yalnızca jackpot. `drop_core` / `drop_all_cores` hedefleri kaldırıldı; L03 `clear_percent` oldu (platform kule ayak izine göre daraltıldı). `economy.sim.core_jackpot_levels_per_world` (8) Faz 6'da gözden geçirilecek | Sena: tek gülleyle küreyi vurup bölümü bitirmek kule yıkmayı anlamsızlaştırıyor | Onaylandı (Sena) |
 | K-031 | 2026-11-20 | **8b — simülasyon generator döngüsünde:** keystone_clear_min (en iyi keystone'a 3 atışın en az yarısı %80 temizlik), gülleyle çözüm ≥ %20 değilse ret, çok yapılıda zincir (sonraki yapı keystone tarafında) ya da tek yapıya dönüş, planlı şablon geçmezse bölüme uyan diğer şablonlar; sınırda hata + sebep. L03 yarım küp ayaklı kemer. Testler ve sim `--fixed-fps 60` + izole fizik dünyası (`Engine.time_scale` kullanılmaz) | Orta/zor bölümlerde hiçbir keystone %80'e ulaşmıyordu; zorluk keystone'u bulmaktan gelmeli | Onaylandı (Sena) |
+| K-032 | 2026-11-20 | **Rol bazlı keystone kabul oranı + orta roller kalibrasyon bekliyor:** varsayılan 1/3 (3 atıştan 1'i), kolay roller (intro, build_up, breather, new_mechanic) 2/3; `combine` listede yok → varsayılan. Orta rollerde tek atış fazlası için generator ayarlanmaz; L05, L07 (ve L08) "kalibrasyon bekliyor (Faz 6–9 hasar dengesi)". Üretilen bölümler diske önbelleğe alınır (kural hash'i ile). L10: boss çoklu yapı zinciri kurulamıyor, üretilemiyor (sapma docs/03 §8.1) | 8b ölçümü: L08/L10 üretilemiyordu; orta rollerde tek atış hedefin üstünde; `sim_targets` korunacak | Onaylandı (Sena) |
 
 ## Açık sorular (Sena karar verecek)
 | No | Soru | Öneri | Durum |
@@ -1949,9 +1984,10 @@ Faz 0–1: 1 hafta · Faz 2–4: 2 hafta · Faz 5–6: 1.5 hafta · Faz 7–8: 2
     "max_attempts": 12,
     "budget_max_over": 0.25,
     "keystone_shots": 3,
-    "keystone_shot_success_share": 0.5,
+    "keystone_shot_success_share": 0.33,
+    "keystone_shot_success_share_by_role": { "intro": 0.66, "build_up": 0.66, "breather": 0.66, "new_mechanic": 0.66 },
     "sim_greedy_samples": 20,
-    "_doc_sim_loop": "8b (Sena 2026-11-20): kule kabul edilmeden once kisa sim. keystone_shots: her keystone'a bu kadar dogrudan atis (yuzunde farkli noktalar); en iyi keystone'da atislarin en az keystone_shot_success_share kadari objective (clear_percent) hedefine ulasmali (keystone_clear_min). sim_greedy_samples: acgozlu cok atisli deneme sayisi; cozum orani difficulty.sim_targets.min_solve_rate_within_shots altindaysa kule reddedilir. Hiz icin oyun/testler headless --fixed-fps 60 ile calistirilir (Engine.time_scale fizik adimini da buyuttugu icin kullanilmaz).",
+    "_doc_sim_loop": "8b (Sena 2026-11-20): kule kabul edilmeden once kisa sim. keystone_shots: her keystone'a bu kadar dogrudan atis (yuzunde farkli noktalar); en iyi keystone'da atislarin en az keystone_shot_success_share kadari objective (clear_percent) hedefine ulasmali (keystone_clear_min). K-032: varsayilan 0.33 (3 atistan 1'i; docs/03 8.1 'en az birinde'), keystone_shot_success_share_by_role kolay rollerde 0.66 (3 atistan 2'si). Listede olmayan roller (combine, challenge, boss) varsayilani kullanir. sim_greedy_samples: acgozlu cok atisli deneme sayisi; cozum orani difficulty.sim_targets.min_solve_rate_within_shots altindaysa kule reddedilir. Hiz icin oyun/testler headless --fixed-fps 60 ile calistirilir (Engine.time_scale fizik adimini da buyuttugu icin kullanilmaz).",
     "budget_warn_below": 0.6,
     "structure_gap": 1.0,
     "max_structures": 3,

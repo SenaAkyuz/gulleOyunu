@@ -354,6 +354,40 @@ tutturamadı → **üretilemedi** (kural gevşetilmedi). Merkezden tek keystone 
 yeterli sayıyor (merkez dışı noktalar tutuyor). Süre: Dünya 1 ~1.4 dk; test seti 6 dk 45 sn → ~30 sn (`--fixed-fps`).
 Not: 8b'nin ara ölçümü `Engine.time_scale` ile hızlandırılmıştı ve bu fizik adımını büyüttüğü için geçersizdi (yayınlanmadı); yukarıdaki tablo doğru adımla.
 
+**K-032 — rol bazlı keystone oranı, önbellek (Sena, 2026-11-20):**
+- Kabul oranı `rules.generator.keystone_shot_success_share` = **1/3** (3 atıştan 1'i; §8.1 "en az birinde") varsayılan; kolay rollerde
+  (`intro`, `build_up`, `breather`, `new_mechanic`) `keystone_shot_success_share_by_role` = **2/3**. Listede olmayan `combine` varsayılanı (1/3) kullanır.
+  Not: §8.1'deki "en az birinde" keystone'lardan en az biri demektir; atış oranı bundan ayrı bir eşiktir.
+- **Önbellek:** üretilen bölümler (başarısızlar raporlarıyla) `user://level_cache/<dünya>_lNN_s<seed>_<kural hash'i>.json` dosyasına yazılır;
+  kural hash'i = `game_data`'daki tüm JSON + üretimi etkileyen kod (`src/gameplay/level`, `blocks`, `balls`, `src/core`, `src/tools/sim`) MD5'i.
+  Herhangi biri değişince eski kayıt kullanılmaz. Testler önbelleği kapatır (`LevelGenerator.use_disk_cache = false`).
+- **Boss = çoklu yapı'dan sapma (L10):** iki yapılı denemelerde ikinci yapı (taş sütunlu ikiz) birincinin devrilmesiyle devrilmiyor → tek keystone en çok
+  %4–37 temizlik (teşhis: kalan bloklar ikinci yapının tamamı + yan kuleler + taş ayaklar + yerdeki yuva). Oyun alanını genişletmek (kamerayı uzaklaştırma
+  eşdeğeri ±6.5 / ±8) alana sığmama hatalarını kaldırdı ama hiçbir zincir %80'e ulaşmadı → kalıcı `camera_override` eklenmedi. Tek yapıya dönüş de
+  12 denemede %80'i 1/3 atışla tutturamadı (en iyi %75; yarım ayaklı tek kemer merkez atışında %82 verebiliyor ama o tohumla değil) → **L10 üretilemiyor**.
+  "Daha geniş platform" yapılmadı: K-018 / §2 dar platform kuralına aykırı (geniş platformda %80 düşmez) ve sorun platform değil zincir aktarımı.
+- **Faz 1 / K-021 yeniden doğrulama (`--fixed-fps 60`):** `time_scale` hatası 8b'den önceki ölçümlere girmedi (hızlandırma yalnız 8b'de vardı).
+  L01 keystone'una 20 atış (yüzünde rastgele noktalar): kazanma 15/20, jackpot 20/20; ön yüzün merkezine yakın vuruşlar kristali ilk temasta kırıyor
+  ve %86–100 temizlik veriyor (K-021 ile uyumlu), kenar/köşe vuruşları ilk temasta 3.9–8.4 hasar (kristal hp 10) → kırmıyor. Aynı hedef iki kopyada
+  farklı sonuç verebiliyor (kayan nokta farkları, kaotik çöküş) — bu yüzden sim dağılım ölçer.
+
+**Dördüncü ölçüm — K-032 sonrası (200 örnek). 8b → şimdi:**
+
+| Bölüm | Rol | Şablon | Tek atış (hedef) | Keystone (merkez atış) | Gülleyle çözüm | Not |
+|---|---|---|---|---|---|---|
+| L01 | intro | elle | %37 → %37 ✔ | ✔ %86 | %53 ✔ | |
+| L02 | build_up | yük. piramit | %37 → %37 ⚠ (10–30) | ✘ %63 | %90 ✔ | Sena oynayınca karar verecek |
+| L03 | build_up | yarım ayaklı kemer | %14 → %14 ✔ | ✔ %82 | %59 ✔ | |
+| L04 | breather | ikiz sütun | %23 → %23 ⚠ (25–55) | ✘ %40 | %73 ✔ | hedefin biraz altı |
+| L05 | new_mechanic | kemer (plan merdiven geçmedi) | %45 → %45 ⚠ (10–35) | ✔ %93 | %88 ✔ | **kalibrasyon bekliyor (Faz 6–9 hasar dengesi)** |
+| L06 | combine | yük. piramit → **ikiz sütun** | %30 → **%19 ✔** (6–20) | ✘ %40 | %63 ✔ | artık hedefte |
+| L07 | combine | kemer | %46 → %46 ⚠ (6–20) | ✔ %93 | %89 ✔ | **kalibrasyon bekliyor (Faz 6–9 hasar dengesi)** |
+| L08 | challenge | üretilemedi → **merdiven** | – → %12 ⚠ (2–8) | ✘ %21 (kabul: 3 atıştan 1'i ≥%80) | %59 ✔ | **kalibrasyon bekliyor**; merkez atışı zayıf |
+| L09 | breather | kemer (plan piramit geçmedi) | %54 → %54 ✔ | ✔ %93 | %60 ✔ | |
+| L10 | boss | **üretilemedi** | – | – | – | yukarıdaki sapma notu |
+
+`sim_targets` değişmedi. Süre: Dünya 1 ~1 dk (üretim önbellekten).
+
 ### 8.2 Bölüm editörü (Godot editör eklentisi, Faz 3)
 > **K-024:** Faz 3'te özel ızgara editörü yerine Godot editör paneli yapılır: butonlar aşağıdaki gibi, bloklar Godot'un 3D gizmo'su ile taşınır. Aşağıdaki üç panelli düzen ileride değerlendirilir.
 - Sol panel: şablon/blok paleti · Orta: grid üzerinde sürükle-bırak · Sağ: seçili bloğun malzemesi, döndürme, keystone işareti.
