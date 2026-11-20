@@ -86,3 +86,35 @@ func test_background_worker_expand_generate_sim() -> void:
 	var sim := await _worker(["--mode", "sim", "--file", file, "--samples", "10"], "sim")
 	assert_true(bool(sim.get("ok", false)), "simüle et")
 	assert_true((sim.get("sim", {}) as Dictionary).has("verdict"))
+
+
+func test_previewed_template_level_is_not_expanded_twice() -> void:
+	# Regression (Sena 2026-11-20): Test Et with a previewed candidate built every block twice,
+	# because the header still held the template calls and the level was not baked.
+	var lv := LevelExpander.expand(GameConfig.level("w01_l03"))
+	var root := LevelPreview.build(lv, _data())
+	add_child_autofree(root)
+	var back := LevelPreview.read(root)
+	assert_true(bool(back["baked"]))
+	assert_false(back.has("structures"))
+	assert_eq((LevelExpander.expand(back)["blocks"] as Array).size(), (lv["blocks"] as Array).size())
+
+
+func test_previewed_level_plays_without_errors() -> void:
+	var lv := LevelExpander.expand(GameConfig.level("w01_l03"))
+	var root := LevelPreview.build(lv, _data())
+	add_child_autofree(root)
+	LevelLoader.dev_level_data = LevelPreview.read(root)
+	var scene: Node = load("res://src/gameplay/level/level.tscn").instantiate()
+	add_child(scene)
+	await wait_physics_frames(5)
+	assert_eq((scene.get_node("Tower") as TowerBuilder).blocks.size(), (lv["blocks"] as Array).size())
+	scene.queue_free()
+	LevelLoader.dev_level_data = {}
+	await wait_process_frames(1)
+
+
+func test_failed_candidate_score_is_valid_json() -> void:
+	var text := JSON.stringify({"score": CandidatePipeline.score({})})
+	assert_false(text.contains("e9999"), text)
+	assert_true(JSON.parse_string(text) is Dictionary)

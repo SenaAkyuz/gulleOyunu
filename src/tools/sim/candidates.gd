@@ -9,6 +9,9 @@ extends RefCounted
 ## templates that fit the slot and differ from the planned neighbours) and base_seed + i * SEED_STEP.
 
 const SEED_STEP := 7919
+## Distance used for a failed candidate (finite: the score is written to JSON; -INF became
+## "-1e99999", which Godot's JSON parser warns about).
+const FAILED_DISTANCE := 1000.0
 ## Selection rule (Sena 2026-11-20): generator checks first (keystone included: every candidate
 ## here already passed them), then the sim targets — so only the sim_targets rates rank:
 ## metrics on target first, then how far the one-shot rate is from its target range.
@@ -63,7 +66,7 @@ static func run_level(world_id: String, index: int, host: Node, count: int, samp
 ## [metrics on target, -distance of the one-shot rate from its range]; {} (failed) ranks last.
 static func score(sim: Dictionary) -> Array:
 	if sim.is_empty():
-		return [-1, -INF]
+		return [-1, -FAILED_DISTANCE]
 	var v: Dictionary = sim.get("verdict", {})
 	var ok := 0
 	for m in METRICS:

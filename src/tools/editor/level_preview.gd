@@ -22,8 +22,11 @@ static func build(level: Dictionary, data: Dictionary) -> Node3D:
 	var root := Node3D.new()
 	root.name = ROOT_NAME
 	var header := level.duplicate(true)
-	for k in ["blocks", "cores", "keystones", "_expanded", "_expand_warnings"]:
+	# The preview lists every block: the template calls are already applied (re-expanding them
+	# would add every block a second time), so they are dropped and the level counts as baked.
+	for k in ["blocks", "cores", "keystones", "_expanded", "_expand_warnings", "structures"]:
 		header.erase(k)
+	header["baked"] = true
 	root.set_meta(META_HEADER, header)
 	var shapes: Dictionary = data.get("shapes", {})
 	var rules: Dictionary = data.get("rules", {})
@@ -94,4 +97,6 @@ static func read(root: Node3D) -> Dictionary:
 	level["blocks"] = blocks
 	level["cores"] = cores
 	level["keystones"] = keystones
+	level.erase("structures")
+	level["baked"] = true
 	return level
