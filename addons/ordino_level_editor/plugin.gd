@@ -1,6 +1,6 @@
 @tool
 extends EditorPlugin
-## Ordino level editor (Faz 3 Step 10, docs/03 §8.2, K-024): a dock on the right. Heavy work runs
+## Ordino level editor (Faz 3 Step 10, docs/03 §8.2, K-024): a dock on the left, next to the Scene tab. Heavy work runs
 ## in a headless background Godot (src/tools/sim/editor_cli.gd, candidates_cli.gd) because the
 ## editor runs no physics and no autoloads.
 
