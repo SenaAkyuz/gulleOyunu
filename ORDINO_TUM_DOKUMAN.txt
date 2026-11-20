@@ -1062,7 +1062,7 @@ Tam tablolar ve ekran görüntüleri `_candidates/` altında.
 
 ### 8.2 Bölüm editörü (Godot editör eklentisi, Faz 3)
 > **K-024 / Adım 10 sapması (Sena, 2026-11-20):** aşağıdaki üç panelli ızgara sürükle-bırak editörü **yapılmadı**; yerine Godot editör paneli + önizleme sahnesi:
-> - **Eklenti:** `addons/ordino_level_editor/` (sağ dock "Ordino Bölüm"). Dünya / bölüm seç; rol, zorluk, kaynak (dosya / generator / elle tasarlanacak); seed ve şablon ("plan" ya da dünyanın şablonları).
+> - **Eklenti:** `addons/ordino_level_editor/` (sol üstte, Sahne sekmesinin yanında "Ordino Bölüm" sekmesi). Dünya / bölüm seç; rol, zorluk, kaynak (dosya / generator / elle tasarlanacak); seed ve şablon ("plan" ya da dünyanın şablonları).
 > - **Önizleme sahnesi** `res://_editor/level_preview.tscn` (git dışı): her blok bir `StaticBody3D` (adı blok id'si, şekil çarpışma + gri-kutu mesh; keystone kırmızımsı). **Fizik kapalı**; bloklar Godot'un kendi
 >   taşı / döndür aracıyla düzenlenir; `LevelPreview.read()` konum/dönüşleri JSON'a geri çevirir (`src/tools/editor/level_preview.gd`).
 > - **Butonlar:** *Aç* (dosya ya da generator sonucu) · *Üret* (seed / şablonla, tüm generator kontrolleri) · *5 Aday* (aday hattı; tablo + küçük görüntü + "Önizle") ·

@@ -12,7 +12,7 @@ var _dock: Control
 func _enter_tree() -> void:
 	_dock = DOCK.new()
 	_dock.name = "Ordino Bölüm"
-	add_control_to_dock(DOCK_SLOT_RIGHT_UL, _dock)
+	add_control_to_dock(DOCK_SLOT_LEFT_UL, _dock)  # next to the Scene tab, easy to find
 	print("Ordino Bölüm Editörü hazır")
 
 
