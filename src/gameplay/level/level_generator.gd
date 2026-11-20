@@ -37,6 +37,8 @@ const SEED_WORLD := 10007
 const SEED_LEVEL := 101
 const SEED_ATTEMPT := 7919
 const SEED_BASE := 1000003
+## Same template at most this many times among a world's generator levels (Sena 2026-11-20).
+const MAX_SAME_TEMPLATE := 2
 
 static var _cache: Dictionary = {}
 ## Disk cache of generated levels (git-ignored, user://). Key = world + level + seed + rules hash;
@@ -167,6 +169,7 @@ static func plan_world(world_id: String, opts: Dictionary = {}) -> Dictionary:
 			files[k] = file_template(GameConfig.level(id))
 	var templates: Array[String] = []
 	var sources: Array[String] = []
+	var gen_counts := {}
 	var errors := PackedStringArray()
 	for k in range(1, count + 1):
 		if files.has(k):
@@ -183,6 +186,14 @@ static func plan_world(world_id: String, opts: Dictionary = {}) -> Dictionary:
 			avoid.append(templates[k - 2])
 		if files.has(k + 1):
 			avoid.append(str(files[k + 1]))
+		# Selection rule (Sena 2026-11-20): a template at most MAX_SAME_TEMPLATE times among this
+		# world's generator levels (hand-made slots and files do not count).
+		var capped := PackedStringArray()
+		for t in pool:
+			if gen_counts.get(t, 0) < MAX_SAME_TEMPLATE:
+				capped.append(t)
+		if not capped.is_empty():
+			pool = capped
 		# Variety: among the allowed templates prefer the ones this world has used least so far.
 		var allowed := PackedStringArray()
 		var least := INF
@@ -199,6 +210,8 @@ static func plan_world(world_id: String, opts: Dictionary = {}) -> Dictionary:
 			var rng := RandomNumberGenerator.new()
 			rng.seed = seed_for(wi, k, 0, _base_seed(opts))
 			templates.append(allowed[rng.randi_range(0, allowed.size() - 1)])
+			if not is_handmade_slot(k):
+				gen_counts[templates[-1]] = int(gen_counts.get(templates[-1], 0)) + 1
 		sources.append(SOURCE_CANDIDATE if is_handmade_slot(k) else SOURCE_GENERATED)
 	return {"templates": templates, "sources": sources, "errors": errors}
 

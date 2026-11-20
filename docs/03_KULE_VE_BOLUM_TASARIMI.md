@@ -393,6 +393,7 @@ sırayla alır (plandaki önce, sonra iki komşunun planlı şablonundan farklı
 kontrollerinden geçer (yerleşim, denge, keystone görüş/erişim, bütçe, yere değen hacim, fizik, keystone temizliği, gülleyle çözüm), sonra 200 örnekle
 simüle edilir ve `sim_targets`'a göre sıralanır (önce hedefi tutan metrik sayısı, eşitlikte tek atış oranının hedef aralığına uzaklığı).
 Pencereli çalıştırılırsa her adayın ekran görüntüsü alınır. Çıktı `_candidates/<bölüm>/cand_<sıra>.json|png` + `summary.md` (git dışı).
+**Seçim kuralı (Sena, 2026-11-20):** önce generator kontrolleri (keystone dahil — aday zaten geçmiş olmalı), sonra `sim_targets` oranları (tek atış, gülleyle çözüm); keystone merkez atışı sıralamaya girmez. Bir dünyada generator'dan gelen bölümlerde **aynı şablon en fazla 2 kez**; art arda tekrar yok.
 **`game_data`'ya hiçbir şey yazılmaz:** elle bölümler (L01, L04, L09, L10) ve dosyası olan bölümler için yalnızca öneridir; seçilen aday Adım 11'de pişirilir.
 Komut: `godot --fixed-fps 60 --path . -s src/tools/sim/candidates_cli.gd -- --world akdeniz` (veya `--level w01_l05`).
 
@@ -422,6 +423,9 @@ Tam tablolar ve ekran görüntüleri `_candidates/` altında.
 - Claude'a da yaptırılabilir: `/ordino-level-designer w02 bölüm 6'yı daha zor yap, halat ekle`.
 
 ## 9. 80 bölüm için başlangıç planı
+> **Adım 11 notu (Sena, 2026-11-20):** adaylar §8 seçim kuralıyla seçilir (önce generator kontrolleri, sonra sim hedefleri; generator bölümlerinde aynı şablon ≤ 2).
+> **Dünya 1 önerisi:** L02 yükseltilmiş piramit, L03 kemer, L05 kemer, L06 ikiz sütun, L07 yükseltilmiş piramit, L08 ikiz sütun; **L01, L04, L09, L10 elle**.
+> Seçilen aday `baked: true` olarak dosyaya pişirilir; elle bölümler Adım 11'de tasarlanır.
 - Her dünya için `difficulty.json → rhythm` ile 10 bölümün zorluk ve rolü otomatik belirlenir.
 - Faz 9'da generator her bölüm için 5 aday üretir → en iyiler seçilir → elle cilalanır.
 - Bölümlerin %20'si (her dünyada 1, 4, 9, 10) **elle tasarlanır** (imza anlar); geri kalanı generator + ince ayar.

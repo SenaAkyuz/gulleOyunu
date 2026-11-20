@@ -175,8 +175,10 @@
   "save": {
     "file": "user://save.json",
     "backup_file": "user://save.bak.json",
+    "test_file": "user://test_save/save.json",
+    "test_backup_file": "user://test_save/save.bak.json",
     "default_settings": { "sfx": 1.0, "music": 0.7, "lang": "tr" },
-    "_doc": "SaveManager (docs/02 8): kayit dosyasi ve yedegi (her kayitta onceki saglam dosya yedege alinir). default_settings: ilk acilistaki ses/muzik/dil; titresim varsayilani feel.haptics_default_on."
+    "_doc": "SaveManager (docs/02 8): kayit dosyasi ve yedegi (her kayitta onceki saglam dosya yedege alinir). default_settings: ilk acilistaki ses/muzik/dil; titresim varsayilani feel.haptics_default_on. test_file / test_backup_file: test ve simulasyon kosulari (komut satirindan -s betigi, GUT) gercek kayit yerine bunu kullanir (Sena 2026-11-20)."
   },
   "quality": {
     "default": "medium",

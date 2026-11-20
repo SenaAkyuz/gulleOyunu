@@ -86,7 +86,7 @@ func _row(c: Dictionary, lc: Script, img: String) -> String:
 		key_best = maxf(key_best, float(s["keystones"][k]["collapse"]))
 		key_ok = key_ok or bool(s["keystones"][k]["solved"])
 	var rep: Dictionary = c["report"]
-	return "| %d | %s | %d | ✔ %d/4 hedef | %%%d %s (%s) | %s %%%d | %%%d %s | %%%d | %%%d | %s |" % [
+	return "| %d | %s | %d | ✔ %d/2 hedef | %%%d %s (%s) | %s %%%d | %%%d %s | %%%d | %%%d | %s |" % [
 		c["rank"], "+".join(PackedStringArray(rep.get("templates", [c["template"]]))), c["seed"], int(c["score"][0]),
 		roundi(float(s["one_shot_solve_rate"]) * 100.0), "✔" if bool(one.get("ok", false)) else "⚠", _range(one.get("target", [])),
 		"✔" if key_ok else "✘", roundi(key_best * 100.0),

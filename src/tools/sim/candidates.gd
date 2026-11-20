@@ -9,8 +9,10 @@ extends RefCounted
 ## templates that fit the slot and differ from the planned neighbours) and base_seed + i * SEED_STEP.
 
 const SEED_STEP := 7919
-## Ranking: metrics on target first, then how far the one-shot rate is from its target range.
-const METRICS: PackedStringArray = ["one_shot_solve_rate", "within_shots_rate", "keystone_collapse", "keystone_success"]
+## Selection rule (Sena 2026-11-20): generator checks first (keystone included: every candidate
+## here already passed them), then the sim targets — so only the sim_targets rates rank:
+## metrics on target first, then how far the one-shot rate is from its target range.
+const METRICS: PackedStringArray = ["one_shot_solve_rate", "within_shots_rate"]
 
 
 ## Templates to try for a slot, planned one first.

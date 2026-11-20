@@ -150,3 +150,13 @@ func test_world_1_uses_variety() -> void:
 			assert_true(used.has(name), "Dünya 1 planında %s hiç yok: %s" % [name, t])
 		else:
 			gut.p("%s hiçbir bölümün yere değen hacim / bütçe sınırına uymuyor" % name)
+
+
+func test_same_template_at_most_twice_in_generator_levels() -> void:
+	var plan := LevelGenerator.plan_world(WORLD)
+	var counts := {}
+	for k in range(1, 11):
+		if plan["sources"][k - 1] == LevelGenerator.SOURCE_GENERATED:
+			counts[plan["templates"][k - 1]] = int(counts.get(plan["templates"][k - 1], 0)) + 1
+	for t: String in counts:
+		assert_lte(int(counts[t]), LevelGenerator.MAX_SAME_TEMPLATE, "%s %d kez" % [t, counts[t]])

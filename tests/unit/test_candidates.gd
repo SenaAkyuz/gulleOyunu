@@ -21,7 +21,9 @@ func test_score_ranks_targets_then_distance() -> void:
 	assert_true(CandidatePipeline.better(on_target, too_easy), "hedefteki önce")
 	assert_true(CandidatePipeline.better(too_easy, way_too_easy), "hedefe yakın olan önce")
 	assert_true(CandidatePipeline.better(way_too_easy, failed), "geçemeyen en sonda")
-	assert_eq(on_target[0], 4)
+	assert_eq(on_target[0], 2, "yalnız sim hedefleri sayılır (keystone generator kontrolü)")
+	# A candidate whose centre keystone shot misses but whose rates are on target still ranks first.
+	assert_true(CandidatePipeline.better(CandidatePipeline.score(_sim(0.2, 0.1, 0.3, true, false)), too_easy))
 
 
 func test_templates_for_slot() -> void:

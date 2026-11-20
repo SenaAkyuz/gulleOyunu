@@ -37,9 +37,27 @@ var _save_queued: bool = false
 func _ready() -> void:
 	if not GameConfig.is_valid():
 		return
-	save_path = str(GameConfig.rule("save.file"))
-	backup_path = str(GameConfig.rule("save.backup_file"))
+	if is_test_run():
+		# Tests and simulations never touch the player's save (rules.save.test_file).
+		save_path = str(GameConfig.rule("save.test_file"))
+		backup_path = str(GameConfig.rule("save.test_backup_file"))
+		DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(save_path.get_base_dir()))
+	else:
+		save_path = str(GameConfig.rule("save.file"))
+		backup_path = str(GameConfig.rule("save.backup_file"))
 	load_game()
+
+
+## True for test / tool runs: a command-line script (-s / --script: GUT, sim_cli, candidates_cli)
+## or a GUT runner scene started from the editor. The real game never matches.
+static func is_test_run() -> bool:
+	var args := OS.get_cmdline_args()
+	if args.has("-s") or args.has("--script"):
+		return true
+	for a in args:
+		if a.contains("addons/gut") or a.contains("src/tools/"):
+			return true
+	return false
 
 
 ## Fresh save for a new player (values from game_data, nothing hard-coded).
