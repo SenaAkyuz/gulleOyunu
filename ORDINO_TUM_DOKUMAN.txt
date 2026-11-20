@@ -93,11 +93,12 @@ godot --headless --fixed-fps 60 --path . -s addons/gut/gut_cmdln.gd -gexit   # �
 ```
 
 ## 8. Mevcut durum
-- **Faz:** 1 — Gri Kutu **tamam** (2026-11-19). **Faz 2 — Veri omurgası ve kayıt tamam** (2026-11-19). **Faz 3 — kule şablonları, generator, bölüm editörü sürüyor** (11 adımlık plan onaylandı 2026-11-19; bkz. `docs/06_YOL_HARITASI.md`). Her faz bitince bu satırı güncelle.
+- **Faz:** 1 — Gri Kutu **tamam** (2026-11-19). **Faz 2 — Veri omurgası ve kayıt tamam** (2026-11-19). **Faz 3 — kule şablonları, generator, bölüm editörü tamam** (2026-11-20, kısa kapanış K-034). Sıradaki: **Faz 7 — görsel üretim (Dünya 1 Akdeniz dikey dilim)**, docs/06'ya göre paralel; Faz 4–6 sonra (bkz. `docs/06_YOL_HARITASI.md`). Her faz bitince bu satırı güncelle.
 - Faz 1 çıktısı: L01 oynanır (tap_target + drag_release, sürekli atış K-023), hakem/doluluk çubuğu/yıldız/jackpot, hasar, sarsıntı + kıvılcım, Dev Panel (F1), stres testi (P).
   Dev tuşları: G alan · Boşluk uyandır · Tab seç · Oklar it · H hp · R baştan · N/B sonraki/önceki bölüm · F1 panel · P stres · F12 ekran görüntüsü.
 - Faz 2 çıktısı: `SaveManager` (sürümlü, atomik, bozuk kayda dayanıklı `user://save.json`), `Economy`, `Progress` (ödül + açılmalar), `Inventory`, `ConfigValidator`; HUD'da altın + en iyi yıldız + kazanılan altın; Dev Panel'de "Kaydı sıfırla"; GUT testleri (`tests/`).
-- Açık: Android performans ölçümü (S-008), tutorial elinin çizimi, hit-stop + konfeti (Faz 8).
+- Faz 3 çıktısı: 6 kule şablonu, generator (`LevelGenerator`), simülasyon (`sim_cli`), aday hattı (`candidates_cli`), pişirme (`bake_cli`), bölüm editörü paneli (Godot'ta sol üst "Ordino Bölüm"); Dünya 1'in 10 bölümü pişirildi (L04/L09/L10 taslak). Testler ve araçlar oyuncunun kaydına yazmaz (`user://test_save/`).
+- Açık: Android performans ölçümü (S-008), tutorial elinin çizimi, hit-stop + konfeti (Faz 8), Faz 3 "sonra bakılacaklar" (docs/06).
 
 ---
 
@@ -1079,7 +1080,9 @@ Tam tablolar ve ekran görüntüleri `_candidates/` altında.
 ## 9. 80 bölüm için başlangıç planı
 > **Adım 11 notu (Sena, 2026-11-20):** adaylar §8 seçim kuralıyla seçilir (önce generator kontrolleri, sonra sim hedefleri; generator bölümlerinde aynı şablon ≤ 2).
 > **Dünya 1 önerisi:** L02 yükseltilmiş piramit, L03 kemer, L05 kemer, L06 ikiz sütun, L07 yükseltilmiş piramit, L08 ikiz sütun; **L01, L04, L09, L10 elle**.
-> Seçilen aday `baked: true` olarak dosyaya pişirilir; elle bölümler Adım 11'de tasarlanır.
+> Seçilen aday `baked: true` olarak dosyaya pişirilir (`src/tools/sim/bake_cli.gd`); elle bölümler Adım 11'de tasarlanır.
+> **Pişirildi (2026-11-20, K-034):** L02 yük. piramit, L03 kemer (dosyanın şablonu), L05 kemer, L06 ikiz sütun, L07 yük. piramit, L08 ikiz sütun; L01 elle;
+> **taslak (`draft: true`, elle cila sonra):** L04 yük. piramit, L09 kemer, L10 ikiz sütun (L09–L10 art arda kemer olmasın diye). Son ölçüm docs/06 Faz 3 sonucunda.
 - Her dünya için `difficulty.json → rhythm` ile 10 bölümün zorluk ve rolü otomatik belirlenir.
 - Faz 9'da generator her bölüm için 5 aday üretir → en iyiler seçilir → elle cilalanır.
 - Bölümlerin %20'si (her dünyada 1, 4, 9, 10) **elle tasarlanır** (imza anlar); geri kalanı generator + ince ayar.
@@ -1450,13 +1453,18 @@ GUT kur ve bu servisler için birim testleri yaz. tools/validate_game_data.py il
 **Bitti:** Testler yeşil; oyunu kapat-aç → ilerleme ve altın korunuyor.
 **Sonuç (2026-11-19):** 8 adım: GUT 9.7.1 · ConfigValidator · SaveManager · Economy · Progress · Inventory · entegrasyon (HUD altın/en iyi yıldız/ödül, kalıcılık testi) · dokümanlar. GUT 83/83 yeşil; iki ayrı süreçle kazan → kapat → aç denemesinde altın + yıldız + jackpot korundu.
 
-## FAZ 3 — Kule şablonları, generator, bölüm editörü (5–7 gün)
+## FAZ 3 — Kule şablonları, generator, bölüm editörü (5–7 gün) ✅ tamam (2026-11-20, kısa kapanış K-034)
 ```
 Faz 3: docs/03'e göre shapes.json şekillerini (kemer compound collider dahil) ve 6 temel şablonu
 (stack_pyramid, twin_pillars, arch_shrine, staircase, domino_row, truss_bridge) uygula. Generator'ı difficulty.json'a bağla,
 support_check yaz. Headless simülasyon aracını (one_shot_solve_rate vb.) yaz. Basit bir Godot editör eklentisi ile bölüm editörü yap.
 ```
 **Bitti:** Editörde "Üret" → farklı ama dengeli kuleler; "Simüle Et" → metrikler; Dünya 1'in 10 bölümü JSON olarak hazır.
+**Sonuç (2026-11-20):** 6 şablon + varyantlar, `support_check`, keystone görüş/erişim, malzeme seçici, generator (yere değen hacim tavanı, bütçe sınırı, keystone temizliği ve
+gülleyle çözüm simülasyonu döngüde), headless simülasyon (`sim_cli`), aday hattı (`candidates_cli`), bölüm editörü paneli (`addons/ordino_level_editor`), disk önbelleği,
+test kaydı izolasyonu. **Dünya 1'in 10 bölümü pişirildi** (`baked: true`); L04, L09, L10 `draft: true` (elle cila sonra). Son ölçüm: 10/10 gülleyle çözülebilir, 6/10 tek atış hedefinde.
+**Sonra bakılacaklar (K-034):** L02, L05, L08, L10 tek atış hedefin üstünde (kalibrasyon, Faz 6–9 hasar dengesi); L04, L09, L10 elle tasarım (§9); L07'de merkez keystone atışı
+%80'i tutmuyor (3 atıştan biri tutuyor); editör panelinin cilası; `economy.sim.core_jackpot_levels_per_world` (K-030); Alev Topu tanıtımı (L08) Faz 5'te doğrulanacak.
 
 ## FAZ 4 — Oyun döngüsü ve menüler (4–5 gün)
 ```
@@ -1480,7 +1488,7 @@ tools/economy_sim.py çıktısını kontrol et ve raporla.
 ```
 **Bitti:** Altın kazan → top al → kullan döngüsü çalışıyor; sim raporu hedef aralıkta.
 
-## FAZ 7 — Görsel üretim ve entegrasyon (1–2 hafta, paralel ilerleyebilir)
+## FAZ 7 — Görsel üretim ve entegrasyon (1–2 hafta, paralel ilerleyebilir) ⏭️ sıradaki (Sena: Faz 3'ten sonra görsel test, K-034)
 ```
 /ordino-art-prompts ile Dünya 1 (Akdeniz) için tam prompt setini üret: arka plan (far/front), kart, kaide dokusu, gerekli malzeme dokuları.
 Ayrıca tools/blender/generate_blocks.py yaz: shapes.json'daki tüm şekiller için bevel'li mesh + Cell Fracture kırık sürümleri, .glb export.
@@ -1632,6 +1640,7 @@ Faz 0–1: 1 hafta · Faz 2–4: 2 hafta · Faz 5–6: 1.5 hafta · Faz 7–8: 2
 | K-031 | 2026-11-20 | **8b — simülasyon generator döngüsünde:** keystone_clear_min (en iyi keystone'a 3 atışın en az yarısı %80 temizlik), gülleyle çözüm ≥ %20 değilse ret, çok yapılıda zincir (sonraki yapı keystone tarafında) ya da tek yapıya dönüş, planlı şablon geçmezse bölüme uyan diğer şablonlar; sınırda hata + sebep. L03 yarım küp ayaklı kemer. Testler ve sim `--fixed-fps 60` + izole fizik dünyası (`Engine.time_scale` kullanılmaz) | Orta/zor bölümlerde hiçbir keystone %80'e ulaşmıyordu; zorluk keystone'u bulmaktan gelmeli | Onaylandı (Sena) |
 | K-032 | 2026-11-20 | **Rol bazlı keystone kabul oranı + orta roller kalibrasyon bekliyor:** varsayılan 1/3 (3 atıştan 1'i), kolay roller (intro, build_up, breather, new_mechanic) 2/3; `combine` listede yok → varsayılan. Orta rollerde tek atış fazlası için generator ayarlanmaz; L05, L07 (ve L08) "kalibrasyon bekliyor (Faz 6–9 hasar dengesi)". Üretilen bölümler diske önbelleğe alınır (kural hash'i ile). L10: boss çoklu yapı zinciri kurulamıyor, üretilemiyor (sapma docs/03 §8.1) | 8b ölçümü: L08/L10 üretilemiyordu; orta rollerde tek atış hedefin üstünde; `sim_targets` korunacak | Onaylandı (Sena) |
 | K-033 | 2026-11-20 | **Boss generator dışı, elle (docs/03 §9):** dosyası olmayan elle bölümde (1, 4, 9, 10) önce generator adayı denenir; aday da geçmezse hata değil, N/B "elle tasarlanacak (Adım 11)" gösterir (L10). `combine` keystone oranı 1/3 kurallarda açıkça yazılı. Aday hattı (Adım 9) yalnızca öneri üretir, `game_data`'ya yazmaz. Simülasyon blok/gülleleri sessiz (EventBus yaymaz) | L10 boss çoklu yapı zinciri kurulamıyordu; simüle edilen kristaller gerçek kayda altın yazıyordu (hata) | Onaylandı (Sena) |
+| K-034 | 2026-11-20 | **Faz 3 kısa kapanış, sonra Faz 7 (görsel):** Dünya 1'in 10 bölümü pişirildi (L04/L09/L10 taslak); kalibrasyon (L02, L05, L08, L10), elle bölüm cilası ve editör cilası "sonra bakılacaklar" listesine (docs/06). Faz 7 docs/06'ya göre paralel ilerleyebildiği için Faz 4–6'dan önce başlıyor | Sena görsel olarak test etmek istiyor; kalan işler Faz 6–9 dengesine bağlı | Onaylandı (Sena) |
 
 ## Açık sorular (Sena karar verecek)
 | No | Soru | Öneri | Durum |
@@ -2238,6 +2247,131 @@ Faz 0–1: 1 hafta · Faz 2–4: 2 hafta · Faz 5–6: 1.5 hafta · Faz 7–8: 2
 }
 ```
 
+### game_data/levels/w01_akdeniz/w01_l02.json
+```json
+{
+  "aim_preview_dots": 19.0,
+  "baked": true,
+  "blocks": [
+    {
+      "id": "s1_b01",
+      "mat": "wood",
+      "role": "structure",
+      "rot": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "shape": "cube",
+      "x": -0.509999990463257,
+      "y": 2.40000009536743,
+      "z": 0.0
+    },
+    {
+      "id": "s1_b02",
+      "mat": "crystal_amber",
+      "role": "crystal",
+      "rot": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "shape": "cube",
+      "x": 0.509999990463257,
+      "y": 2.40000009536743,
+      "z": 0.0
+    },
+    {
+      "id": "s1_b03",
+      "mat": "crystal_amber",
+      "role": "crystal",
+      "rot": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "shape": "cube",
+      "x": 0.0,
+      "y": 3.40000009536743,
+      "z": 0.0
+    },
+    {
+      "id": "s1_b04",
+      "mat": "crystal_amber",
+      "role": "crystal",
+      "rot": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "shape": "pillar_2",
+      "x": -1.39999997615814,
+      "y": 0.0,
+      "z": 0.0
+    },
+    {
+      "id": "s1_b05",
+      "mat": "wood",
+      "role": "structure",
+      "rot": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "shape": "pillar_2",
+      "x": 1.39999997615814,
+      "y": 0.0,
+      "z": 0.0
+    },
+    {
+      "id": "s1_b06",
+      "mat": "wood",
+      "role": "structure",
+      "rot": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "shape": "plank_l",
+      "x": 0.0,
+      "y": 2.0,
+      "z": 0.0
+    }
+  ],
+  "cores": [
+    {
+      "attach": "rest",
+      "x": 0.0,
+      "y": 4.40000009536743,
+      "z": 0.0
+    }
+  ],
+  "difficulty": 6.0,
+  "free_balls": {},
+  "id": "w01_l02",
+  "index": 2,
+  "intro_ball": null,
+  "joints": [],
+  "keystones": [
+    "s1_b02",
+    "s1_b04"
+  ],
+  "name_tr": "Bölüm 2",
+  "objective": {
+    "type": "clear_percent"
+  },
+  "platform": {
+    "depth": 2.6,
+    "style": "limestone_plinth",
+    "width": 5.6
+  },
+  "role": "build_up",
+  "shots": 3.0,
+  "world": "akdeniz",
+  "_doc": "Faz 3 Adim 11'de pisirildi: aday cand_1.json (şablon stack_pyramid, seed 16838)."
+}
+```
+
 ### game_data/levels/w01_akdeniz/w01_l03.json
 ```json
 {
@@ -2245,23 +2379,1164 @@ Faz 0–1: 1 hafta · Faz 2–4: 2 hafta · Faz 5–6: 1.5 hafta · Faz 7–8: 2
   "world": "akdeniz",
   "index": 3,
   "name_tr": "Üç Kemer",
-  "difficulty": 10,
+  "difficulty": 10.0,
   "role": "build_up",
-  "shots": 3,
-  "objective": { "type": "clear_percent" },
-  "aim_preview_dots": 17,
-  "platform": { "width": 5.4, "depth": 2.6, "style": "limestone_plinth" },
-  "structures": [
-    { "template": "arch_shrine", "x": 0, "z": 0, "ry": 0, "seed": 1031, "params": { "floors": 2, "depth_layers": 1, "side_towers": false, "feet": "half", "core": "hanging_center", "symmetry": 0.95 } }
+  "shots": 3.0,
+  "objective": {
+    "type": "clear_percent"
+  },
+  "aim_preview_dots": 17.0,
+  "platform": {
+    "width": 5.4,
+    "depth": 2.6,
+    "style": "limestone_plinth"
+  },
+  "blocks": [
+    {
+      "id": "s1_b01",
+      "shape": "half",
+      "x": -1.39999997615814,
+      "y": 0.0,
+      "z": 0.0,
+      "rot": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "role": "structure",
+      "mat": "stone"
+    },
+    {
+      "id": "s1_b02",
+      "shape": "half",
+      "x": 1.39999997615814,
+      "y": 0.0,
+      "z": 0.0,
+      "rot": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "role": "crystal",
+      "mat": "crystal_cyan"
+    },
+    {
+      "id": "s1_b03",
+      "shape": "arch",
+      "x": 0.0,
+      "y": 0.5,
+      "z": 0.0,
+      "rot": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "role": "structure",
+      "mat": "wood"
+    },
+    {
+      "id": "s1_b04",
+      "shape": "arch",
+      "x": 0.0,
+      "y": 2.5,
+      "z": 0.0,
+      "rot": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "role": "light",
+      "mat": "wood"
+    },
+    {
+      "id": "s1_b05",
+      "shape": "ring_hanger",
+      "x": 0.0,
+      "y": 0.0,
+      "z": 0.0,
+      "rot": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "role": "light",
+      "mat": "wood"
+    }
   ],
-  "blocks": [],
   "joints": [],
-  "cores": [],
-  "keystones": [],
-  "tutorial": { "type": "hint", "text_tr": "Kemeri taşıyan desteğe nişan al!" },
+  "cores": [
+    {
+      "x": 0.0,
+      "y": 0.200000002980232,
+      "z": 0.0,
+      "attach": "rest"
+    }
+  ],
+  "keystones": [
+    "s1_b02"
+  ],
+  "tutorial": {
+    "type": "hint",
+    "text_tr": "Kemeri taşıyan desteğe nişan al!"
+  },
   "intro_ball": null,
   "free_balls": {},
-  "baked": false,
-  "_doc": "Sablon tabanli ornek: blocks/cores/keystones LevelExpander ile sablondan doldurulur; Faz 3 sonunda baked=true olarak dondurulur. K-030: hedef clear_percent, kure (kemer icinde yuvada) yalnizca jackpot. 8b (Sena): yan kulesiz, yarim kup ayakli kemer varyanti (yere degen hacim tavani K-029). Platform = kule ayak izi + spawn_edge_inset + generator.platform_margin."
+  "baked": true,
+  "_doc": "Faz 3 Adim 11'de pisirildi: dosyanın şablonu."
+}
+```
+
+### game_data/levels/w01_akdeniz/w01_l04.json
+```json
+{
+  "aim_preview_dots": 19.0,
+  "baked": true,
+  "blocks": [
+    {
+      "id": "s1_b01",
+      "mat": "wood",
+      "role": "structure",
+      "rot": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "shape": "cube",
+      "x": -0.509999990463257,
+      "y": 2.40000009536743,
+      "z": 0.0
+    },
+    {
+      "id": "s1_b02",
+      "mat": "crystal_cyan",
+      "role": "crystal",
+      "rot": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "shape": "cube",
+      "x": 0.509999990463257,
+      "y": 2.40000009536743,
+      "z": 0.0
+    },
+    {
+      "id": "s1_b03",
+      "mat": "crystal_amber",
+      "role": "crystal",
+      "rot": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "shape": "cube",
+      "x": 0.0,
+      "y": 3.40000009536743,
+      "z": 0.0
+    },
+    {
+      "id": "s1_b04",
+      "mat": "wood",
+      "role": "structure",
+      "rot": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "shape": "pillar_2",
+      "x": -1.39999997615814,
+      "y": 0.0,
+      "z": 0.0
+    },
+    {
+      "id": "s1_b05",
+      "mat": "crystal_amber",
+      "role": "crystal",
+      "rot": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "shape": "pillar_2",
+      "x": 1.39999997615814,
+      "y": 0.0,
+      "z": 0.0
+    },
+    {
+      "id": "s1_b06",
+      "mat": "wood",
+      "role": "structure",
+      "rot": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "shape": "plank_l",
+      "x": 0.0,
+      "y": 2.0,
+      "z": 0.0
+    }
+  ],
+  "cores": [
+    {
+      "attach": "rest",
+      "x": 0.0,
+      "y": 4.40000009536743,
+      "z": 0.0
+    }
+  ],
+  "difficulty": 5.0,
+  "free_balls": {},
+  "id": "w01_l04",
+  "index": 4,
+  "intro_ball": null,
+  "joints": [],
+  "keystones": [
+    "s1_b02",
+    "s1_b05"
+  ],
+  "name_tr": "Bölüm 4",
+  "objective": {
+    "type": "clear_percent"
+  },
+  "platform": {
+    "depth": 2.6,
+    "style": "limestone_plinth",
+    "width": 5.6
+  },
+  "role": "breather",
+  "shots": 3.0,
+  "world": "akdeniz",
+  "draft": true,
+  "_doc": "Faz 3 Adim 11'de pisirildi: aday cand_1.json (şablon stack_pyramid, seed 8919). TASLAK: elle tasarlanacak bolum (docs/03 9); simdilik en iyi aday."
+}
+```
+
+### game_data/levels/w01_akdeniz/w01_l05.json
+```json
+{
+  "aim_preview_dots": 18.0,
+  "baked": true,
+  "blocks": [
+    {
+      "id": "s1_b01",
+      "mat": "stone",
+      "role": "structure",
+      "rot": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "shape": "half",
+      "x": -1.39999997615814,
+      "y": 0.0,
+      "z": 0.0
+    },
+    {
+      "id": "s1_b02",
+      "mat": "crystal_cyan",
+      "role": "crystal",
+      "rot": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "shape": "half",
+      "x": 1.39999997615814,
+      "y": 0.0,
+      "z": 0.0
+    },
+    {
+      "id": "s1_b03",
+      "mat": "wood",
+      "role": "structure",
+      "rot": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "shape": "arch",
+      "x": 0.0,
+      "y": 0.5,
+      "z": 0.0
+    },
+    {
+      "id": "s1_b04",
+      "mat": "wood",
+      "role": "light",
+      "rot": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "shape": "arch",
+      "x": 0.0,
+      "y": 2.5,
+      "z": 0.0
+    }
+  ],
+  "cores": [
+    {
+      "attach": "rest",
+      "x": 0.0,
+      "y": 4.5,
+      "z": 0.0
+    }
+  ],
+  "difficulty": 11.0,
+  "free_balls": {},
+  "id": "w01_l05",
+  "index": 5,
+  "intro_ball": null,
+  "joints": [],
+  "keystones": [
+    "s1_b02"
+  ],
+  "name_tr": "Bölüm 5",
+  "objective": {
+    "type": "clear_percent"
+  },
+  "platform": {
+    "depth": 2.6,
+    "style": "limestone_plinth",
+    "width": 5.4
+  },
+  "role": "new_mechanic",
+  "shots": 3.0,
+  "world": "akdeniz",
+  "_doc": "Faz 3 Adim 11'de pisirildi: aday cand_1.json (şablon arch_shrine, seed 8919)."
+}
+```
+
+### game_data/levels/w01_akdeniz/w01_l06.json
+```json
+{
+  "aim_preview_dots": 18.0,
+  "baked": true,
+  "blocks": [
+    {
+      "id": "s1_b01",
+      "mat": "crystal_cyan",
+      "role": "crystal",
+      "rot": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "shape": "pillar_2",
+      "x": -1.39999997615814,
+      "y": 0.0,
+      "z": 0.0
+    },
+    {
+      "id": "s1_b02",
+      "mat": "stone",
+      "role": "structure",
+      "rot": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "shape": "pillar_2",
+      "x": 1.39999997615814,
+      "y": 0.0,
+      "z": 0.0
+    },
+    {
+      "id": "s1_b03",
+      "mat": "wood",
+      "role": "light",
+      "rot": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "shape": "plank_l",
+      "x": 0.0,
+      "y": 2.0,
+      "z": 0.0
+    },
+    {
+      "id": "s1_b04",
+      "mat": "wood",
+      "role": "light",
+      "rot": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "shape": "cube",
+      "x": -1.39999997615814,
+      "y": 2.40000009536743,
+      "z": 0.0
+    },
+    {
+      "id": "s1_b05",
+      "mat": "wood",
+      "role": "light",
+      "rot": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "shape": "cube",
+      "x": 1.39999997615814,
+      "y": 2.40000009536743,
+      "z": 0.0
+    },
+    {
+      "id": "s1_b06",
+      "mat": "wood",
+      "role": "light",
+      "rot": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "shape": "cube",
+      "x": -1.39999997615814,
+      "y": 3.40000009536743,
+      "z": 0.0
+    },
+    {
+      "id": "s1_b07",
+      "mat": "crystal_cyan",
+      "role": "crystal",
+      "rot": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "shape": "cube",
+      "x": 1.39999997615814,
+      "y": 3.40000009536743,
+      "z": 0.0
+    }
+  ],
+  "cores": [
+    {
+      "attach": "rest",
+      "x": 0.0,
+      "y": 2.40000009536743,
+      "z": 0.0
+    }
+  ],
+  "difficulty": 15.0,
+  "free_balls": {},
+  "id": "w01_l06",
+  "index": 6,
+  "intro_ball": null,
+  "joints": [],
+  "keystones": [
+    "s1_b01"
+  ],
+  "name_tr": "Bölüm 6",
+  "objective": {
+    "type": "clear_percent"
+  },
+  "platform": {
+    "depth": 2.6,
+    "style": "limestone_plinth",
+    "width": 5.6
+  },
+  "role": "combine",
+  "shots": 3.0,
+  "world": "akdeniz",
+  "_doc": "Faz 3 Adim 11'de pisirildi: aday cand_1.json (şablon twin_pillars, seed 1000)."
+}
+```
+
+### game_data/levels/w01_akdeniz/w01_l07.json
+```json
+{
+  "aim_preview_dots": 17.0,
+  "baked": true,
+  "blocks": [
+    {
+      "id": "s1_b01",
+      "mat": "wood",
+      "role": "structure",
+      "rot": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "shape": "cube",
+      "x": -1.52999997138977,
+      "y": 2.5,
+      "z": 0.0
+    },
+    {
+      "id": "s1_b02",
+      "mat": "wood",
+      "role": "structure",
+      "rot": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "shape": "cube",
+      "x": -0.509999990463257,
+      "y": 2.5,
+      "z": 0.0
+    },
+    {
+      "id": "s1_b03",
+      "mat": "crystal_amber",
+      "role": "crystal",
+      "rot": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "shape": "cube",
+      "x": 0.509999990463257,
+      "y": 2.5,
+      "z": 0.0
+    },
+    {
+      "id": "s1_b04",
+      "mat": "wood",
+      "role": "structure",
+      "rot": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "shape": "cube",
+      "x": 1.52999997138977,
+      "y": 2.5,
+      "z": 0.0
+    },
+    {
+      "id": "s1_b05",
+      "mat": "wood",
+      "role": "structure",
+      "rot": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "shape": "cube",
+      "x": -1.01999998092651,
+      "y": 3.5,
+      "z": 0.0
+    },
+    {
+      "id": "s1_b06",
+      "mat": "wood",
+      "role": "structure",
+      "rot": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "shape": "cube",
+      "x": 0.0,
+      "y": 3.5,
+      "z": 0.0
+    },
+    {
+      "id": "s1_b07",
+      "mat": "wood",
+      "role": "structure",
+      "rot": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "shape": "cube",
+      "x": 1.01999998092651,
+      "y": 3.5,
+      "z": 0.0
+    },
+    {
+      "id": "s1_b08",
+      "mat": "wood",
+      "role": "light",
+      "rot": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "shape": "cube",
+      "x": -0.509999990463257,
+      "y": 4.5,
+      "z": 0.0
+    },
+    {
+      "id": "s1_b09",
+      "mat": "wood",
+      "role": "light",
+      "rot": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "shape": "cube",
+      "x": 0.509999990463257,
+      "y": 4.5,
+      "z": 0.0
+    },
+    {
+      "id": "s1_b10",
+      "mat": "crystal_amber",
+      "role": "crystal",
+      "rot": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "shape": "cube",
+      "x": 0.0,
+      "y": 5.5,
+      "z": 0.0
+    },
+    {
+      "id": "s1_b11",
+      "mat": "crystal_amber",
+      "role": "crystal",
+      "rot": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "shape": "pillar_2",
+      "x": -2.40000009536743,
+      "y": 0.0,
+      "z": 0.0
+    },
+    {
+      "id": "s1_b12",
+      "mat": "stone",
+      "role": "structure",
+      "rot": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "shape": "pillar_2",
+      "x": 2.40000009536743,
+      "y": 0.0,
+      "z": 0.0
+    },
+    {
+      "id": "s1_b13",
+      "mat": "stone",
+      "role": "structure",
+      "rot": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "shape": "beam",
+      "x": 0.0,
+      "y": 2.0,
+      "z": 0.0
+    }
+  ],
+  "cores": [
+    {
+      "attach": "rest",
+      "x": 0.0,
+      "y": 6.5,
+      "z": 0.0
+    }
+  ],
+  "difficulty": 18.0,
+  "free_balls": {},
+  "id": "w01_l07",
+  "index": 7,
+  "intro_ball": null,
+  "joints": [],
+  "keystones": [
+    "s1_b03",
+    "s1_b11"
+  ],
+  "name_tr": "Bölüm 7",
+  "objective": {
+    "type": "clear_percent"
+  },
+  "platform": {
+    "depth": 2.6,
+    "style": "limestone_plinth",
+    "width": 7.6
+  },
+  "role": "combine",
+  "shots": 3.0,
+  "world": "akdeniz",
+  "_doc": "Faz 3 Adim 11'de pisirildi: aday cand_4.json (şablon stack_pyramid, seed 8919)."
+}
+```
+
+### game_data/levels/w01_akdeniz/w01_l08.json
+```json
+{
+  "aim_preview_dots": 16.0,
+  "baked": true,
+  "blocks": [
+    {
+      "id": "s1_b01",
+      "mat": "crystal_cyan",
+      "role": "crystal",
+      "rot": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "shape": "pillar_2",
+      "x": -1.39999997615814,
+      "y": 0.0,
+      "z": 0.0
+    },
+    {
+      "id": "s1_b02",
+      "mat": "stone",
+      "role": "structure",
+      "rot": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "shape": "pillar_2",
+      "x": 1.39999997615814,
+      "y": 0.0,
+      "z": 0.0
+    },
+    {
+      "id": "s1_b03",
+      "mat": "wood",
+      "role": "light",
+      "rot": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "shape": "plank_l",
+      "x": 0.0,
+      "y": 2.0,
+      "z": 0.0
+    },
+    {
+      "id": "s1_b04",
+      "mat": "stone",
+      "role": "structure",
+      "rot": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "shape": "pillar_2",
+      "x": -1.39999997615814,
+      "y": 2.40000009536743,
+      "z": 0.0
+    },
+    {
+      "id": "s1_b05",
+      "mat": "stone",
+      "role": "structure",
+      "rot": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "shape": "pillar_2",
+      "x": 1.39999997615814,
+      "y": 2.40000009536743,
+      "z": 0.0
+    },
+    {
+      "id": "s1_b06",
+      "mat": "wood",
+      "role": "light",
+      "rot": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "shape": "plank_l",
+      "x": 0.0,
+      "y": 4.40000009536743,
+      "z": 0.0
+    },
+    {
+      "id": "s1_b07",
+      "mat": "wood",
+      "role": "light",
+      "rot": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "shape": "cube",
+      "x": -1.39999997615814,
+      "y": 4.80000019073486,
+      "z": 0.0
+    },
+    {
+      "id": "s1_b08",
+      "mat": "wood",
+      "role": "light",
+      "rot": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "shape": "cube",
+      "x": 1.39999997615814,
+      "y": 4.80000019073486,
+      "z": 0.0
+    },
+    {
+      "id": "s1_b09",
+      "mat": "wood",
+      "role": "light",
+      "rot": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "shape": "cube",
+      "x": -1.39999997615814,
+      "y": 5.80000019073486,
+      "z": 0.0
+    },
+    {
+      "id": "s1_b10",
+      "mat": "crystal_cyan",
+      "role": "crystal",
+      "rot": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "shape": "cube",
+      "x": 1.39999997615814,
+      "y": 5.80000019073486,
+      "z": 0.0
+    }
+  ],
+  "cores": [
+    {
+      "attach": "rest",
+      "x": 0.0,
+      "y": 4.80000019073486,
+      "z": 0.0
+    }
+  ],
+  "difficulty": 23.0,
+  "free_balls": {},
+  "id": "w01_l08",
+  "index": 8,
+  "intro_ball": null,
+  "joints": [],
+  "keystones": [
+    "s1_b01"
+  ],
+  "name_tr": "Bölüm 8",
+  "objective": {
+    "type": "clear_percent"
+  },
+  "platform": {
+    "depth": 2.6,
+    "style": "limestone_plinth",
+    "width": 5.6
+  },
+  "role": "challenge",
+  "shots": 3.0,
+  "world": "akdeniz",
+  "_doc": "Faz 3 Adim 11'de pisirildi: aday cand_1.json (şablon twin_pillars, seed 8919)."
+}
+```
+
+### game_data/levels/w01_akdeniz/w01_l09.json
+```json
+{
+  "aim_preview_dots": 18.0,
+  "baked": true,
+  "blocks": [
+    {
+      "id": "s1_b01",
+      "mat": "stone",
+      "role": "crystal",
+      "rot": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "shape": "half",
+      "x": -1.39999997615814,
+      "y": 0.0,
+      "z": 0.0
+    },
+    {
+      "id": "s1_b02",
+      "mat": "stone",
+      "role": "structure",
+      "rot": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "shape": "half",
+      "x": 1.39999997615814,
+      "y": 0.0,
+      "z": 0.0
+    },
+    {
+      "id": "s1_b03",
+      "mat": "wood",
+      "role": "structure",
+      "rot": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "shape": "arch",
+      "x": 0.0,
+      "y": 0.5,
+      "z": 0.0
+    },
+    {
+      "id": "s1_b04",
+      "mat": "crystal_cyan",
+      "role": "light",
+      "rot": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "shape": "arch",
+      "x": 0.0,
+      "y": 2.5,
+      "z": 0.0
+    }
+  ],
+  "cores": [
+    {
+      "attach": "rest",
+      "x": 0.0,
+      "y": 4.5,
+      "z": 0.0
+    }
+  ],
+  "difficulty": 14.0,
+  "free_balls": {},
+  "id": "w01_l09",
+  "index": 9,
+  "intro_ball": null,
+  "joints": [],
+  "keystones": [
+    "s1_b01"
+  ],
+  "name_tr": "Bölüm 9",
+  "objective": {
+    "type": "clear_percent"
+  },
+  "platform": {
+    "depth": 2.6,
+    "style": "limestone_plinth",
+    "width": 5.4
+  },
+  "role": "breather",
+  "shots": 3.0,
+  "world": "akdeniz",
+  "draft": true,
+  "_doc": "Faz 3 Adim 11'de pisirildi: aday cand_1.json (şablon arch_shrine, seed 8919). TASLAK: elle tasarlanacak bolum (docs/03 9); simdilik en iyi aday."
+}
+```
+
+### game_data/levels/w01_akdeniz/w01_l10.json
+```json
+{
+  "aim_preview_dots": 16.0,
+  "baked": true,
+  "blocks": [
+    {
+      "id": "s1_b01",
+      "mat": "crystal_amber",
+      "role": "crystal",
+      "rot": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "shape": "pillar_2",
+      "x": -1.39999997615814,
+      "y": 0.0,
+      "z": 0.0
+    },
+    {
+      "id": "s1_b02",
+      "mat": "stone",
+      "role": "structure",
+      "rot": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "shape": "pillar_2",
+      "x": 1.39999997615814,
+      "y": 0.0,
+      "z": 0.0
+    },
+    {
+      "id": "s1_b03",
+      "mat": "wood",
+      "role": "light",
+      "rot": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "shape": "plank_l",
+      "x": 0.0,
+      "y": 2.0,
+      "z": 0.0
+    },
+    {
+      "id": "s1_b04",
+      "mat": "stone",
+      "role": "structure",
+      "rot": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "shape": "pillar_2",
+      "x": -1.39999997615814,
+      "y": 2.40000009536743,
+      "z": 0.0
+    },
+    {
+      "id": "s1_b05",
+      "mat": "stone",
+      "role": "structure",
+      "rot": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "shape": "pillar_2",
+      "x": 1.39999997615814,
+      "y": 2.40000009536743,
+      "z": 0.0
+    },
+    {
+      "id": "s1_b06",
+      "mat": "wood",
+      "role": "light",
+      "rot": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "shape": "plank_l",
+      "x": 0.0,
+      "y": 4.40000009536743,
+      "z": 0.0
+    },
+    {
+      "id": "s1_b07",
+      "mat": "wood",
+      "role": "light",
+      "rot": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "shape": "cube",
+      "x": -1.39999997615814,
+      "y": 4.80000019073486,
+      "z": 0.0
+    },
+    {
+      "id": "s1_b08",
+      "mat": "wood",
+      "role": "light",
+      "rot": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "shape": "cube",
+      "x": 1.39999997615814,
+      "y": 4.80000019073486,
+      "z": 0.0
+    },
+    {
+      "id": "s1_b09",
+      "mat": "wood",
+      "role": "light",
+      "rot": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "shape": "cube",
+      "x": -1.39999997615814,
+      "y": 5.80000019073486,
+      "z": 0.0
+    },
+    {
+      "id": "s1_b10",
+      "mat": "crystal_amber",
+      "role": "crystal",
+      "rot": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "shape": "cube",
+      "x": 1.39999997615814,
+      "y": 5.80000019073486,
+      "z": 0.0
+    },
+    {
+      "id": "s1_b11",
+      "mat": "wood",
+      "role": "light",
+      "rot": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "shape": "ring_hanger",
+      "x": 0.0,
+      "y": 4.80000019073486,
+      "z": 0.0
+    }
+  ],
+  "cores": [
+    {
+      "attach": "rest",
+      "x": 0.0,
+      "y": 5.0,
+      "z": 0.0
+    }
+  ],
+  "difficulty": 28.0,
+  "free_balls": {},
+  "id": "w01_l10",
+  "index": 10,
+  "intro_ball": null,
+  "joints": [],
+  "keystones": [
+    "s1_b01"
+  ],
+  "name_tr": "Bölüm 10",
+  "objective": {
+    "type": "clear_percent"
+  },
+  "platform": {
+    "depth": 2.6,
+    "style": "limestone_plinth",
+    "width": 5.6
+  },
+  "role": "boss",
+  "shots": 4.0,
+  "world": "akdeniz",
+  "draft": true,
+  "_doc": "Faz 3 Adim 11'de pisirildi: aday cand_3.json (şablon twin_pillars, seed 16838). TASLAK: elle tasarlanacak bolum (docs/03 9); simdilik en iyi aday."
 }
 ```

@@ -1,0 +1,219 @@
+{
+  "aim_preview_dots": 17.0,
+  "baked": true,
+  "blocks": [
+    {
+      "id": "s1_b01",
+      "mat": "wood",
+      "role": "structure",
+      "rot": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "shape": "cube",
+      "x": -1.52999997138977,
+      "y": 2.5,
+      "z": 0.0
+    },
+    {
+      "id": "s1_b02",
+      "mat": "wood",
+      "role": "structure",
+      "rot": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "shape": "cube",
+      "x": -0.509999990463257,
+      "y": 2.5,
+      "z": 0.0
+    },
+    {
+      "id": "s1_b03",
+      "mat": "crystal_amber",
+      "role": "crystal",
+      "rot": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "shape": "cube",
+      "x": 0.509999990463257,
+      "y": 2.5,
+      "z": 0.0
+    },
+    {
+      "id": "s1_b04",
+      "mat": "wood",
+      "role": "structure",
+      "rot": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "shape": "cube",
+      "x": 1.52999997138977,
+      "y": 2.5,
+      "z": 0.0
+    },
+    {
+      "id": "s1_b05",
+      "mat": "wood",
+      "role": "structure",
+      "rot": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "shape": "cube",
+      "x": -1.01999998092651,
+      "y": 3.5,
+      "z": 0.0
+    },
+    {
+      "id": "s1_b06",
+      "mat": "wood",
+      "role": "structure",
+      "rot": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "shape": "cube",
+      "x": 0.0,
+      "y": 3.5,
+      "z": 0.0
+    },
+    {
+      "id": "s1_b07",
+      "mat": "wood",
+      "role": "structure",
+      "rot": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "shape": "cube",
+      "x": 1.01999998092651,
+      "y": 3.5,
+      "z": 0.0
+    },
+    {
+      "id": "s1_b08",
+      "mat": "wood",
+      "role": "light",
+      "rot": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "shape": "cube",
+      "x": -0.509999990463257,
+      "y": 4.5,
+      "z": 0.0
+    },
+    {
+      "id": "s1_b09",
+      "mat": "wood",
+      "role": "light",
+      "rot": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "shape": "cube",
+      "x": 0.509999990463257,
+      "y": 4.5,
+      "z": 0.0
+    },
+    {
+      "id": "s1_b10",
+      "mat": "crystal_amber",
+      "role": "crystal",
+      "rot": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "shape": "cube",
+      "x": 0.0,
+      "y": 5.5,
+      "z": 0.0
+    },
+    {
+      "id": "s1_b11",
+      "mat": "crystal_amber",
+      "role": "crystal",
+      "rot": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "shape": "pillar_2",
+      "x": -2.40000009536743,
+      "y": 0.0,
+      "z": 0.0
+    },
+    {
+      "id": "s1_b12",
+      "mat": "stone",
+      "role": "structure",
+      "rot": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "shape": "pillar_2",
+      "x": 2.40000009536743,
+      "y": 0.0,
+      "z": 0.0
+    },
+    {
+      "id": "s1_b13",
+      "mat": "stone",
+      "role": "structure",
+      "rot": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "shape": "beam",
+      "x": 0.0,
+      "y": 2.0,
+      "z": 0.0
+    }
+  ],
+  "cores": [
+    {
+      "attach": "rest",
+      "x": 0.0,
+      "y": 6.5,
+      "z": 0.0
+    }
+  ],
+  "difficulty": 18.0,
+  "free_balls": {},
+  "id": "w01_l07",
+  "index": 7,
+  "intro_ball": null,
+  "joints": [],
+  "keystones": [
+    "s1_b03",
+    "s1_b11"
+  ],
+  "name_tr": "Bölüm 7",
+  "objective": {
+    "type": "clear_percent"
+  },
+  "platform": {
+    "depth": 2.6,
+    "style": "limestone_plinth",
+    "width": 7.6
+  },
+  "role": "combine",
+  "shots": 3.0,
+  "world": "akdeniz",
+  "_doc": "Faz 3 Adim 11'de pisirildi: aday cand_4.json (şablon stack_pyramid, seed 8919)."
+}

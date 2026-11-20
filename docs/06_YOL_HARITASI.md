@@ -66,13 +66,18 @@ GUT kur ve bu servisler için birim testleri yaz. tools/validate_game_data.py il
 **Bitti:** Testler yeşil; oyunu kapat-aç → ilerleme ve altın korunuyor.
 **Sonuç (2026-11-19):** 8 adım: GUT 9.7.1 · ConfigValidator · SaveManager · Economy · Progress · Inventory · entegrasyon (HUD altın/en iyi yıldız/ödül, kalıcılık testi) · dokümanlar. GUT 83/83 yeşil; iki ayrı süreçle kazan → kapat → aç denemesinde altın + yıldız + jackpot korundu.
 
-## FAZ 3 — Kule şablonları, generator, bölüm editörü (5–7 gün)
+## FAZ 3 — Kule şablonları, generator, bölüm editörü (5–7 gün) ✅ tamam (2026-11-20, kısa kapanış K-034)
 ```
 Faz 3: docs/03'e göre shapes.json şekillerini (kemer compound collider dahil) ve 6 temel şablonu
 (stack_pyramid, twin_pillars, arch_shrine, staircase, domino_row, truss_bridge) uygula. Generator'ı difficulty.json'a bağla,
 support_check yaz. Headless simülasyon aracını (one_shot_solve_rate vb.) yaz. Basit bir Godot editör eklentisi ile bölüm editörü yap.
 ```
 **Bitti:** Editörde "Üret" → farklı ama dengeli kuleler; "Simüle Et" → metrikler; Dünya 1'in 10 bölümü JSON olarak hazır.
+**Sonuç (2026-11-20):** 6 şablon + varyantlar, `support_check`, keystone görüş/erişim, malzeme seçici, generator (yere değen hacim tavanı, bütçe sınırı, keystone temizliği ve
+gülleyle çözüm simülasyonu döngüde), headless simülasyon (`sim_cli`), aday hattı (`candidates_cli`), bölüm editörü paneli (`addons/ordino_level_editor`), disk önbelleği,
+test kaydı izolasyonu. **Dünya 1'in 10 bölümü pişirildi** (`baked: true`); L04, L09, L10 `draft: true` (elle cila sonra). Son ölçüm: 10/10 gülleyle çözülebilir, 6/10 tek atış hedefinde.
+**Sonra bakılacaklar (K-034):** L02, L05, L08, L10 tek atış hedefin üstünde (kalibrasyon, Faz 6–9 hasar dengesi); L04, L09, L10 elle tasarım (§9); L07'de merkez keystone atışı
+%80'i tutmuyor (3 atıştan biri tutuyor); editör panelinin cilası; `economy.sim.core_jackpot_levels_per_world` (K-030); Alev Topu tanıtımı (L08) Faz 5'te doğrulanacak.
 
 ## FAZ 4 — Oyun döngüsü ve menüler (4–5 gün)
 ```
@@ -96,7 +101,7 @@ tools/economy_sim.py çıktısını kontrol et ve raporla.
 ```
 **Bitti:** Altın kazan → top al → kullan döngüsü çalışıyor; sim raporu hedef aralıkta.
 
-## FAZ 7 — Görsel üretim ve entegrasyon (1–2 hafta, paralel ilerleyebilir)
+## FAZ 7 — Görsel üretim ve entegrasyon (1–2 hafta, paralel ilerleyebilir) ⏭️ sıradaki (Sena: Faz 3'ten sonra görsel test, K-034)
 ```
 /ordino-art-prompts ile Dünya 1 (Akdeniz) için tam prompt setini üret: arka plan (far/front), kart, kaide dokusu, gerekli malzeme dokuları.
 Ayrıca tools/blender/generate_blocks.py yaz: shapes.json'daki tüm şekiller için bevel'li mesh + Cell Fracture kırık sürümleri, .glb export.

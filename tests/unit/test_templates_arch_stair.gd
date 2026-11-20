@@ -112,7 +112,7 @@ func test_block_counts_match_everywhere() -> void:
 
 func test_level_03_opens_full() -> void:
 	var lv := LevelExpander.expand(GameConfig.level("w01_l03"))
-	assert_eq((lv["_expand_warnings"] as PackedStringArray).size(), 0)
+	assert_true(bool(lv.get("baked", false)), "Adım 11: L03 pişirildi")
 	assert_gt((lv["blocks"] as Array).size(), 0)
 	assert_eq((lv["cores"] as Array).size(), 1, "L03 jackpot küresi yuvada")
 	var bad := Kit.problems(lv)

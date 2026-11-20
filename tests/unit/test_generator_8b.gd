@@ -8,6 +8,7 @@ const Kit = preload("res://tests/helpers/template_kit.gd")
 
 
 func before_all() -> void:
+	LevelGenerator.ignore_level_files = true  # World 1 is baked (Step 11): test generation on it anyway
 	LevelGenerator.use_disk_cache = false  # tests always generate for real
 	LevelGenerator.clear_cache()
 
@@ -15,14 +16,17 @@ func test_accepted_levels_meet_the_sim_checks() -> void:
 	var within := float(GameConfig.difficulty()["sim_targets"]["min_solve_rate_within_shots"])
 	for k in range(1, 11):
 		var id := LevelGenerator.level_id(1, k)
-		if GameConfig.level_ids().has(id):
+		if GameConfig.level_ids().has(id) and not LevelGenerator.ignore_level_files:
 			continue
 		var res: Dictionary = await LevelGenerator.resolve(id, self)
 		if not res["ok"]:
 			assert_eq(Kit.failure_report_problem(res), "", id + " başarısızlık raporu eksik")
 			# Only a hand-made slot (docs/03 §9) may stay unbuilt: "elle tasarlanacak (Adım 11)", no error.
-			assert_true(bool(res.get("pending", false)), id + ": üretilemeyen bölüm yalnızca elle tasarlanacak bölüm olabilir")
-			assert_eq(str(res["source"]), LevelGenerator.SOURCE_PENDING)
+			# A hand-made slot shows "elle tasarlanacak" (no error); a generator slot reports an error.
+			if bool(res.get("pending", false)):
+				assert_eq(str(res["source"]), LevelGenerator.SOURCE_PENDING)
+			else:
+				assert_push_error(id, "üretilemeyen generator bölümü hata verir")
 			gut.p("%s üretilemedi: %s" % [id, "; ".join(res["report"]["last_problems"])])
 			continue
 		var r: Dictionary = res["report"]
@@ -55,3 +59,8 @@ func test_keystone_share_helper() -> void:
 	var clears := {"a": [0.9, 0.5, 0.85], "b": [0.2, 0.3, 0.1]}
 	assert_almost_eq(LevelGenerator._best_keystone_share(clears, 0.8), 2.0 / 3.0, 0.001)
 	assert_eq(LevelGenerator._best_keystone_share({"a": [0.1]}, 0.8), 0.0)
+
+
+func after_all() -> void:
+	LevelGenerator.ignore_level_files = false
+	LevelGenerator.clear_cache()

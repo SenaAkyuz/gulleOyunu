@@ -8,6 +8,7 @@ const WORLD := "akdeniz"
 
 
 func before_all() -> void:
+	LevelGenerator.ignore_level_files = true  # World 1 is baked (Step 11): test generation on it anyway
 	LevelGenerator.use_disk_cache = false  # tests always generate for real
 	LevelGenerator.clear_cache()
 
@@ -66,14 +67,17 @@ func test_generated_world_1_within_caps() -> void:
 	var world := GameConfig.world(WORLD)
 	for k in range(1, 11):
 		var id := LevelGenerator.level_id(1, k)
-		if GameConfig.level_ids().has(id):
+		if GameConfig.level_ids().has(id) and not LevelGenerator.ignore_level_files:
 			continue  # files are never changed (L01, L03): reported, not enforced
 		var res: Dictionary = await LevelGenerator.resolve(id, self)
 		if not res["ok"]:
 			assert_eq(Kit.failure_report_problem(res), "", id + " başarısızlık raporu eksik")
 			# Only a hand-made slot (docs/03 §9) may stay unbuilt: "elle tasarlanacak (Adım 11)", no error.
-			assert_true(bool(res.get("pending", false)), id + ": üretilemeyen bölüm yalnızca elle tasarlanacak bölüm olabilir")
-			assert_eq(str(res["source"]), LevelGenerator.SOURCE_PENDING)
+			# A hand-made slot shows "elle tasarlanacak" (no error); a generator slot reports an error.
+			if bool(res.get("pending", false)):
+				assert_eq(str(res["source"]), LevelGenerator.SOURCE_PENDING)
+			else:
+				assert_push_error(id, "üretilemeyen generator bölümü hata verir")
 			continue
 		var d := DifficultyCalc.level_difficulty(1, k)
 		var lv: Dictionary = res["level"]
@@ -94,3 +98,8 @@ func test_forced_domino_is_rejected() -> void:
 	assert_eq(int(f[LevelChecks.BUDGET]) + int(f[LevelChecks.GROUND]) + int(f[LevelChecks.LAYOUT]) + int(f[LevelChecks.SUPPORT]) + int(f[LevelChecks.KEYSTONE]),
 			int(GameConfig.rule("generator.max_attempts")), str(f))
 	assert_gt(int(f[LevelChecks.BUDGET]) + int(f[LevelChecks.GROUND]), 0, str(f))
+
+
+func after_all() -> void:
+	LevelGenerator.ignore_level_files = false
+	LevelGenerator.clear_cache()

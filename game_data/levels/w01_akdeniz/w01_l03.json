@@ -3,22 +3,108 @@
   "world": "akdeniz",
   "index": 3,
   "name_tr": "Üç Kemer",
-  "difficulty": 10,
+  "difficulty": 10.0,
   "role": "build_up",
-  "shots": 3,
-  "objective": { "type": "clear_percent" },
-  "aim_preview_dots": 17,
-  "platform": { "width": 5.4, "depth": 2.6, "style": "limestone_plinth" },
-  "structures": [
-    { "template": "arch_shrine", "x": 0, "z": 0, "ry": 0, "seed": 1031, "params": { "floors": 2, "depth_layers": 1, "side_towers": false, "feet": "half", "core": "hanging_center", "symmetry": 0.95 } }
+  "shots": 3.0,
+  "objective": {
+    "type": "clear_percent"
+  },
+  "aim_preview_dots": 17.0,
+  "platform": {
+    "width": 5.4,
+    "depth": 2.6,
+    "style": "limestone_plinth"
+  },
+  "blocks": [
+    {
+      "id": "s1_b01",
+      "shape": "half",
+      "x": -1.39999997615814,
+      "y": 0.0,
+      "z": 0.0,
+      "rot": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "role": "structure",
+      "mat": "stone"
+    },
+    {
+      "id": "s1_b02",
+      "shape": "half",
+      "x": 1.39999997615814,
+      "y": 0.0,
+      "z": 0.0,
+      "rot": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "role": "crystal",
+      "mat": "crystal_cyan"
+    },
+    {
+      "id": "s1_b03",
+      "shape": "arch",
+      "x": 0.0,
+      "y": 0.5,
+      "z": 0.0,
+      "rot": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "role": "structure",
+      "mat": "wood"
+    },
+    {
+      "id": "s1_b04",
+      "shape": "arch",
+      "x": 0.0,
+      "y": 2.5,
+      "z": 0.0,
+      "rot": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "role": "light",
+      "mat": "wood"
+    },
+    {
+      "id": "s1_b05",
+      "shape": "ring_hanger",
+      "x": 0.0,
+      "y": 0.0,
+      "z": 0.0,
+      "rot": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "role": "light",
+      "mat": "wood"
+    }
   ],
-  "blocks": [],
   "joints": [],
-  "cores": [],
-  "keystones": [],
-  "tutorial": { "type": "hint", "text_tr": "Kemeri taşıyan desteğe nişan al!" },
+  "cores": [
+    {
+      "x": 0.0,
+      "y": 0.200000002980232,
+      "z": 0.0,
+      "attach": "rest"
+    }
+  ],
+  "keystones": [
+    "s1_b02"
+  ],
+  "tutorial": {
+    "type": "hint",
+    "text_tr": "Kemeri taşıyan desteğe nişan al!"
+  },
   "intro_ball": null,
   "free_balls": {},
-  "baked": false,
-  "_doc": "Sablon tabanli ornek: blocks/cores/keystones LevelExpander ile sablondan doldurulur; Faz 3 sonunda baked=true olarak dondurulur. K-030: hedef clear_percent, kure (kemer icinde yuvada) yalnizca jackpot. 8b (Sena): yan kulesiz, yarim kup ayakli kemer varyanti (yere degen hacim tavani K-029). Platform = kule ayak izi + spawn_edge_inset + generator.platform_margin."
+  "baked": true,
+  "_doc": "Faz 3 Adim 11'de pisirildi: dosyanın şablonu."
 }

@@ -4,6 +4,7 @@ extends GutTest
 
 
 func before_all() -> void:
+	LevelGenerator.ignore_level_files = true  # World 1 is baked (Step 11): test generation on it anyway
 	LevelGenerator.use_disk_cache = false
 
 
@@ -44,3 +45,8 @@ func test_small_run_never_touches_files() -> void:
 	for c in cands:
 		if c["ok"]:
 			assert_true((c["sim"] as Dictionary).has("verdict"))
+
+
+func after_all() -> void:
+	LevelGenerator.ignore_level_files = false
+	LevelGenerator.clear_cache()

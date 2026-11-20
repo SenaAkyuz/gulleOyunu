@@ -44,6 +44,9 @@ static var _cache: Dictionary = {}
 ## Disk cache of generated levels (git-ignored, user://). Key = world + level + seed + rules hash;
 ## any change to game_data or to the generation code makes old entries unreachable.
 static var use_disk_cache: bool = true
+## Tests only: treat every level as if it had no file, so the generator can still be tested on
+## World 1 after its levels were baked (Step 11). The game never sets it.
+static var ignore_level_files: bool = false
 static var cache_dir: String = "user://level_cache/"
 static var _rules_hash: String = ""
 ## What the rules hash covers: all game data + the code that shapes a generated level.
@@ -165,7 +168,7 @@ static func plan_world(world_id: String, opts: Dictionary = {}) -> Dictionary:
 	var files := {}
 	for k in range(1, count + 1):
 		var id := level_id(wi, k)
-		if GameConfig.level_ids().has(id):
+		if GameConfig.level_ids().has(id) and not ignore_level_files:
 			files[k] = file_template(GameConfig.level(id))
 	var templates: Array[String] = []
 	var sources: Array[String] = []
@@ -188,9 +191,11 @@ static func plan_world(world_id: String, opts: Dictionary = {}) -> Dictionary:
 			avoid.append(str(files[k + 1]))
 		# Selection rule (Sena 2026-11-20): a template at most MAX_SAME_TEMPLATE times among this
 		# world's generator levels (hand-made slots and files do not count).
+		# If the cap leaves nothing that also avoids the neighbours, the cap gives way (never the
+		# no-back-to-back rule).
 		var capped := PackedStringArray()
 		for t in pool:
-			if gen_counts.get(t, 0) < MAX_SAME_TEMPLATE:
+			if gen_counts.get(t, 0) < MAX_SAME_TEMPLATE and not avoid.has(t):
 				capped.append(t)
 		if not capped.is_empty():
 			pool = capped
@@ -203,7 +208,9 @@ static func plan_world(world_id: String, opts: Dictionary = {}) -> Dictionary:
 		for t in pool:
 			if not avoid.has(t) and templates.count(t) == least:
 				allowed.append(t)
-		if allowed.is_empty():
+		if allowed.is_empty() and is_handmade_slot(k):
+			templates.append("")  # hand-made slot: "elle tasarlanacak", not an error (docs/03 §9)
+		elif allowed.is_empty():
 			errors.append("%s: şablon yok (zorluk %.0f, aday %s, kaçınılan %s)" % [level_id(wi, k), d, pool, avoid])
 			templates.append("")
 		else:
@@ -241,6 +248,9 @@ static func generate(world_id: String, index: int, node: Node, opts: Dictionary 
 	for t in candidates(world, d):
 		if feasible_variant(world, t, d, role) >= 0:
 			pool.append(t)
+	# A slot whose plan is a file ("elle"): e.g. the editor regenerating a baked level.
+	if (first == HANDMADE or not TemplateRegistry.has(first)) and not pool.is_empty():
+		first = pool[0]
 	# The planned template first; if it cannot pass, the attempts move on to the other templates of
 	# this slot that differ from both planned neighbours (8b). A forced template is used alone.
 	var tries: Array[String] = [first]
@@ -341,7 +351,7 @@ static func generate(world_id: String, index: int, node: Node, opts: Dictionary 
 
 ## What the game plays for `id`: {ok, level (expanded), source, report}.
 static func resolve(id: String, node: Node) -> Dictionary:
-	if GameConfig.level_ids().has(id):
+	if GameConfig.level_ids().has(id) and not ignore_level_files:
 		var lv := GameConfig.level(id)
 		var src := SOURCE_BAKED if file_template(lv) == HANDMADE else SOURCE_FILE
 		return {"ok": true, "level": LevelExpander.expand(lv), "source": src, "report": {}}

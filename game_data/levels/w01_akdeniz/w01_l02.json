@@ -1,0 +1,121 @@
+{
+  "aim_preview_dots": 19.0,
+  "baked": true,
+  "blocks": [
+    {
+      "id": "s1_b01",
+      "mat": "wood",
+      "role": "structure",
+      "rot": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "shape": "cube",
+      "x": -0.509999990463257,
+      "y": 2.40000009536743,
+      "z": 0.0
+    },
+    {
+      "id": "s1_b02",
+      "mat": "crystal_amber",
+      "role": "crystal",
+      "rot": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "shape": "cube",
+      "x": 0.509999990463257,
+      "y": 2.40000009536743,
+      "z": 0.0
+    },
+    {
+      "id": "s1_b03",
+      "mat": "crystal_amber",
+      "role": "crystal",
+      "rot": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "shape": "cube",
+      "x": 0.0,
+      "y": 3.40000009536743,
+      "z": 0.0
+    },
+    {
+      "id": "s1_b04",
+      "mat": "crystal_amber",
+      "role": "crystal",
+      "rot": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "shape": "pillar_2",
+      "x": -1.39999997615814,
+      "y": 0.0,
+      "z": 0.0
+    },
+    {
+      "id": "s1_b05",
+      "mat": "wood",
+      "role": "structure",
+      "rot": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "shape": "pillar_2",
+      "x": 1.39999997615814,
+      "y": 0.0,
+      "z": 0.0
+    },
+    {
+      "id": "s1_b06",
+      "mat": "wood",
+      "role": "structure",
+      "rot": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "shape": "plank_l",
+      "x": 0.0,
+      "y": 2.0,
+      "z": 0.0
+    }
+  ],
+  "cores": [
+    {
+      "attach": "rest",
+      "x": 0.0,
+      "y": 4.40000009536743,
+      "z": 0.0
+    }
+  ],
+  "difficulty": 6.0,
+  "free_balls": {},
+  "id": "w01_l02",
+  "index": 2,
+  "intro_ball": null,
+  "joints": [],
+  "keystones": [
+    "s1_b02",
+    "s1_b04"
+  ],
+  "name_tr": "Bölüm 2",
+  "objective": {
+    "type": "clear_percent"
+  },
+  "platform": {
+    "depth": 2.6,
+    "style": "limestone_plinth",
+    "width": 5.6
+  },
+  "role": "build_up",
+  "shots": 3.0,
+  "world": "akdeniz",
+  "_doc": "Faz 3 Adim 11'de pisirildi: aday cand_1.json (şablon stack_pyramid, seed 16838)."
+}

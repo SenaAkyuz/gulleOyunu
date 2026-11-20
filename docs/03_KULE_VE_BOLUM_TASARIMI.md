@@ -435,7 +435,9 @@ Tam tablolar ve ekran görüntüleri `_candidates/` altında.
 ## 9. 80 bölüm için başlangıç planı
 > **Adım 11 notu (Sena, 2026-11-20):** adaylar §8 seçim kuralıyla seçilir (önce generator kontrolleri, sonra sim hedefleri; generator bölümlerinde aynı şablon ≤ 2).
 > **Dünya 1 önerisi:** L02 yükseltilmiş piramit, L03 kemer, L05 kemer, L06 ikiz sütun, L07 yükseltilmiş piramit, L08 ikiz sütun; **L01, L04, L09, L10 elle**.
-> Seçilen aday `baked: true` olarak dosyaya pişirilir; elle bölümler Adım 11'de tasarlanır.
+> Seçilen aday `baked: true` olarak dosyaya pişirilir (`src/tools/sim/bake_cli.gd`); elle bölümler Adım 11'de tasarlanır.
+> **Pişirildi (2026-11-20, K-034):** L02 yük. piramit, L03 kemer (dosyanın şablonu), L05 kemer, L06 ikiz sütun, L07 yük. piramit, L08 ikiz sütun; L01 elle;
+> **taslak (`draft: true`, elle cila sonra):** L04 yük. piramit, L09 kemer, L10 ikiz sütun (L09–L10 art arda kemer olmasın diye). Son ölçüm docs/06 Faz 3 sonucunda.
 - Her dünya için `difficulty.json → rhythm` ile 10 bölümün zorluk ve rolü otomatik belirlenir.
 - Faz 9'da generator her bölüm için 5 aday üretir → en iyiler seçilir → elle cilalanır.
 - Bölümlerin %20'si (her dünyada 1, 4, 9, 10) **elle tasarlanır** (imza anlar); geri kalanı generator + ince ayar.

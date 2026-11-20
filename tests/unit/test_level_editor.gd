@@ -88,10 +88,17 @@ func test_background_worker_expand_generate_sim() -> void:
 	assert_true((sim.get("sim", {}) as Dictionary).has("verdict"))
 
 
+func _template_level() -> Dictionary:
+	return LevelExpander.expand({"id": "t", "world": "akdeniz", "index": 3, "difficulty": 10.0,
+			"platform": {"width": 5.4, "depth": 2.6}, "objective": {"type": "clear_percent"},
+			"structures": [{"template": "arch_shrine", "seed": 1031, "params": {"side_towers": false, "feet": "half"}}],
+			"blocks": [], "keystones": [], "cores": []})
+
+
 func test_previewed_template_level_is_not_expanded_twice() -> void:
 	# Regression (Sena 2026-11-20): Test Et with a previewed candidate built every block twice,
 	# because the header still held the template calls and the level was not baked.
-	var lv := LevelExpander.expand(GameConfig.level("w01_l03"))
+	var lv := _template_level()
 	var root := LevelPreview.build(lv, _data())
 	add_child_autofree(root)
 	var back := LevelPreview.read(root)
@@ -101,7 +108,7 @@ func test_previewed_template_level_is_not_expanded_twice() -> void:
 
 
 func test_previewed_level_plays_without_errors() -> void:
-	var lv := LevelExpander.expand(GameConfig.level("w01_l03"))
+	var lv := _template_level()
 	var root := LevelPreview.build(lv, _data())
 	add_child_autofree(root)
 	LevelLoader.dev_level_data = LevelPreview.read(root)

@@ -12,6 +12,7 @@ func before_all() -> void:
 	_old_use = LevelGenerator.use_disk_cache
 	LevelGenerator.cache_dir = DIR
 	LevelGenerator.use_disk_cache = true
+	LevelGenerator.ignore_level_files = true  # L02 is baked now; cache a generated one
 	_clean()
 
 
@@ -19,6 +20,7 @@ func after_all() -> void:
 	_clean()
 	LevelGenerator.cache_dir = _old_dir
 	LevelGenerator.use_disk_cache = _old_use
+	LevelGenerator.ignore_level_files = false
 	LevelGenerator.clear_cache()
 
 

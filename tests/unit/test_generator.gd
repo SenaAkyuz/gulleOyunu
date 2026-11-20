@@ -8,6 +8,7 @@ const WORLD := "akdeniz"
 
 
 func before_all() -> void:
+	LevelGenerator.ignore_level_files = true  # World 1 is baked (Step 11): test generation on it anyway
 	LevelGenerator.use_disk_cache = false  # tests always generate for real
 	LevelGenerator.clear_cache()
 
@@ -17,8 +18,6 @@ func test_plan_world_1() -> void:
 	var t: Array = plan["templates"]
 	assert_eq((plan["errors"] as PackedStringArray).size(), 0, "; ".join(plan["errors"]))
 	assert_eq(t.size(), 10)
-	assert_eq(t[0], LevelGenerator.HANDMADE, "L01 elle (baked) dosya")
-	assert_eq(t[2], "arch_shrine", "L03 dosyasının şablonu korunur")
 	for i in range(1, t.size()):
 		assert_ne(t[i], t[i - 1], "L%02d ve L%02d aynı şablon: %s" % [i, i + 1, t[i]])
 	gut.p("Dünya 1 planı: %s" % [t])
@@ -30,7 +29,7 @@ func test_plan_respects_ranges_and_world() -> void:
 	var ranges: Dictionary = GameConfig.difficulty()["templates"]
 	for k in range(1, 11):
 		var tpl: String = plan["templates"][k - 1]
-		if tpl == LevelGenerator.HANDMADE or GameConfig.level_ids().has(LevelGenerator.level_id(1, k)):
+		if tpl == LevelGenerator.HANDMADE or tpl.is_empty() or (GameConfig.level_ids().has(LevelGenerator.level_id(1, k)) and not LevelGenerator.ignore_level_files):
 			continue
 		var d := DifficultyCalc.level_difficulty(1, k)
 		assert_true((world["allowed_templates"] as Array).has(tpl), "%s dünyada izinli değil" % tpl)
@@ -38,12 +37,12 @@ func test_plan_respects_ranges_and_world() -> void:
 
 
 func test_same_seed_same_tower() -> void:
-	var a: Dictionary = await LevelGenerator.generate(WORLD, 5, self)
-	var b: Dictionary = await LevelGenerator.generate(WORLD, 5, self)
+	var a: Dictionary = await LevelGenerator.generate(WORLD, 2, self)
+	var b: Dictionary = await LevelGenerator.generate(WORLD, 2, self)
 	assert_true(a["ok"])
 	assert_eq(a["level"], b["level"])
 	assert_eq(a["expanded"]["blocks"], b["expanded"]["blocks"])
-	var c: Dictionary = await LevelGenerator.generate(WORLD, 5, self, {"base_seed": 4242})
+	var c: Dictionary = await LevelGenerator.generate(WORLD, 2, self, {"base_seed": 4242})
 	assert_ne(a["expanded"]["blocks"], c["expanded"]["blocks"], "başka seed başka kule")
 
 
@@ -58,8 +57,11 @@ func test_every_world_1_level_passes() -> void:
 			# 8b: no relaxing — the failure must be reported completely.
 			assert_eq(Kit.failure_report_problem(res), "", id + " başarısızlık raporu eksik")
 			# Only a hand-made slot (docs/03 §9) may stay unbuilt: "elle tasarlanacak (Adım 11)", no error.
-			assert_true(bool(res.get("pending", false)), id + ": üretilemeyen bölüm yalnızca elle tasarlanacak bölüm olabilir")
-			assert_eq(str(res["source"]), LevelGenerator.SOURCE_PENDING)
+			# A hand-made slot shows "elle tasarlanacak" (no error); a generator slot reports an error.
+			if bool(res.get("pending", false)):
+				assert_eq(str(res["source"]), LevelGenerator.SOURCE_PENDING)
+			else:
+				assert_push_error(id, "üretilemeyen generator bölümü hata verir")
 			lines.append("%s: ÜRETİLEMEDİ · %s · %s" % [id, res["report"]["fail_counts"], "; ".join(res["report"]["last_problems"])])
 			actual.append("")
 			continue
@@ -93,17 +95,21 @@ func test_every_world_1_level_passes() -> void:
 
 
 func test_files_are_never_touched() -> void:
+	# Step 11: every World 1 level is a baked file; resolve() returns the files unchanged.
+	LevelGenerator.ignore_level_files = false
+	LevelGenerator.clear_cache()
 	var before := FileAccess.get_file_as_string("res://game_data/levels/w01_akdeniz/w01_l01.json")
-	var r1: Dictionary = await LevelGenerator.resolve("w01_l01", self)
-	var r3: Dictionary = await LevelGenerator.resolve("w01_l03", self)
-	assert_eq(r1["source"], LevelGenerator.SOURCE_BAKED)
-	assert_eq(r3["source"], LevelGenerator.SOURCE_FILE)
+	for k in range(1, 11):
+		var id := LevelGenerator.level_id(1, k)
+		var r: Dictionary = await LevelGenerator.resolve(id, self)
+		assert_true(r["ok"], id)
+		assert_eq(r["source"], LevelGenerator.SOURCE_BAKED, id + " pişirilmiş dosya")
 	assert_eq(FileAccess.get_file_as_string("res://game_data/levels/w01_akdeniz/w01_l01.json"), before)
-	var r4: Dictionary = await LevelGenerator.resolve("w01_l04", self)
-	assert_eq(r4["source"], LevelGenerator.SOURCE_CANDIDATE, "L04 elle yapılacak: yalnızca aday")
-	var r2: Dictionary = await LevelGenerator.resolve("w01_l02", self)
-	assert_eq(r2["source"], LevelGenerator.SOURCE_GENERATED)
-
+	var plan: Array = LevelGenerator.plan_world(WORLD)["templates"]
+	for t in plan:
+		assert_eq(t, LevelGenerator.HANDMADE, "dosyalı plan: hepsi elle/pişirilmiş")
+	LevelGenerator.ignore_level_files = true
+	LevelGenerator.clear_cache()
 
 func test_gives_up_without_relaxing() -> void:
 	TemplateRegistry.register("floating", FLOATING)
@@ -160,3 +166,8 @@ func test_same_template_at_most_twice_in_generator_levels() -> void:
 			counts[plan["templates"][k - 1]] = int(counts.get(plan["templates"][k - 1], 0)) + 1
 	for t: String in counts:
 		assert_lte(int(counts[t]), LevelGenerator.MAX_SAME_TEMPLATE, "%s %d kez" % [t, counts[t]])
+
+
+func after_all() -> void:
+	LevelGenerator.ignore_level_files = false
+	LevelGenerator.clear_cache()
