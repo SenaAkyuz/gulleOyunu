@@ -75,6 +75,24 @@ Keep the top 12% simple sky/ceiling for UI. Slightly soft focus on the backgroun
 **Referans görsel kullanımı:** GPT görsel üretiminde ilgili referans görselini (örn. `02_gameplay_col_yanardag.png`) ekleyip şunu yaz:
 `Use the attached image ONLY as a style and color reference for the environment. Do not copy the tower, the cannon or the UI.`
 
+### 3.0 Uzun telefonlar ve çentik (Sena, 2026-11-20, K-035) — §3'ün yerine geçen ölçüler
+Üretim 2:3 (1024×1536 → 2× upscale). Oyunda arka plan **ekran yüksekliğini doldurur, yanlar kırpılır** (yatay ortalı): 9:16'da görselin ortadaki %84'ü,
+iPhone 19.5:9'da ortadaki **%69**'u görünür. Bu yüzden:
+- **Üst %18 sakin gökyüzü** (çentik / Dynamic Island + HUD; eski %12 yerine).
+- **Oyun alanı:** genişliğin ortadaki %50'si (x %25–75), yükseklik %20–72 → boş ve sakin (kule + kaide burada; ölçüm: L01–L10 ekran görüntüleri).
+- **Dünyanın kimliği** (kayalık, kemer, sütun, ağaç…) **kenardan %10–25 içeride** (x %10–25 ve %75–90) — uzun telefonda da görünür. En dıştaki %10 sade devam (kırpılabilir).
+- **Alt:** %72–100 zemin; köşe dekoru x %10–35 / %65–90; alt orta (x %40–60) top için boş; en alt %5 sade (ana ekran çizgisi).
+
+```
+[COMPOSITION — TALL PHONES]
+Vertical portrait 2:3 canvas. The game fills the screen height and crops the sides on tall phones, so only the middle 70% of the width is always visible.
+Keep the top 18% a calm, simple sky with only soft clouds (phone notch and game UI sit there).
+Keep the middle 50% of the width, from 20% to 72% of the height, completely empty and calm — no objects, no structures; gameplay happens there.
+Place the scene's identity elements in the bands 10%–25% and 75%–90% of the width, not at the extreme edges; the outermost 10% on each side is simple continuation.
+Ground from 72% of the height down; decorative props only in the bottom corners between 10%–35% and 65%–90% of the width; keep the bottom center clear for a cannon;
+keep the bottom 5% simple. Slightly soft focus for depth. Eye-level camera, slight low angle.
+```
+
 ### 3.1 Katmanlama (paralaks için)
 1. **Tam sahne** (yukarıdaki prompt) → `far.webp` olarak kullanılabilir.
 2. Ön dekor (sol/sağ köşe öğeleri) ayrı: `transparent background PNG, isolated foreground props for the left/right corners` → `front.png` (hafif paralaks + titreşimle kımıldar).
@@ -207,3 +225,51 @@ Sonra Claude/Sena elemanları kesip `assets/ui/` altına 9-slice ayarlarıyla ko
 - **Şimdi (Faz 0–1):** Stil kılavuzu sabit. Görsel üretme; gri kutu prototiple oyunun eğlenceli olduğunu kanıtla.
 - **Faz 7'de:** Claude, `/ordino-art-prompts` ile her dünyaya özel tam prompt setini (arka plan + ön dekor + kart + platform dokusu) üretir;
   Sena görselleri üretip `incoming_art/` klasörüne atar; Claude isimlendirip doğru yerlere yerleştirir ve kalite kontrol listesini uygular.
+
+## 11. Dünya 1 (Akdeniz) — Faz 7 dikey dilim prompt seti (2026-11-20)
+Referans: `incoming_art/ref_akdeniz.png` (05 numaralı level map görselinin Akdeniz kartı). Görseller `incoming_art/` klasörüne, aşağıdaki adlarla.
+Kompozisyon: §3.0 (uzun telefon / çentik, K-035).
+
+| # | Dosya (incoming_art) | Hedef | Model ayarı | Referans |
+|---|---|---|---|---|
+| 1 | `akdeniz_far.png` | `assets/backgrounds/akdeniz/far.webp` | 1024×1536 portre, opak | ref_akdeniz.png |
+| 2 | `akdeniz_front.png` | `assets/backgrounds/akdeniz/front.png` | 1024×1536 portre, **şeffaf** | ref_akdeniz.png |
+| 3 | `akdeniz_card.png` | `assets/ui/cards/akdeniz.png` | 1024×1024, opak | ref_akdeniz.png |
+| 4 | `tex_limestone_plinth.png` | `assets/textures/platform/limestone_plinth.png` | 1024×1024 dikişsiz | yok |
+| 5 | `tex_stone.png` | `assets/textures/materials/stone.png` | 1024×1024 dikişsiz | yok |
+| 6 | `tex_wood.png` | `assets/textures/materials/wood.png` | 1024×1024 dikişsiz | yok |
+| 7 | `tex_crystal_amber.png` | `assets/textures/materials/crystal_amber.png` | 1024×1024 dikişsiz | yok |
+| 8 | `tex_crystal_cyan.png` | `assets/textures/materials/crystal_cyan.png` | 1024×1024 dikişsiz | yok |
+
+Tam promptlar: Sena'ya verilen mesajda ve aşağıda (kopyala-yapıştır).
+
+**1. akdeniz_far**
+```
+[ORDINO STYLE BIBLE] Premium stylized 3D mobile game art, semi-realistic hand-painted look, rendered like a high-end casual puzzle game. Vibrant saturated colors, warm golden accents, soft global illumination, gentle bloom on light sources, crisp readable silhouettes, glossy highlights on stone and crystal, painterly sky and clouds, rich depth with atmospheric perspective. Friendly, magical, inviting mood. No characters, no text, no logos, no UI. Clean composition with a clear empty central stage.
+A sunny Mediterranean coastal cove at golden afternoon. Turquoise crystal-clear shallow water with sparkling reflections, the sea horizon at about 55% of the image height. White limestone cliffs and ancient Greek-style stone arches and columns with magenta bougainvillea flowers stand in the side bands (10%–25% and 75%–90% of the width), continuing simply to the outer edges. A small distant white island with an old temple, small and soft, in the right side band near the horizon. Soft fluffy clouds. From 72% of the height down: sunlit pale limestone terrace tiles; terracotta amphora vases and flowers only in the bottom corners.
+[COMPOSITION — TALL PHONES] Vertical portrait 2:3 canvas. The game fills the screen height and crops the sides on tall phones, so only the middle 70% of the width is always visible. Keep the top 18% a calm, simple sky with only soft clouds. Keep the middle 50% of the width, from 20% to 72% of the height, completely empty and calm — open water and sky only, no objects, no structures. Identity elements only in the bands 10%–25% and 75%–90% of the width, not at the extreme edges. Keep the bottom center clear for a cannon and the bottom 5% simple. Slightly soft focus for depth. Eye-level camera, slight low angle.
+Use the attached image ONLY as a style and color reference for the environment. Do not copy the tower, the cannon or the UI.
+Do not include: towers, blocks, cannon, balls, characters, people, text, letters, numbers, logos, UI, frames, watermarks.
+```
+
+**2. akdeniz_front**
+```
+[ORDINO STYLE BIBLE] (as above)
+Isolated foreground props for a Mediterranean coastal game scene on a fully transparent background, portrait 2:3 canvas: on the left, a broken ancient limestone column fragment draped with magenta bougainvillea flowers and green leaves, placed in the band 10%–30% of the width and rising from the bottom to about 45% of the height; on the right, two terracotta amphora vases with a small pot of white and pink flowers, in the band 70%–90% of the width, from the bottom to about 25% of the height. Everything else fully transparent. Warm golden afternoon light from the upper left, soft contact shadows only under the props. Keep the whole middle of the image empty and transparent.
+Use the attached image ONLY as a style and color reference. Do not copy the tower, the cannon or the UI.
+Do not include: towers, blocks, cannon, balls, characters, people, text, letters, numbers, logos, UI, frames, watermarks, ground plane, sky.
+```
+
+**3. akdeniz_card**
+```
+[ORDINO STYLE BIBLE] (as above)
+Square 1:1 hero illustration card for the world "Mediterranean Coast". In the center, an iconic stacked tower made of pale limestone arches, wooden planks and glowing amber and turquoise glass cubes, with a shiny golden sphere hanging inside a stone arch, standing in turquoise shallow water. Background: sunny Mediterranean cove with white cliffs, ancient arches and magenta bougainvillea, soft clouds. Strong rim light, cinematic, very readable at small size. No text, no frame, no UI.
+Use the attached image ONLY as a style and color reference.
+```
+
+**4–8. Dokular** (§7 şablonu: `Seamless tileable PBR texture, flat orthographic top-down view, even diffuse lighting, no shadows, no perspective, no objects, stylized hand-painted game texture matching a vibrant premium mobile game, 1024x1024, <TANIM>.`)
+- `tex_limestone_plinth`: `large smooth pale limestone slabs of a sunlit Mediterranean terrace, warm cream color, subtle weathering and tiny chips, soft joints between slabs`
+- `tex_stone`: `warm cream limestone blocks, soft worn edges, subtle cracks, light beige`
+- `tex_wood`: `rich brown wooden planks with visible grain, slightly painted, iron bolt holes`
+- `tex_crystal_amber`: `glowing amber glass with inner light and subtle internal facets`
+- `tex_crystal_cyan`: `glowing turquoise glass with inner light and subtle internal facets`
