@@ -71,7 +71,9 @@ func test_generated_world_1_within_caps() -> void:
 		var res: Dictionary = await LevelGenerator.resolve(id, self)
 		if not res["ok"]:
 			assert_eq(Kit.failure_report_problem(res), "", id + " başarısızlık raporu eksik")
-			assert_push_error(id, "üretilemeyen bölüm için generator hata mesajı")
+			# Only a hand-made slot (docs/03 §9) may stay unbuilt: "elle tasarlanacak (Adım 11)", no error.
+			assert_true(bool(res.get("pending", false)), id + ": üretilemeyen bölüm yalnızca elle tasarlanacak bölüm olabilir")
+			assert_eq(str(res["source"]), LevelGenerator.SOURCE_PENDING)
 			continue
 		var d := DifficultyCalc.level_difficulty(1, k)
 		var lv: Dictionary = res["level"]

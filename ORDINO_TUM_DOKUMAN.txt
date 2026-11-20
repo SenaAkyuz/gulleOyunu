@@ -89,6 +89,7 @@ python3 tools/economy_sim.py
 # Taze checkout'ta önce: godot --headless --path . --import
 godot --headless --fixed-fps 60 --path . -s addons/gut/gut_cmdln.gd -gexit   # çıkış kodu 0 = hepsi geçti (--fixed-fps: her kare 1 fizik adımı, CPU hızında; ~30 sn)
 # Bölüm simülasyonu (docs/03 §8.1): godot --headless --fixed-fps 60 --path . -s src/tools/sim/sim_cli.gd -- --world akdeniz
+# Aday hattı (docs/03 §8, ekran görüntülü; --headless ile görüntüsüz): godot --fixed-fps 60 --path . -s src/tools/sim/candidates_cli.gd -- --world akdeniz
 ```
 
 ## 8. Mevcut durum
@@ -1004,7 +1005,7 @@ Not: 8b'nin ara ölçümü `Engine.time_scale` ile hızlandırılmıştı ve bu 
 - **Önbellek:** üretilen bölümler (başarısızlar raporlarıyla) `user://level_cache/<dünya>_lNN_s<seed>_<kural hash'i>.json` dosyasına yazılır;
   kural hash'i = `game_data`'daki tüm JSON + üretimi etkileyen kod (`src/gameplay/level`, `blocks`, `balls`, `src/core`, `src/tools/sim`) MD5'i.
   Herhangi biri değişince eski kayıt kullanılmaz. Testler önbelleği kapatır (`LevelGenerator.use_disk_cache = false`).
-- **Boss = çoklu yapı'dan sapma (L10):** iki yapılı denemelerde ikinci yapı (taş sütunlu ikiz) birincinin devrilmesiyle devrilmiyor → tek keystone en çok
+- **Boss generator dışı, elle (§9) — L10 (Sena, K-033):** boss bölümü her dünyada elle tasarlanır; generator üretemediği için hata sayılmaz. Dosyası yokken N/B "L10: elle tasarlanacak (Adım 11)" gösterir (aday denenir, geçen yoksa bu durum). Teşhis kaydı: iki yapılı denemelerde ikinci yapı (taş sütunlu ikiz) birincinin devrilmesiyle devrilmiyor → tek keystone en çok
   %4–37 temizlik (teşhis: kalan bloklar ikinci yapının tamamı + yan kuleler + taş ayaklar + yerdeki yuva). Oyun alanını genişletmek (kamerayı uzaklaştırma
   eşdeğeri ±6.5 / ±8) alana sığmama hatalarını kaldırdı ama hiçbir zincir %80'e ulaşmadı → kalıcı `camera_override` eklenmedi. Tek yapıya dönüş de
   12 denemede %80'i 1/3 atışla tutturamadı (en iyi %75; yarım ayaklı tek kemer merkez atışında %82 verebiliyor ama o tohumla değil) → **L10 üretilemiyor**.
@@ -1027,9 +1028,17 @@ Not: 8b'nin ara ölçümü `Engine.time_scale` ile hızlandırılmıştı ve bu 
 | L07 | combine | kemer | %46 → %46 ⚠ (6–20) | ✔ %93 | %89 ✔ | **kalibrasyon bekliyor (Faz 6–9 hasar dengesi)** |
 | L08 | challenge | üretilemedi → **merdiven** | – → %12 ⚠ (2–8) | ✘ %21 (kabul: 3 atıştan 1'i ≥%80) | %59 ✔ | **kalibrasyon bekliyor**; merkez atışı zayıf |
 | L09 | breather | kemer (plan piramit geçmedi) | %54 → %54 ✔ | ✔ %93 | %60 ✔ | |
-| L10 | boss | **üretilemedi** | – | – | – | yukarıdaki sapma notu |
+| L10 | boss | **elle tasarlanacak (§9)** | – | – | – | generator dışı |
 
 `sim_targets` değişmedi. Süre: Dünya 1 ~1 dk (üretim önbellekten).
+
+**Aday hattı (Adım 9, `src/tools/sim/candidates.gd` + `candidates_cli.gd`):** bir bölüm için `--count` (5) aday; aday *i* şablonu bölüme uyan listeden
+sırayla alır (plandaki önce, sonra iki komşunun planlı şablonundan farklı olanlar) ve `base_seed + i × 7919` seed'ini kullanır. Her aday generator'ın tüm
+kontrollerinden geçer (yerleşim, denge, keystone görüş/erişim, bütçe, yere değen hacim, fizik, keystone temizliği, gülleyle çözüm), sonra 200 örnekle
+simüle edilir ve `sim_targets`'a göre sıralanır (önce hedefi tutan metrik sayısı, eşitlikte tek atış oranının hedef aralığına uzaklığı).
+Pencereli çalıştırılırsa her adayın ekran görüntüsü alınır. Çıktı `_candidates/<bölüm>/cand_<sıra>.json|png` + `summary.md` (git dışı).
+**`game_data`'ya hiçbir şey yazılmaz:** elle bölümler (L01, L04, L09, L10) ve dosyası olan bölümler için yalnızca öneridir; seçilen aday Adım 11'de pişirilir.
+Komut: `godot --fixed-fps 60 --path . -s src/tools/sim/candidates_cli.gd -- --world akdeniz` (veya `--level w01_l05`).
 
 ### 8.2 Bölüm editörü (Godot editör eklentisi, Faz 3)
 > **K-024:** Faz 3'te özel ızgara editörü yerine Godot editör paneli yapılır: butonlar aşağıdaki gibi, bloklar Godot'un 3D gizmo'su ile taşınır. Aşağıdaki üç panelli düzen ileride değerlendirilir.
@@ -1589,6 +1598,7 @@ Faz 0–1: 1 hafta · Faz 2–4: 2 hafta · Faz 5–6: 1.5 hafta · Faz 7–8: 2
 | K-030 | 2026-11-19 | **Altın Küre bölümü asla bitirmez:** her bölümde kazanma = temizlik (`clear_percent`); küre her zaman yalnızca jackpot. `drop_core` / `drop_all_cores` hedefleri kaldırıldı; L03 `clear_percent` oldu (platform kule ayak izine göre daraltıldı). `economy.sim.core_jackpot_levels_per_world` (8) Faz 6'da gözden geçirilecek | Sena: tek gülleyle küreyi vurup bölümü bitirmek kule yıkmayı anlamsızlaştırıyor | Onaylandı (Sena) |
 | K-031 | 2026-11-20 | **8b — simülasyon generator döngüsünde:** keystone_clear_min (en iyi keystone'a 3 atışın en az yarısı %80 temizlik), gülleyle çözüm ≥ %20 değilse ret, çok yapılıda zincir (sonraki yapı keystone tarafında) ya da tek yapıya dönüş, planlı şablon geçmezse bölüme uyan diğer şablonlar; sınırda hata + sebep. L03 yarım küp ayaklı kemer. Testler ve sim `--fixed-fps 60` + izole fizik dünyası (`Engine.time_scale` kullanılmaz) | Orta/zor bölümlerde hiçbir keystone %80'e ulaşmıyordu; zorluk keystone'u bulmaktan gelmeli | Onaylandı (Sena) |
 | K-032 | 2026-11-20 | **Rol bazlı keystone kabul oranı + orta roller kalibrasyon bekliyor:** varsayılan 1/3 (3 atıştan 1'i), kolay roller (intro, build_up, breather, new_mechanic) 2/3; `combine` listede yok → varsayılan. Orta rollerde tek atış fazlası için generator ayarlanmaz; L05, L07 (ve L08) "kalibrasyon bekliyor (Faz 6–9 hasar dengesi)". Üretilen bölümler diske önbelleğe alınır (kural hash'i ile). L10: boss çoklu yapı zinciri kurulamıyor, üretilemiyor (sapma docs/03 §8.1) | 8b ölçümü: L08/L10 üretilemiyordu; orta rollerde tek atış hedefin üstünde; `sim_targets` korunacak | Onaylandı (Sena) |
+| K-033 | 2026-11-20 | **Boss generator dışı, elle (docs/03 §9):** dosyası olmayan elle bölümde (1, 4, 9, 10) önce generator adayı denenir; aday da geçmezse hata değil, N/B "elle tasarlanacak (Adım 11)" gösterir (L10). `combine` keystone oranı 1/3 kurallarda açıkça yazılı. Aday hattı (Adım 9) yalnızca öneri üretir, `game_data`'ya yazmaz. Simülasyon blok/gülleleri sessiz (EventBus yaymaz) | L10 boss çoklu yapı zinciri kurulamıyordu; simüle edilen kristaller gerçek kayda altın yazıyordu (hata) | Onaylandı (Sena) |
 
 ## Açık sorular (Sena karar verecek)
 | No | Soru | Öneri | Durum |
@@ -1985,9 +1995,10 @@ Faz 0–1: 1 hafta · Faz 2–4: 2 hafta · Faz 5–6: 1.5 hafta · Faz 7–8: 2
     "budget_max_over": 0.25,
     "keystone_shots": 3,
     "keystone_shot_success_share": 0.33,
-    "keystone_shot_success_share_by_role": { "intro": 0.66, "build_up": 0.66, "breather": 0.66, "new_mechanic": 0.66 },
+    "keystone_shot_success_share_by_role": { "intro": 0.66, "build_up": 0.66, "breather": 0.66, "new_mechanic": 0.66, "combine": 0.33, "challenge": 0.33, "boss": 0.33 },
     "sim_greedy_samples": 20,
-    "_doc_sim_loop": "8b (Sena 2026-11-20): kule kabul edilmeden once kisa sim. keystone_shots: her keystone'a bu kadar dogrudan atis (yuzunde farkli noktalar); en iyi keystone'da atislarin en az keystone_shot_success_share kadari objective (clear_percent) hedefine ulasmali (keystone_clear_min). K-032: varsayilan 0.33 (3 atistan 1'i; docs/03 8.1 'en az birinde'), keystone_shot_success_share_by_role kolay rollerde 0.66 (3 atistan 2'si). Listede olmayan roller (combine, challenge, boss) varsayilani kullanir. sim_greedy_samples: acgozlu cok atisli deneme sayisi; cozum orani difficulty.sim_targets.min_solve_rate_within_shots altindaysa kule reddedilir. Hiz icin oyun/testler headless --fixed-fps 60 ile calistirilir (Engine.time_scale fizik adimini da buyuttugu icin kullanilmaz).",
+    "sim_batch": 10,
+    "_doc_sim_loop": "8b (Sena 2026-11-20): kule kabul edilmeden once kisa sim. keystone_shots: her keystone'a bu kadar dogrudan atis (yuzunde farkli noktalar); en iyi keystone'da atislarin en az keystone_shot_success_share kadari objective (clear_percent) hedefine ulasmali (keystone_clear_min). K-032: varsayilan 0.33 (3 atistan 1'i; docs/03 8.1 'en az birinde'), keystone_shot_success_share_by_role kolay rollerde 0.66 (3 atistan 2'si). combine, challenge, boss 0.33 (Sena: combine acikca listede). Listede olmayan bir rol varsayilani kullanir. sim_greedy_samples: acgozlu cok atisli deneme sayisi; sim_batch: generator icindeki simde ayni fizik dunyasinda paralel kopya sayisi (fazlasi Jolt is kuyrugunu tasirdi); cozum orani difficulty.sim_targets.min_solve_rate_within_shots altindaysa kule reddedilir. Hiz icin oyun/testler headless --fixed-fps 60 ile calistirilir (Engine.time_scale fizik adimini da buyuttugu icin kullanilmaz).",
     "budget_warn_below": 0.6,
     "structure_gap": 1.0,
     "max_structures": 3,

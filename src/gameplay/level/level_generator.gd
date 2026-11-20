@@ -26,6 +26,9 @@ const SOURCE_BAKED := "elle (baked)"
 const SOURCE_FILE := "dosya (şablon)"
 const SOURCE_GENERATED := "generator"
 const SOURCE_CANDIDATE := "generator adayı (elle yapılacak)"
+## A hand-made slot (difficulty.handmade_levels, docs/03 §9) without a file whose candidate could not
+## be generated: not an error, the level is designed by hand in Step 11.
+const SOURCE_PENDING := "elle tasarlanacak (Adım 11)"
 ## Template label of a level file that lists its blocks by hand.
 const HANDMADE := "elle"
 const ID_FORMAT := "w%02d_l%02d"
@@ -284,7 +287,8 @@ static func generate(world_id: String, index: int, node: Node, opts: Dictionary 
 				failed = LevelChecks.KEYSTONE_CLEAR
 				problems[LevelChecks.KEYSTONE_CLEAR] = PackedStringArray(["keystone atışı %%%d hedefi tutmuyor: %s" % [roundi(clear_target * 100.0), _clears_text(clears)]])
 		if failed.is_empty():
-			within = await LevelSim.within_shots_rate(expanded, node, int(GameConfig.rule("generator.sim_greedy_samples")), rng)
+			within = await LevelSim.within_shots_rate(expanded, node, int(GameConfig.rule("generator.sim_greedy_samples")), rng,
+					int(GameConfig.rule("generator.sim_batch")))
 			if within < within_min:
 				failed = LevelChecks.WITHIN_SHOTS
 				problems[LevelChecks.WITHIN_SHOTS] = PackedStringArray(["gülleyle çözüm %%%d < %%%d" % [roundi(within * 100.0), roundi(within_min * 100.0)]])
@@ -313,8 +317,12 @@ static func generate(world_id: String, index: int, node: Node, opts: Dictionary 
 			(report["warnings"] as Array).append("bütçe %%%d dolu (%d / %d blok)" % [
 					roundi(float(report["fill"]) * 100.0), used, int(report["budget"])])
 		return {"ok": true, "level": level, "expanded": expanded, "report": report}
-	push_error("LevelGenerator %s: %d denemede geçen kule yok; düşen kontroller %s; son sorunlar: %s" % [
-			level_id(wi, index), max_attempts, fail_counts, "; ".join(report["last_problems"])])
+	var msg := "LevelGenerator %s: %d denemede geçen kule yok; düşen kontroller %s; son sorunlar: %s" % [
+			level_id(wi, index), max_attempts, fail_counts, "; ".join(report["last_problems"])]
+	if bool(opts.get("quiet", false)):
+		push_warning(msg)  # hand-made slot: only a candidate failed, not an error
+	else:
+		push_error(msg)
 	return {"ok": false, "level": {}, "expanded": {}, "report": report}
 
 
@@ -338,9 +346,13 @@ static func resolve(id: String, node: Node) -> Dictionary:
 			cached["from_disk_cache"] = true
 			_cache[id] = cached
 			return cached
-	var res: Dictionary = await generate(str(world["id"]), wi.y, node)
+	var handmade := is_handmade_slot(wi.y)
+	var res: Dictionary = await generate(str(world["id"]), wi.y, node, {"quiet": handmade})
 	var out := {"ok": res["ok"], "level": res["expanded"], "report": res["report"],
-			"source": SOURCE_CANDIDATE if is_handmade_slot(wi.y) else SOURCE_GENERATED}
+			"source": SOURCE_CANDIDATE if handmade else SOURCE_GENERATED}
+	if handmade and not res["ok"]:
+		out["source"] = SOURCE_PENDING
+		out["pending"] = true
 	# Failures are cached too (with their report), so N/B does not retry 12 attempts every time.
 	_cache[id] = out
 	if use_disk_cache:

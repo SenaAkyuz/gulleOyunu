@@ -8,6 +8,8 @@ extends Node3D
 
 const BLOCK_SCENE: PackedScene = preload("res://src/gameplay/blocks/block.tscn")
 
+## Simulation / check towers: every block is `silent` (no EventBus signals).
+var silent: bool = false
 var blocks: Array[Block] = []
 var cores: Array[Block] = []
 
@@ -101,6 +103,7 @@ func _spawn(id: String, shape_name: String, mat: String, pos: Vector3, rot_deg: 
 	if not b.setup(id, shape_name, mat, pos, rot_deg):
 		b.free()
 		return null
+	b.silent = silent
 	b.freeze_mode = RigidBody3D.FREEZE_MODE_STATIC
 	b.freeze = true
 	add_child(b)

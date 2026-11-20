@@ -54,6 +54,9 @@ var spawn_position: Vector3 = Vector3.ZERO
 ## Set by LevelReferee via the edge rule.
 var is_fallen: bool = false
 var is_broken: bool = false
+## Simulation / check copies (LevelSim, SupportCheck.physics_drift): no EventBus signals, so a
+## simulated break never pays crystal gold, shakes the camera or counts for the referee.
+var silent: bool = false
 
 var _impact_threshold: float = 0.0
 var _crack_ratio: float = 0.0
@@ -139,7 +142,8 @@ func _apply_damage(amount: float) -> void:
 	hp = maxf(0.0, hp - amount)
 	_refresh_color()
 	_refresh_hp_label()
-	EventBus.block_damaged.emit(self, hp)
+	if not silent:
+		EventBus.block_damaged.emit(self, hp)
 	if hp <= 0.0:
 		_break()
 
@@ -152,7 +156,8 @@ func _break() -> void:
 	collision_layer = 0
 	collision_mask = 0
 	freeze = true
-	EventBus.block_broken.emit(self, material_id)
+	if not silent:
+		EventBus.block_broken.emit(self, material_id)
 
 
 ## Wakes every block/core touching this block's bounding box (grown by WAKE_MARGIN) so whatever
@@ -173,7 +178,8 @@ func _wake_neighbours() -> void:
 
 
 func _emit_ball_impact(pos: Vector3, impulse: float) -> void:
-	EventBus.ball_impact.emit(pos, impulse, material_id)
+	if not silent:
+		EventBus.ball_impact.emit(pos, impulse, material_id)
 
 
 func set_fallen(value: bool) -> void:

@@ -7,3 +7,5 @@ __pycache__/
 _yedek/
 _screenshots/
 _sim_reports/
+_candidates/
+_candidates_run.log

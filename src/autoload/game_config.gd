@@ -34,7 +34,7 @@ const REQUIRED_RULES: PackedStringArray = [
 	"generator.max_attempts", "generator.budget_warn_below", "generator.structure_gap",
 	"generator.max_structures", "generator.base_seed",
 	"generator.budget_max_over", "generator.keystone_shots", "generator.keystone_shot_success_share", "generator.keystone_shot_success_share_by_role",
-	"generator.sim_greedy_samples",
+	"generator.sim_greedy_samples", "generator.sim_batch",
 	"level_checks.keystone_min_visible_ratio", "level_checks.face_samples",
 	"feel.spark_amount", "feel.spark_lifetime_sec", "feel.spark_speed", "feel.spark_size",
 	"quality.default",

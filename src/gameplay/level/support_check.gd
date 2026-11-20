@@ -112,6 +112,7 @@ static func physics_drift(level: Dictionary, parent: Node) -> Dictionary:
 	var holder := Node3D.new()
 	var platform := Platform.new()
 	var tower := TowerBuilder.new()
+	tower.silent = true
 	holder.add_child(platform)
 	holder.add_child(tower)
 	world.add_child(holder)
@@ -135,6 +136,7 @@ static func physics_drift(level: Dictionary, parent: Node) -> Dictionary:
 			max_drift = d
 			worst = b.block_id
 	world.queue_free()
+	await tree.process_frame  # free the physics world before the next check starts
 	return {"ok": max_drift <= float(GameConfig.rule("physics.max_settle_drift")),
 			"max_drift": max_drift, "drifts": drifts, "worst": worst}
 

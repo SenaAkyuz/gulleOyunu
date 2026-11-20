@@ -80,6 +80,7 @@ python3 tools/economy_sim.py
 # Taze checkout'ta önce: godot --headless --path . --import
 godot --headless --fixed-fps 60 --path . -s addons/gut/gut_cmdln.gd -gexit   # çıkış kodu 0 = hepsi geçti (--fixed-fps: her kare 1 fizik adımı, CPU hızında; ~30 sn)
 # Bölüm simülasyonu (docs/03 §8.1): godot --headless --fixed-fps 60 --path . -s src/tools/sim/sim_cli.gd -- --world akdeniz
+# Aday hattı (docs/03 §8, ekran görüntülü; --headless ile görüntüsüz): godot --fixed-fps 60 --path . -s src/tools/sim/candidates_cli.gd -- --world akdeniz
 ```
 
 ## 8. Mevcut durum

@@ -39,7 +39,7 @@ static func keystone_clears(level: Dictionary, host: Node, shots: int, rng: Rand
 		for s in shots:
 			var target: Vector3 = SupportCheck._mean(pts) if s == 0 else pts[rng.randi_range(0, pts.size() - 1)]
 			trials.append({"kind": KIND_KEYSTONE, "keystone": str(k), "targets": [target]})
-	await _run_trials(level, trials, host, maxi(1, trials.size()))
+	await _run_trials(level, trials, host, maxi(1, mini(trials.size(), int(GameConfig.rule("generator.sim_batch")))))
 	var out := {}
 	for t in trials:
 		if not out.has(t["keystone"]):
@@ -180,6 +180,9 @@ static func _run_trials(level: Dictionary, trials: Array[Dictionary], host: Node
 		while int(state["left"]) > 0:
 			await host.get_tree().physics_frame
 		world.queue_free()
+		# Let the old physics world go before the next one starts (too many live Jolt spaces at
+		# once overflowed Jolt's job queue).
+		await host.get_tree().process_frame
 		i += batch
 
 
@@ -190,6 +193,7 @@ static func _trial(level: Dictionary, trial: Dictionary, host: Node, offset: Vec
 	holder.position = offset
 	var plat := Platform.new()
 	var tower := TowerBuilder.new()
+	tower.silent = true
 	holder.add_child(plat)
 	holder.add_child(tower)
 	host.add_child(holder)
@@ -246,6 +250,7 @@ static func _trial(level: Dictionary, trial: Dictionary, host: Node, offset: Vec
 	trial["ratio"] = _ratio(tower, offset, level)
 	trial["jackpot"] = _core_fallen(tower, offset, level)
 	trial["remaining"] = _remaining(tower, offset, level)
+	trial["broken"] = tower.blocks.filter(func(b: Block) -> bool: return b.is_broken).map(func(b: Block) -> String: return b.block_id)
 	trial["shots_used"] = used
 	for b in balls:
 		if is_instance_valid(b):
@@ -265,6 +270,7 @@ static func _fire(holder: Node3D, offset: Vector3, target_local: Vector3) -> Bal
 	muzzle = KeystoneCheck._muzzle(cannon, v)
 	v = Ballistics.solve(muzzle, target_local, speed, g, arc)["velocity"]
 	var ball: Ball = BALL_SCENE.instantiate()
+	ball.silent = true
 	ball.setup(GameConfig.starting_ball_id())
 	holder.add_child(ball)
 	ball.global_position = muzzle + offset

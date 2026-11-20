@@ -157,6 +157,11 @@ func _on_core_dropped(_core: Node3D) -> void:
 	_jackpot.visible = true
 
 
+## Big centred notice (e.g. a level slot that is not built yet).
+func show_notice(title: String, subtitle: String) -> void:
+	_show_banner(title, subtitle)
+
+
 func _show_banner(title: String, subtitle: String) -> void:
 	_banner.text = title
 	_sub_banner.text = subtitle

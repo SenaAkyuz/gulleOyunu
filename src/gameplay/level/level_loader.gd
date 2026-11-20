@@ -55,6 +55,11 @@ func _ready() -> void:
 		current_source = LevelGenerator.describe(res)
 	if stress_mode or not dev_level_data.is_empty():
 		current_source = "stres" if stress_mode else "bellek (editör / test)"
+	if level_data.is_empty() and current_source.begins_with(LevelGenerator.SOURCE_PENDING):
+		# Hand-made slot (docs/03 §9) without a file and without a usable candidate: not an error.
+		_hud.show_notice("L%02d" % LevelGenerator.parse_id(level_id).y, LevelGenerator.SOURCE_PENDING)
+		_hud.set_dev_text("Kaynak: %s\nN/B: başka bölüm" % current_source)
+		return
 	if level_data.is_empty():
 		push_error("Level: bölüm yüklenemedi: " + level_id)
 		_hud.set_dev_text("Bölüm yüklenemedi: %s (Output panelinde ayrıntı)" % level_id)

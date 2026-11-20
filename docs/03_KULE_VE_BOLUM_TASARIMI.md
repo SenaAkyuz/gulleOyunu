@@ -361,7 +361,7 @@ Not: 8b'nin ara ölçümü `Engine.time_scale` ile hızlandırılmıştı ve bu 
 - **Önbellek:** üretilen bölümler (başarısızlar raporlarıyla) `user://level_cache/<dünya>_lNN_s<seed>_<kural hash'i>.json` dosyasına yazılır;
   kural hash'i = `game_data`'daki tüm JSON + üretimi etkileyen kod (`src/gameplay/level`, `blocks`, `balls`, `src/core`, `src/tools/sim`) MD5'i.
   Herhangi biri değişince eski kayıt kullanılmaz. Testler önbelleği kapatır (`LevelGenerator.use_disk_cache = false`).
-- **Boss = çoklu yapı'dan sapma (L10):** iki yapılı denemelerde ikinci yapı (taş sütunlu ikiz) birincinin devrilmesiyle devrilmiyor → tek keystone en çok
+- **Boss generator dışı, elle (§9) — L10 (Sena, K-033):** boss bölümü her dünyada elle tasarlanır; generator üretemediği için hata sayılmaz. Dosyası yokken N/B "L10: elle tasarlanacak (Adım 11)" gösterir (aday denenir, geçen yoksa bu durum). Teşhis kaydı: iki yapılı denemelerde ikinci yapı (taş sütunlu ikiz) birincinin devrilmesiyle devrilmiyor → tek keystone en çok
   %4–37 temizlik (teşhis: kalan bloklar ikinci yapının tamamı + yan kuleler + taş ayaklar + yerdeki yuva). Oyun alanını genişletmek (kamerayı uzaklaştırma
   eşdeğeri ±6.5 / ±8) alana sığmama hatalarını kaldırdı ama hiçbir zincir %80'e ulaşmadı → kalıcı `camera_override` eklenmedi. Tek yapıya dönüş de
   12 denemede %80'i 1/3 atışla tutturamadı (en iyi %75; yarım ayaklı tek kemer merkez atışında %82 verebiliyor ama o tohumla değil) → **L10 üretilemiyor**.
@@ -384,9 +384,17 @@ Not: 8b'nin ara ölçümü `Engine.time_scale` ile hızlandırılmıştı ve bu 
 | L07 | combine | kemer | %46 → %46 ⚠ (6–20) | ✔ %93 | %89 ✔ | **kalibrasyon bekliyor (Faz 6–9 hasar dengesi)** |
 | L08 | challenge | üretilemedi → **merdiven** | – → %12 ⚠ (2–8) | ✘ %21 (kabul: 3 atıştan 1'i ≥%80) | %59 ✔ | **kalibrasyon bekliyor**; merkez atışı zayıf |
 | L09 | breather | kemer (plan piramit geçmedi) | %54 → %54 ✔ | ✔ %93 | %60 ✔ | |
-| L10 | boss | **üretilemedi** | – | – | – | yukarıdaki sapma notu |
+| L10 | boss | **elle tasarlanacak (§9)** | – | – | – | generator dışı |
 
 `sim_targets` değişmedi. Süre: Dünya 1 ~1 dk (üretim önbellekten).
+
+**Aday hattı (Adım 9, `src/tools/sim/candidates.gd` + `candidates_cli.gd`):** bir bölüm için `--count` (5) aday; aday *i* şablonu bölüme uyan listeden
+sırayla alır (plandaki önce, sonra iki komşunun planlı şablonundan farklı olanlar) ve `base_seed + i × 7919` seed'ini kullanır. Her aday generator'ın tüm
+kontrollerinden geçer (yerleşim, denge, keystone görüş/erişim, bütçe, yere değen hacim, fizik, keystone temizliği, gülleyle çözüm), sonra 200 örnekle
+simüle edilir ve `sim_targets`'a göre sıralanır (önce hedefi tutan metrik sayısı, eşitlikte tek atış oranının hedef aralığına uzaklığı).
+Pencereli çalıştırılırsa her adayın ekran görüntüsü alınır. Çıktı `_candidates/<bölüm>/cand_<sıra>.json|png` + `summary.md` (git dışı).
+**`game_data`'ya hiçbir şey yazılmaz:** elle bölümler (L01, L04, L09, L10) ve dosyası olan bölümler için yalnızca öneridir; seçilen aday Adım 11'de pişirilir.
+Komut: `godot --fixed-fps 60 --path . -s src/tools/sim/candidates_cli.gd -- --world akdeniz` (veya `--level w01_l05`).
 
 ### 8.2 Bölüm editörü (Godot editör eklentisi, Faz 3)
 > **K-024:** Faz 3'te özel ızgara editörü yerine Godot editör paneli yapılır: butonlar aşağıdaki gibi, bloklar Godot'un 3D gizmo'su ile taşınır. Aşağıdaki üç panelli düzen ileride değerlendirilir.

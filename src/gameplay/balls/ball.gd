@@ -16,6 +16,8 @@ var _life_left: float = 0.0
 var _kill_y: float = 0.0
 var _expired: bool = false
 var _hit: bool = false
+## Simulation copies (LevelSim): no EventBus signals (no ammo used, no referee / cooldown).
+var silent: bool = false
 
 
 func setup(id: String) -> bool:
@@ -69,7 +71,8 @@ func setup(id: String) -> bool:
 func launch(velocity: Vector3) -> void:
 	linear_velocity = velocity
 	behavior.on_launch()
-	EventBus.ball_fired.emit(ball_id)
+	if not silent:
+		EventBus.ball_fired.emit(ball_id)
 
 
 func _physics_process(delta: float) -> void:
@@ -86,7 +89,8 @@ func _on_body_entered(_body: Node) -> void:
 	if _hit:
 		return
 	_hit = true
-	EventBus.ball_hit.emit(ball_id)
+	if not silent:
+		EventBus.ball_hit.emit(ball_id)
 
 
 func expire() -> void:
@@ -95,5 +99,6 @@ func expire() -> void:
 	_expired = true
 	behavior.on_expire()
 	expired.emit(self)
-	EventBus.ball_expired.emit(ball_id)
+	if not silent:
+		EventBus.ball_expired.emit(ball_id)
 	queue_free()
