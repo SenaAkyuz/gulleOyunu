@@ -150,6 +150,15 @@ if isinstance(dev.get("stress_columns"), int) and isinstance(dev.get("stress_row
     errors.append("rules.dev.stress_columns/rows oynanabilir alana (10 x 6) sigmali")
 if not isinstance(dev.get("panel_open_touches"), int) or dev.get("panel_open_touches") < 2:
     errors.append("rules.dev.panel_open_touches 2 veya daha buyuk tam sayi olmali")
+for mat_id, look in rules.get("visuals", {}).get("material_looks", {}).items():
+    if mat_id not in materials:
+        errors.append(f"rules.visuals.material_looks: bilinmeyen malzeme '{mat_id}'")
+    for key in ("alpha", "rim", "roughness", "metallic"):
+        if key in look and not (is_num(look[key]) and 0 <= look[key] <= 1):
+            errors.append(f"rules.visuals.material_looks.{mat_id}.{key} 0..1 olmali")
+    for key in ("tint", "emission"):
+        if key in look and not (isinstance(look[key], list) and len(look[key]) == 3 and all(is_num(v) for v in look[key])):
+            errors.append(f"rules.visuals.material_looks.{mat_id}.{key} [r, g, b] olmali")
 fake_safe = dev.get("fake_safe_area_px", {})
 if not isinstance(fake_safe, dict) or sorted(fake_safe.keys()) != ["bottom", "left", "right", "top"] or \
         not all(isinstance(v, int) and 0 <= v <= 400 for v in fake_safe.values()):

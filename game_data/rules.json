@@ -129,6 +129,14 @@
     "texture_world_scale": 0.5,
     "block_bevel": 0.06,
     "cannon_model": "res://assets/models/cannon/cannon.glb",
+    "material_looks": {
+      "crystal_amber": { "alpha": 0.95, "tint": [1.0, 0.55, 0.1], "emission": [1.0, 0.45, 0.05], "emission_energy": 0.6, "rim": 0.2, "roughness": 0.12 },
+      "crystal_cyan": { "alpha": 0.95, "tint": [0.05, 0.8, 0.85], "emission": [0.0, 0.65, 0.75], "emission_energy": 0.6, "rim": 0.2, "roughness": 0.12 },
+      "crystal_purple": { "alpha": 0.95, "tint": [0.7, 0.35, 1.0], "emission": [0.55, 0.2, 0.9], "emission_energy": 0.6, "rim": 0.2, "roughness": 0.12 },
+      "ice": { "alpha": 0.85, "emission": [0.6, 0.9, 1.0], "emission_energy": 0.3, "rim": 0.4, "roughness": 0.1 },
+      "core_gold": { "alpha": 1.0, "emission": [1.0, 0.72, 0.2], "emission_energy": 0.5, "rim": 0.4, "roughness": 0.2, "metallic": 0.9 }
+    },
+    "_doc_material_looks": "Faz 7 (K-038): malzemenin parlakligi. alpha < 1 = yari saydam; tint [r,g,b]: doku rengi bununla carpilir (doygun renk); emission [r,g,b] x emission_energy = icten parlama (ortam glow'u ile hafif isik tasmasi); rim: kenar isigi 0..1; roughness / metallic 0..1. Listede olmayan malzeme sade dokulu kalir.",
     "plinth": { "cap_height": 0.22, "body_inset": 0.1, "pedestal_depth": 0.9, "body_tint": 0.72, "bevel": 0.05 },
     "_doc": "Faz 7 (docs/04): dunyanin background_dir + background_far / background_front 3D sahnenin ARKASINDA iki katman (ekran yuksekligini doldurur, yanlar kirpilir, K-035). Bloklar materials.<id>.texture adli dokuyu material_texture_dir'den, kaide worlds.platform_style dokusunu platform_texture_dir'den alir (yoksa gri kutu rengi). background_front bos = on katman kapali (2026-11-20: far gorselinin koselerinde zaten amfora/cicek var, front.png ikinci kez ekleyip kalabaliklastiriyordu; dosya assets'te duruyor, paralaks gelince kucultulup kullanilabilir). block_bevel: kutu bloklarin kenar pahi (birim; carpisma kutusu degismez). plinth: kaide gorunumu = ustte cap_height kalinliginda pahli kapak (oyun yuzeyi, carpisma boyutunda) + altinda body_inset kadar iceride, pedestal_depth derinligine inen, body_tint ile koyulastirilmis govde (kapak one cikar, govde golgede kalir; 4.0 ekranin alt ortasini kapliyordu). cannon_model: tools/blender/make_cannon.py ciktisi (Carriage Yaw ile doner, Barrel Pitch ile egilir; bos = gri kutu top). texture_world_scale: doku tekrari (1 doku = 1 / scale birim; 0.5 -> her 2 birimde bir)."
   },

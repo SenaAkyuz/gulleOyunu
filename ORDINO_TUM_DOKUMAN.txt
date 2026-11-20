@@ -1379,6 +1379,7 @@ Use the attached image ONLY as a style and color reference.
   köşelerinde zaten amfora/çiçek var, ikinci kez ekleyince kalabalıklaşıyordu; paralaks eklenince küçültülüp açılabilir.
 - Dünya ortamı `src/gameplay/world/env/akdeniz.tres` (sıcak ambient, glow) + `worlds.akdeniz.light` (güneş rengi).
 - Blok ve kaide dokuları `SurfaceTexture` ile nesne uzayında triplanar (UV gerekmez; `rules.visuals.texture_world_scale`).
+- Malzeme parlaklığı `rules.visuals.material_looks` (K-038): kristallerde doku rengi `tint` ile doygunlaşır, `emission` ile hafif içten parlar; Altın Küre metalik.
 - Kalite notları: far'da kemerler kenara çok yakın (19.5:9'da büyük kısmı kırpılıyor, sorun değil); sol üstteki çiçekler HUD şeridine taşıyor (yazılar okunuyor).
 - **Pahlı bloklar ve kaide (Godot'ta prosedürel, Blender değil):** blok ve kaide boyutları bölümden bölüme değişir; sabit bir mesh'i
   ölçeklemek pahları bozar. `ShapeBuilder.bevel_box_mesh` kutu bloklara `rules.visuals.block_bevel` pahı verir (çarpışma kutusu aynı).
@@ -1561,7 +1562,7 @@ Gülleyle çözüm 10/10 → 10/10. Tek atış hedefinde 6/10 → 3/10: L06 %19�
 Kalibrasyon Faz 6–9'da (sim_targets geçici); karar Sena'da.
 
 **Faz 7 ilerleme:** ✅ Dünya 1 görselleri (821d5ba) · ✅ pahlı bloklar, kaide, Blender topu (5d40344) · ✅ top kadrajı B (K-036) ·
-✅ kamera C (K-037: kule ekranı doldurur, göz hizasına yakın; tek atış hedefinde 3/10 → 4/10, keystone/gülleyle çözüm aynı) · ✅ HUD güvenli alan (`SafeArea`, S tuşu çentik taklidi; 19.5:9 ekran görüntüsü `_screenshots/f7_safe_on.png`) · ⏳ referans karşılaştırması · ⏳ performans (orta Android, 60 FPS).
+✅ kamera C (K-037: kule ekranı doldurur, göz hizasına yakın; tek atış hedefinde 3/10 → 4/10, keystone/gülleyle çözüm aynı) · ✅ kristal rengi / parlaması veride (K-038) · ✅ HUD güvenli alan (`SafeArea`, S tuşu çentik taklidi; 19.5:9 ekran görüntüsü `_screenshots/f7_safe_on.png`) · ⏳ referans karşılaştırması · ⏳ performans (orta Android, 60 FPS).
 Android/iOS dışa aktarımda tam ekran + çentik alanına çizim ayarı Faz 11 export adımında cihazda doğrulanır.
 
 ## FAZ 4 — Oyun döngüsü ve menüler (4–5 gün)
@@ -1742,6 +1743,7 @@ Faz 0–1: 1 hafta · Faz 2–4: 2 hafta · Faz 5–6: 1.5 hafta · Faz 7–8: 2
 | K-035 | 2026-11-20 | **Arka planlar uzun telefon / çentik uyumlu:** 2:3 üretim, oyunda yükseklik dolar yanlar kırpılır; üst %18 sakin gök (çentik + HUD), oyun alanı ortadaki %50, kimlik öğeleri kenardan %10–25 içeride, alt %5 sade (docs/04 §3.0) | iPhone 19.5:9'da görselin yalnız ortadaki %69'u görünür; Dynamic Island ve HUD üst şeride biner | Onaylandı (Sena) |
 | K-036 | 2026-11-20 | **Top kadrajı B:** top referans görsellerdeki gibi büyük, arkadan görünür, altı ekranla kırpık: `rules.cannon.position` [0, 0.3, 9.5], `rules.cannon.scale` 1.7 (K-016'daki [0,0,6] değişti). Model `tools/blender/make_cannon.py` (kırmızı + altın, tekerlekli) | Küçük top referanstaki "büyük, gösterişli top" hissini vermiyordu; A/B/C ekran görüntüleriyle karşılaştırıldı. Çıkış noktası kuleden uzaklaştığı için Dünya 1 simülasyonu yeniden ölçülür; sayılar Sena kararına kadar değişmez | Onaylandı (Sena) |
 | K-037 | 2026-11-21 | **Kamera C (referans kadrajı):** `rules.camera` fov 34 (width), pitch 9, distance 14.5, look_at_height 3.2 (K-017'deki 40 / 20 / 18 / 4 değişti). L01'in `camera_override`'ı kaldırıldı. Dev Panel'de kamera + top ölçeği kaydırıcıları canlı | Referanslarda kule ekranın çoğunu kaplar, kamera neredeyse göz hizasındadır; eski kadrajda kule genişliğin ~%25'iydi. 4 aday (mevcut, A, B, C) ekran görüntüsüyle karşılaştırıldı; A'da top fazla yakın. Ölçüm: 10/10 keystone görünür (L02, L04, L07'de görünürlük arttı), keystone ve gülleyle çözüm simülasyonları değişmedi, tek atış hedefinde 3/10 → 4/10 | Onaylandı (Sena) |
+| K-038 | 2026-11-21 | **Malzeme görünümü veride:** `rules.visuals.material_looks` (alpha, tint, emission, emission_energy, rim, roughness, metallic). Kristaller doygun amber / turkuaz / mor ve hafif içten parlar; Altın Küre metalik. Koddaki sabit 0.3 / 0.4 parlama değerleri kalktı | Referanslarda kristaller doygun ve parlak; eski hâlde soluk, neredeyse beyazdı. 4 deneme ekran görüntüsüyle karşılaştırıldı (`_screenshots/cam_glow1..4_*`). Sadece görünüm, fizik ve denge değişmez. Mücevher ışıltısı (parlak kenar, içten ışık) için kristal shader'ı sonraki adım | Uygulandı (Sena gözden geçirecek) |
 
 ## Açık sorular (Sena karar verecek)
 | No | Soru | Öneri | Durum |
@@ -2140,6 +2142,14 @@ Faz 0–1: 1 hafta · Faz 2–4: 2 hafta · Faz 5–6: 1.5 hafta · Faz 7–8: 2
     "texture_world_scale": 0.5,
     "block_bevel": 0.06,
     "cannon_model": "res://assets/models/cannon/cannon.glb",
+    "material_looks": {
+      "crystal_amber": { "alpha": 0.95, "tint": [1.0, 0.55, 0.1], "emission": [1.0, 0.45, 0.05], "emission_energy": 0.6, "rim": 0.2, "roughness": 0.12 },
+      "crystal_cyan": { "alpha": 0.95, "tint": [0.05, 0.8, 0.85], "emission": [0.0, 0.65, 0.75], "emission_energy": 0.6, "rim": 0.2, "roughness": 0.12 },
+      "crystal_purple": { "alpha": 0.95, "tint": [0.7, 0.35, 1.0], "emission": [0.55, 0.2, 0.9], "emission_energy": 0.6, "rim": 0.2, "roughness": 0.12 },
+      "ice": { "alpha": 0.85, "emission": [0.6, 0.9, 1.0], "emission_energy": 0.3, "rim": 0.4, "roughness": 0.1 },
+      "core_gold": { "alpha": 1.0, "emission": [1.0, 0.72, 0.2], "emission_energy": 0.5, "rim": 0.4, "roughness": 0.2, "metallic": 0.9 }
+    },
+    "_doc_material_looks": "Faz 7 (K-038): malzemenin parlakligi. alpha < 1 = yari saydam; tint [r,g,b]: doku rengi bununla carpilir (doygun renk); emission [r,g,b] x emission_energy = icten parlama (ortam glow'u ile hafif isik tasmasi); rim: kenar isigi 0..1; roughness / metallic 0..1. Listede olmayan malzeme sade dokulu kalir.",
     "plinth": { "cap_height": 0.22, "body_inset": 0.1, "pedestal_depth": 0.9, "body_tint": 0.72, "bevel": 0.05 },
     "_doc": "Faz 7 (docs/04): dunyanin background_dir + background_far / background_front 3D sahnenin ARKASINDA iki katman (ekran yuksekligini doldurur, yanlar kirpilir, K-035). Bloklar materials.<id>.texture adli dokuyu material_texture_dir'den, kaide worlds.platform_style dokusunu platform_texture_dir'den alir (yoksa gri kutu rengi). background_front bos = on katman kapali (2026-11-20: far gorselinin koselerinde zaten amfora/cicek var, front.png ikinci kez ekleyip kalabaliklastiriyordu; dosya assets'te duruyor, paralaks gelince kucultulup kullanilabilir). block_bevel: kutu bloklarin kenar pahi (birim; carpisma kutusu degismez). plinth: kaide gorunumu = ustte cap_height kalinliginda pahli kapak (oyun yuzeyi, carpisma boyutunda) + altinda body_inset kadar iceride, pedestal_depth derinligine inen, body_tint ile koyulastirilmis govde (kapak one cikar, govde golgede kalir; 4.0 ekranin alt ortasini kapliyordu). cannon_model: tools/blender/make_cannon.py ciktisi (Carriage Yaw ile doner, Barrel Pitch ile egilir; bos = gri kutu top). texture_world_scale: doku tekrari (1 doku = 1 / scale birim; 0.5 -> her 2 birimde bir)."
   },

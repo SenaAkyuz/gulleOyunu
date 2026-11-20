@@ -280,6 +280,7 @@ Use the attached image ONLY as a style and color reference.
   köşelerinde zaten amfora/çiçek var, ikinci kez ekleyince kalabalıklaşıyordu; paralaks eklenince küçültülüp açılabilir.
 - Dünya ortamı `src/gameplay/world/env/akdeniz.tres` (sıcak ambient, glow) + `worlds.akdeniz.light` (güneş rengi).
 - Blok ve kaide dokuları `SurfaceTexture` ile nesne uzayında triplanar (UV gerekmez; `rules.visuals.texture_world_scale`).
+- Malzeme parlaklığı `rules.visuals.material_looks` (K-038): kristallerde doku rengi `tint` ile doygunlaşır, `emission` ile hafif içten parlar; Altın Küre metalik.
 - Kalite notları: far'da kemerler kenara çok yakın (19.5:9'da büyük kısmı kırpılıyor, sorun değil); sol üstteki çiçekler HUD şeridine taşıyor (yazılar okunuyor).
 - **Pahlı bloklar ve kaide (Godot'ta prosedürel, Blender değil):** blok ve kaide boyutları bölümden bölüme değişir; sabit bir mesh'i
   ölçeklemek pahları bozar. `ShapeBuilder.bevel_box_mesh` kutu bloklara `rules.visuals.block_bevel` pahı verir (çarpışma kutusu aynı).

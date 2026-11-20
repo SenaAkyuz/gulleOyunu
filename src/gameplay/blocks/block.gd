@@ -261,15 +261,28 @@ func _visual_material(material_name: String) -> StandardMaterial3D:
 	var tex_id := str(GameConfig.material(material_name).get("texture", ""))
 	if SurfaceTexture.apply(m, str(GameConfig.rule("visuals.material_texture_dir")) + tex_id + ".png"):
 		m.albedo_color = Color(1, 1, 1, color.a)
-	if color.a < 1.0:
-		m.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-		m.emission_enabled = true
-		m.emission = color
-		m.emission_energy_multiplier = 0.3
-	if material_name == str(GameConfig.rule("objective_defaults.core_material")):
-		m.metallic = 0.8
-		m.roughness = 0.25
-		m.emission_enabled = true
-		m.emission = color
-		m.emission_energy_multiplier = 0.4
+	var looks: Dictionary = GameConfig.rule("visuals.material_looks")
+	if looks.has(material_name):
+		_apply_look(m, looks[material_name])
 	return m
+
+
+## Glow / gloss of a material (rules.visuals.material_looks, K-038).
+static func _apply_look(m: StandardMaterial3D, look: Dictionary) -> void:
+	var alpha := float(look.get("alpha", 1.0))
+	var t: Array = look.get("tint", [])
+	if t.size() == 3:
+		m.albedo_color = Color(float(t[0]), float(t[1]), float(t[2]))
+	m.albedo_color.a = alpha
+	if alpha < 1.0:
+		m.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	var e: Array = look.get("emission", [])
+	if e.size() == 3:
+		m.emission_enabled = true
+		m.emission = Color(float(e[0]), float(e[1]), float(e[2]))
+		m.emission_energy_multiplier = float(look.get("emission_energy", 1.0))
+	if look.has("rim"):
+		m.rim_enabled = true
+		m.rim = float(look["rim"])
+	m.roughness = float(look.get("roughness", m.roughness))
+	m.metallic = float(look.get("metallic", m.metallic))

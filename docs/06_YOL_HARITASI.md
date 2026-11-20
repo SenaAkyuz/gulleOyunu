@@ -85,7 +85,7 @@ Gülleyle çözüm 10/10 → 10/10. Tek atış hedefinde 6/10 → 3/10: L06 %19�
 Kalibrasyon Faz 6–9'da (sim_targets geçici); karar Sena'da.
 
 **Faz 7 ilerleme:** ✅ Dünya 1 görselleri (821d5ba) · ✅ pahlı bloklar, kaide, Blender topu (5d40344) · ✅ top kadrajı B (K-036) ·
-✅ kamera C (K-037: kule ekranı doldurur, göz hizasına yakın; tek atış hedefinde 3/10 → 4/10, keystone/gülleyle çözüm aynı) · ✅ HUD güvenli alan (`SafeArea`, S tuşu çentik taklidi; 19.5:9 ekran görüntüsü `_screenshots/f7_safe_on.png`) · ⏳ referans karşılaştırması · ⏳ performans (orta Android, 60 FPS).
+✅ kamera C (K-037: kule ekranı doldurur, göz hizasına yakın; tek atış hedefinde 3/10 → 4/10, keystone/gülleyle çözüm aynı) · ✅ kristal rengi / parlaması veride (K-038) · ✅ HUD güvenli alan (`SafeArea`, S tuşu çentik taklidi; 19.5:9 ekran görüntüsü `_screenshots/f7_safe_on.png`) · ⏳ referans karşılaştırması · ⏳ performans (orta Android, 60 FPS).
 Android/iOS dışa aktarımda tam ekran + çentik alanına çizim ayarı Faz 11 export adımında cihazda doğrulanır.
 
 ## FAZ 4 — Oyun döngüsü ve menüler (4–5 gün)
