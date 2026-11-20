@@ -6,7 +6,8 @@ extends TowerTemplate
 ## side, taking the floors above with it.
 ## Params: floors (else from height), depth_layers, side_towers (default: true when the budget
 ## allows), core: true | false | "hanging_center" / "inside" | "top" (true: core_protection 0 -> top,
-## >= 1 -> inside), block_count, symmetry.
+## >= 1 -> inside), block_count, symmetry, feet (foot shape, default cube; the low-ground variant
+## uses "half" so less of the volume rests on the platform).
 ## "hanging_center" sits in a cradle until rope/chain joints arrive (Faz 5).
 
 const ARCH := "arch"
@@ -18,6 +19,11 @@ const CORE_INSIDE: PackedStringArray = ["hanging_center", "inside"]
 const CORE_TOP := "top"
 
 
+## Generator variants (ground_contact_max_ratio): see TowerTemplate.variants().
+func variants() -> Array[Dictionary]:
+	return [{}, {"side_towers": false, "feet": "half"}]
+
+
 func id() -> String:
 	return "arch_shrine"
 
@@ -25,7 +31,8 @@ func id() -> String:
 func _build(p: Dictionary, rng: RandomNumberGenerator) -> void:
 	var gap := float(GameConfig.rule("generator.block_gap"))
 	var arch := size_of(ARCH)
-	var foot := size_of(FOOT)
+	var foot_shape := str(p.get("feet", FOOT))
+	var foot := size_of(foot_shape)
 	var leg_inner := _leg_inner_x()
 	# Feet sit under the legs but start at the leg's inner edge, so the space under the arch stays
 	# as wide as between the legs (room for the cradle).
@@ -42,7 +49,7 @@ func _build(p: Dictionary, rng: RandomNumberGenerator) -> void:
 		var front := f == depth - 1
 		for side: float in [-1.0, 1.0]:
 			var key: bool = front and side == key_side
-			add_block(FOOT, ROLE_CRYSTAL if key else ROLE_STRUCTURE, Vector3(side * foot_x, 0, z), Vector3.ZERO, key)
+			add_block(foot_shape, ROLE_CRYSTAL if key else ROLE_STRUCTURE, Vector3(side * foot_x, 0, z), Vector3.ZERO, key)
 		var y := foot.y
 		for fl in floors:
 			add_block(ARCH, ROLE_STRUCTURE if fl == 0 else ROLE_LIGHT, Vector3(0, y, z))

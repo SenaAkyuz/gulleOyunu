@@ -25,10 +25,14 @@
     "symmetry":          [[1, 1.0], [50, 0.6], [100, 0.2]],
     "modifier_strength": [[1, 0.0], [50, 0.6], [100, 1.0]],
     "structure_count":   [[1, 1],   [40, 1],   [60, 2],  [100, 3]],
-    "depth_layers":      [[1, 1],   [40, 1],   [60, 2],  [100, 3]]
+    "depth_layers":      [[1, 1],   [40, 1],   [60, 2],  [100, 3]],
+    "ground_contact_max_ratio": [[1, 0.30], [50, 0.40], [100, 0.50]]
   },
+  "_doc_ground_contact": "ground_contact_max_ratio (Faz 3, Sena 2026-11-20): yere (platforma) degen bloklarin hacmi / toplam blok hacmi en fazla bu olabilir (kure haric). Genis tabanli kuleler keystone kirilinca tabanini platformda birakiyor, %80 temizlige ulasamiyordu (sim: hedefe ulasan L01 %27, L05 %21; diger bolumler %37-76). Egri zorlukla artar; role_overrides.<rol>.ground_contact_max_ratio kolay rollerde daha dusuk tavan koyar (ikisinin kucugu gecerli).",
   "role_overrides": {
-    "breather": { "crystal_ratio_min": 0.35, "collapse_bias": 1.5 },
+    "intro":    { "ground_contact_max_ratio": 0.30 },
+    "build_up": { "ground_contact_max_ratio": 0.30 },
+    "breather": { "crystal_ratio_min": 0.35, "collapse_bias": 1.5, "ground_contact_max_ratio": 0.30 },
     "boss":     { "structure_count_min": 2, "shots_bonus": 1 },
     "new_mechanic": { "favor_intro_ball_materials": true }
   },

@@ -934,6 +934,37 @@ Bulgular: (1) Hedefe ulaşan iki bölüm "yere değen hacim"i en düşük olanla
 geniş tabanlı şablonlarda taban (taş) platformda kalıyor ve hacim %80'e ulaşmıyor. (2) Platform payının etkisi küçük (deney: `platform_margin` 0.5 → 0, keystone
 çöküşü en çok +%10). (3) L01 keystone %86 = K-021 ölçümüyle aynı (aracın doğrulaması). Açık karar (Sena): şablon tasarımı / hedef oranı / ölçüm biçimi.
 
+**Yere değen hacim tavanı (Sena, 2026-11-20 — ilk ölçümden sonra; K-018 ve `sim_targets` değişmedi):**
+- Ölçü: `LevelChecks.ground_contact_ratio` = platforma değen blokların hacmi / toplam blok hacmi (küre hariç).
+- Tavan: `difficulty.curves.ground_contact_max_ratio` (d1 %30 → d50 %40 → d100 %50; zorlukla artar) ve kolay rollerde
+  `role_overrides.{intro, build_up, breather}.ground_contact_max_ratio = 0.30` (ikisinin küçüğü). Başlangıç değerleri ölçümden: hedefe ulaşan
+  L01 %27, L05 %21 → kolay roller %30.
+- Generator: tavanı ve bütçe üst sınırını (`rules.generator.budget_max_over` = %25: blok sayısı ≤ bütçe × 1.25) **yeniden deneme koşulu** olarak uygular
+  (kontrol grupları `ground`, `budget`); planda yalnızca bu sınırlara bir varyantıyla uyabilen şablonlar seçilir (art arda tekrar yasağı aynen).
+- Varyantlar (`TowerTemplate.variants()`, her denemede sıradaki): `stack_pyramid` ve `staircase` → **yükseltilmiş** (`raised`: yapı, iki ayak + kirişten
+  oluşan bir güvertenin üstüne; ön ayaklardan biri kristal keystone — kırılınca güverte tüm yapıyla devrilir); `arch_shrine` → yan kulesiz + **yarım küp ayak**.
+- `domino_row` tüm dominolar yere bastığı için (%76) Dünya 1'in hiçbir bölümüne uymuyor → Dünya 1 planında yok (L02'nin bütçe aşımı da böylece çözüldü).
+- Dosya bölümleri değişmez: L03 (%37 > %30) raporlanır.
+
+**İkinci ölçüm — aynı kurallar + tavan (200 örnek, 2026-11-20). Eski → yeni:**
+
+| Bölüm | Rol | Şablon (eski → yeni) | Yere değen (tavan) | Tek atış (hedef) | Keystone çöküş | Gülleyle çözüm (≥%20) |
+|---|---|---|---|---|---|---|
+| L01 | intro | elle | %27 (%30) | %42 → %42 ✔ (30–60) | %86 ✔ | %56 ✔ |
+| L02 | build_up | domino → yükseltilmiş piramit | %76 → %24 | %0 → **%44** ⚠ (10–30, fazla kolay) | %33 → %46 | %0 → %91 ✔ |
+| L03 | build_up | dosya (kemer) | %37 (%30) | %0 → %0 ⚠ | %56 | %0 ⚠ |
+| L04 | breather | piramit → ikiz sütun | %50 → %21 | %0 → %20 ⚠ (25–55) | %50 → %54 | %21 → %71 ✔ |
+| L05 | new_mechanic | ikiz sütun → yükseltilmiş merdiven | %21 → %16 | %21 → %13 ✔ | %54 → %56 | %52 → %67 ✔ |
+| L06 | combine | merdiven → ikiz sütun + kemer | %40 → %22 | %0 → %0 ⚠ (6–20) | %30 → %49 | %8 → %9 ⚠ |
+| L07 | combine | piramit → kemer | %40 → %24 | %0 → %0 ⚠ | %10 → %46 | %6 → %0 ⚠ |
+| L08 | challenge | domino → merdiven | %76 → %33 | %0 → %0 ⚠ (2–8) | %33 → %27 | %0 → %0 ⚠ |
+| L09 | breather | merdiven → yükseltilmiş piramit | %40 → %16 | %0 → **%32** ✔ (25–55) | %30 → %45 | %2 → %94 ✔ |
+| L10 | boss | ikiz+domino → merdiven + ikiz sütun | %50 → %26 | %0 → %0 ⚠ (1–3) | %27 → %12 | %0 → %0 ⚠ |
+
+Özet: hedefte olan bölüm 2 → 3 (L01, L05, L09); "gülleyle çözüm" 3 → 6 bölümde ✔. Kolay roller artık çözülebiliyor (L02 hatta hedefin üstünde, L04 hafif altında);
+orta/zor rollerde (combine, challenge, boss) tek atış hâlâ %0 ve hiçbir generator keystone'u tek başına %80'e ulaşmıyor (en iyi %56). Süre: Dünya 1 ~1.5 dk.
+Hiçbir kule / hedef / sayı değiştirilmedi; karar Sena'nın.
+
 ### 8.2 Bölüm editörü (Godot editör eklentisi, Faz 3)
 > **K-024:** Faz 3'te özel ızgara editörü yerine Godot editör paneli yapılır: butonlar aşağıdaki gibi, bloklar Godot'un 3D gizmo'su ile taşınır. Aşağıdaki üç panelli düzen ileride değerlendirilir.
 - Sol panel: şablon/blok paleti · Orta: grid üzerinde sürükle-bırak · Sağ: seçili bloğun malzemesi, döndürme, keystone işareti.
@@ -1485,6 +1516,8 @@ Faz 0–1: 1 hafta · Faz 2–4: 2 hafta · Faz 5–6: 1.5 hafta · Faz 7–8: 2
 | K-023 | 2026-11-19 | **Sürekli atış:** gülle ilk temasından `rules.shots.refire_cooldown_sec` (0.3 sn) sonra yeni atış serbest, kulenin durulması beklenmez; kazanma her karede kontrol edilir (hedefe ulaşıldığı an WON), kaybetme yalnızca son gülle durulunca (veya `settle_timeout_sec`); yıldız kullanılan gülleye göre. **Ağır çekim kapalı** (`rules.feel.slowmo_enabled = false`); Faz 8'de yalnızca kazanma anında kısa vurgu olarak denenecek | Faz 1 oynanış testi: durulmayı beklemek ve ağır çekim akışı kesiyordu; 0.5 sn yavaş bulundu → 0.3 | Onaylandı |
 | K-024 | 2026-11-19 | **Bölüm editörü = Godot editör paneli** (Üret/seed, Simüle Et, Test Et, Kaydet/Pişir); bloklar Godot'un 3D sahnesinde kendi gizmo'su ile taşınır/döndürülür, sonra JSON'a yazılır. docs/03 §8.2'deki özel ızgara sürükle-bırak editörü şimdilik yapılmaz | Daha hızlı; Godot'un hazır 3D araçları yeterli; özel editör Faz 3'e 2–3 gün eklerdi | Onaylandı (Sena) |
 | K-025 | 2026-11-19 | **Altın Küre bölümü asla bitirmez:** her bölümde kazanma = temizlik (`clear_percent`); küre her zaman yalnızca jackpot. `drop_core` / `drop_all_cores` hedefleri kaldırıldı; L03 `clear_percent` oldu (platform kule ayak izine göre daraltıldı). `economy.sim.core_jackpot_levels_per_world` (8) Faz 6'da gözden geçirilecek | Sena: tek gülleyle küreyi vurup bölümü bitirmek kule yıkmayı anlamsızlaştırıyor | Onaylandı (Sena) |
+| K-026 | 2026-11-20 | **Domino: en az 3 sıra yan yana, her sıra z yönünde** (kameradan uzağa); ayak izi genişlik ≥ derinlik | Tek sıra kameradan tek sütun gibi okunuyordu; x yönündeki dizi gerçek gülleyle hiç zincirlenmedi (12/60, yalnız vurulanlar), z yönündeki 59/60 | Onaylandı (Sena) |
+| K-027 | 2026-11-20 | **Yere değen hacim tavanı + bütçe üst sınırı:** `difficulty.curves.ground_contact_max_ratio` (d1 %30 → d50 %40 → d100 %50), kolay rollerde (intro/build_up/breather) %30 tavan; generator bunu ve `rules.generator.budget_max_over` (%25) sınırını yeniden deneme koşulu olarak uygular; geniş tabanlı şablonlar kolay rollerde yükseltilmiş / yarım ayaklı varyantla gelir. K-018 ve `sim_targets` değişmedi | Sim: yalnız yere değen hacmi düşük kuleler (L01 %27, L05 %21) %80'e ulaşıyordu; tavan sonrası hedefteki bölüm 2 → 3, gülleyle çözülebilen 3 → 6 | Onaylandı (Sena) |
 
 ## Açık sorular (Sena karar verecek)
 | No | Soru | Öneri | Durum |
@@ -1646,10 +1679,14 @@ Faz 0–1: 1 hafta · Faz 2–4: 2 hafta · Faz 5–6: 1.5 hafta · Faz 7–8: 2
     "symmetry":          [[1, 1.0], [50, 0.6], [100, 0.2]],
     "modifier_strength": [[1, 0.0], [50, 0.6], [100, 1.0]],
     "structure_count":   [[1, 1],   [40, 1],   [60, 2],  [100, 3]],
-    "depth_layers":      [[1, 1],   [40, 1],   [60, 2],  [100, 3]]
+    "depth_layers":      [[1, 1],   [40, 1],   [60, 2],  [100, 3]],
+    "ground_contact_max_ratio": [[1, 0.30], [50, 0.40], [100, 0.50]]
   },
+  "_doc_ground_contact": "ground_contact_max_ratio (Faz 3, Sena 2026-11-20): yere (platforma) degen bloklarin hacmi / toplam blok hacmi en fazla bu olabilir (kure haric). Genis tabanli kuleler keystone kirilinca tabanini platformda birakiyor, %80 temizlige ulasamiyordu (sim: hedefe ulasan L01 %27, L05 %21; diger bolumler %37-76). Egri zorlukla artar; role_overrides.<rol>.ground_contact_max_ratio kolay rollerde daha dusuk tavan koyar (ikisinin kucugu gecerli).",
   "role_overrides": {
-    "breather": { "crystal_ratio_min": 0.35, "collapse_bias": 1.5 },
+    "intro":    { "ground_contact_max_ratio": 0.30 },
+    "build_up": { "ground_contact_max_ratio": 0.30 },
+    "breather": { "crystal_ratio_min": 0.35, "collapse_bias": 1.5, "ground_contact_max_ratio": 0.30 },
     "boss":     { "structure_count_min": 2, "shots_bonus": 1 },
     "new_mechanic": { "favor_intro_ball_materials": true }
   },
@@ -1874,11 +1911,12 @@ Faz 0–1: 1 hafta · Faz 2–4: 2 hafta · Faz 5–6: 1.5 hafta · Faz 7–8: 2
     "block_gap": 0.02,
     "platform_margin": 0.5,
     "max_attempts": 12,
+    "budget_max_over": 0.25,
     "budget_warn_below": 0.6,
     "structure_gap": 1.0,
     "max_structures": 3,
     "base_seed": 1000,
-    "_doc_pipeline": "LevelGenerator (docs/03 8): bolum = zorluk + dunya + rol + seed. max_attempts: denge, yerlesim, keystone ve fizik kontrollerinden gecen kule icin en fazla bu kadar alt-seed denenir; asilirsa kural gevsetilmez, hata + hangi kontrolun kac kez dustugu raporlanir. budget_warn_below: uretilen blok / difficulty block_count bu oranin altindaysa ek yapi eklenir, yine de altindaysa uyari. structure_gap: yan yana yapilar arasi bosluk (birim). max_structures: bir bolumdeki en fazla yapi. base_seed: bolum seed'lerinin tabani (ayni seed = ayni kule).",
+    "_doc_pipeline": "LevelGenerator (docs/03 8): bolum = zorluk + dunya + rol + seed. max_attempts: denge, yerlesim, keystone ve fizik kontrollerinden gecen kule icin en fazla bu kadar alt-seed denenir; asilirsa kural gevsetilmez, hata + hangi kontrolun kac kez dustugu raporlanir. budget_warn_below: uretilen blok / difficulty block_count bu oranin altindaysa ek yapi eklenir, yine de altindaysa uyari. budget_max_over: uretilen blok bütceyi bu oranin fazlasiyla asarsa (1 + budget_max_over) kule hata sayilir (Sena, baslangic %25). structure_gap: yan yana yapilar arasi bosluk (birim). max_structures: bir bolumdeki en fazla yapi. base_seed: bolum seed'lerinin tabani (ayni seed = ayni kule).",
     "_doc": "Kule sablonlari / generator (docs/03 4, Faz 3). block_gap: yan yana bloklar arasindaki bosluk (birim; dogarken birbirine gomulup titremesin). platform_margin: sablonla uretilen bolumde platform, kulenin ayak izinden her yone bu kadar genis (docs/03 2 dar platform: 0.5-1)."
   },
   "level_checks": {

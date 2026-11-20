@@ -124,11 +124,12 @@
     "block_gap": 0.02,
     "platform_margin": 0.5,
     "max_attempts": 12,
+    "budget_max_over": 0.25,
     "budget_warn_below": 0.6,
     "structure_gap": 1.0,
     "max_structures": 3,
     "base_seed": 1000,
-    "_doc_pipeline": "LevelGenerator (docs/03 8): bolum = zorluk + dunya + rol + seed. max_attempts: denge, yerlesim, keystone ve fizik kontrollerinden gecen kule icin en fazla bu kadar alt-seed denenir; asilirsa kural gevsetilmez, hata + hangi kontrolun kac kez dustugu raporlanir. budget_warn_below: uretilen blok / difficulty block_count bu oranin altindaysa ek yapi eklenir, yine de altindaysa uyari. structure_gap: yan yana yapilar arasi bosluk (birim). max_structures: bir bolumdeki en fazla yapi. base_seed: bolum seed'lerinin tabani (ayni seed = ayni kule).",
+    "_doc_pipeline": "LevelGenerator (docs/03 8): bolum = zorluk + dunya + rol + seed. max_attempts: denge, yerlesim, keystone ve fizik kontrollerinden gecen kule icin en fazla bu kadar alt-seed denenir; asilirsa kural gevsetilmez, hata + hangi kontrolun kac kez dustugu raporlanir. budget_warn_below: uretilen blok / difficulty block_count bu oranin altindaysa ek yapi eklenir, yine de altindaysa uyari. budget_max_over: uretilen blok bütceyi bu oranin fazlasiyla asarsa (1 + budget_max_over) kule hata sayilir (Sena, baslangic %25). structure_gap: yan yana yapilar arasi bosluk (birim). max_structures: bir bolumdeki en fazla yapi. base_seed: bolum seed'lerinin tabani (ayni seed = ayni kule).",
     "_doc": "Kule sablonlari / generator (docs/03 4, Faz 3). block_gap: yan yana bloklar arasindaki bosluk (birim; dogarken birbirine gomulup titremesin). platform_margin: sablonla uretilen bolumde platform, kulenin ayak izinden her yone bu kadar genis (docs/03 2 dar platform: 0.5-1)."
   },
   "level_checks": {

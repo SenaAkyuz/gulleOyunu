@@ -35,16 +35,20 @@ func _initialize() -> void:
 	var gd := ProjectSettings.globalize_path(OUT_DIR).path_join(".gdignore")
 	if not FileAccess.file_exists(gd):
 		FileAccess.open(gd, FileAccess.WRITE).close()
-	var lines := PackedStringArray(["| Bölüm | Kaynak | Rol | Tek atış | Hedef | Keystone (başarı / çöküş) | Jackpot | Gülleyle çözüm | Süre (sn) |",
-			"|---|---|---|---|---|---|---|---|---|"])
+	var lines := PackedStringArray(["| Bölüm | Kaynak | Rol | Yere değen (tavan) | Tek atış | Hedef | Keystone (başarı / çöküş) | Jackpot | Gülleyle çözüm | Süre (sn) |",
+			"|---|---|---|---|---|---|---|---|---|---|"])
 	var total := 0.0
 	for id in ids:
 		var res: Dictionary = await gen.resolve(id, root)
 		if not res["ok"]:
-			lines.append("| %s | üretilemedi | | | | | | | |" % id)
+			lines.append("| %s | üretilemedi | | | | | | | | |" % id)
 			continue
 		var report: Dictionary = await sim.run(res["level"], root, opts)
 		report["source"] = res["source"]
+		var lc: Script = load("res://src/gameplay/level/level_checks.gd")
+		var lv: Dictionary = res["level"]
+		report["ground"] = lc.ground_contact_ratio(lv)
+		report["ground_cap"] = lc.ground_cap(float(lv.get("difficulty", 1.0)), str(report["role"]))
 		total += float(report["seconds"])
 		var f := FileAccess.open(OUT_DIR + id + ".json", FileAccess.WRITE)
 		f.store_string(JSON.stringify(report, "\t"))
@@ -67,8 +71,10 @@ func _row(id: String, res: Dictionary, r: Dictionary) -> String:
 	for k: String in r["keystones"]:
 		var kr: Dictionary = r["keystones"][k]
 		keys.append("%s %s / %%%d" % [k, "✔" if kr["solved"] else "✘", roundi(float(kr["collapse"]) * 100.0)])
-	return "| %s | %s | %s | %%%d %s | %s | %s %s | %%%d | %%%d %s | %.1f |" % [
-		id, str(res["source"]).split(" ")[0], r["role"],
+	var src := str(res["source"])
+	src = "aday" if src.contains("aday") else src.split(" ")[0]
+	return "| %s | %s | %s | %%%d (%%%d) | %%%d %s | %s | %s %s | %%%d | %%%d %s | %.1f |" % [
+		id, src, r["role"], roundi(float(r.get("ground", 0.0)) * 100.0), roundi(float(r.get("ground_cap", 0.0)) * 100.0),
 		roundi(float(r["one_shot_solve_rate"]) * 100.0), _mark(one),
 		_range(one.get("target", [])),
 		", ".join(keys), _mark(v.get("keystone_collapse", {})),

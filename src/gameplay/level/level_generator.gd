@@ -7,6 +7,8 @@ extends RefCounted
 ##   - otherwise a template that is in worlds.allowed_templates, written (TemplateRegistry) and whose
 ##     difficulty range (difficulty.templates) contains the level's difficulty;
 ##   - never the same template as the previous level, nor as the next level when that one is a file;
+##   - only templates that can meet the level's ground_contact_max_ratio and budget limit with one
+##     of their variants (feasible_variant);
 ##   - among those, the ones this world has used least so far (variety), the seed breaks ties.
 ## generate() (async: needs the scene tree for the physics check):
 ##   - structure_count from the difficulty curve (boss: role_overrides.boss.structure_count_min);
@@ -111,7 +113,10 @@ static func plan_world(world_id: String, opts: Dictionary = {}) -> Dictionary:
 			sources.append(SOURCE_BAKED if files[k] == HANDMADE else SOURCE_FILE)
 			continue
 		var d := DifficultyCalc.level_difficulty(wi, k)
-		var pool := candidates(world, d)
+		var pool := PackedStringArray()
+		for t in candidates(world, d):
+			if feasible_variant(world, t, d, DifficultyCalc.role_for(k)) >= 0:
+				pool.append(t)
 		var avoid: Array[String] = []
 		if k > 1:
 			avoid.append(templates[k - 2])
@@ -152,8 +157,14 @@ static func generate(world_id: String, index: int, node: Node, opts: Dictionary 
 	if first.is_empty():
 		var plan := plan_world(world_id, opts)
 		first = str((plan["templates"] as Array)[index - 1]) if index - 1 < (plan["templates"] as Array).size() else ""
-	var pool := candidates(world, d)
-	var fail_counts := {LevelChecks.LAYOUT: 0, LevelChecks.SUPPORT: 0, LevelChecks.KEYSTONE: 0, LevelChecks.PHYSICS: 0}
+	var pool := PackedStringArray()
+	for t in candidates(world, d):
+		if feasible_variant(world, t, d, role) >= 0:
+			pool.append(t)
+	var fail_counts := {LevelChecks.LAYOUT: 0, LevelChecks.SUPPORT: 0, LevelChecks.KEYSTONE: 0,
+			LevelChecks.BUDGET: 0, LevelChecks.GROUND: 0, LevelChecks.PHYSICS: 0}
+	var ground_cap := LevelChecks.ground_cap(d, role)
+	var budget_max := LevelChecks.budget_max(int(params["block_count"]))
 	var report := {"templates": [], "attempts": 0, "fail_counts": fail_counts, "budget": int(params["block_count"]),
 			"used": 0, "fill": 0.0, "warnings": [], "last_problems": PackedStringArray()}
 	if first.is_empty() or not TemplateRegistry.has(first):
@@ -165,10 +176,18 @@ static func generate(world_id: String, index: int, node: Node, opts: Dictionary 
 		report["attempts"] = attempt + 1
 		var rng := RandomNumberGenerator.new()
 		rng.seed = seed_for(wi, index, attempt, _base_seed(opts))
-		var level := _build_level(world, wi, index, d, role, params, overrides, first, pool, rng)
+		var level := _build_level(world, wi, index, d, role, params, overrides, first, pool, rng, attempt)
 		var expanded := LevelExpander.expand(level)
 		var problems := LevelChecks.static_problems(expanded)
 		var failed := LevelChecks.first_failure(problems)
+		var n_blocks := (expanded["blocks"] as Array).size()
+		var ground := LevelChecks.ground_contact_ratio(expanded)
+		if failed.is_empty() and n_blocks > budget_max:
+			failed = LevelChecks.BUDGET
+			problems[LevelChecks.BUDGET] = PackedStringArray(["%d blok > üst sınır %d" % [n_blocks, budget_max]])
+		if failed.is_empty() and ground > ground_cap + 1e-6:
+			failed = LevelChecks.GROUND
+			problems[LevelChecks.GROUND] = PackedStringArray(["yere değen hacim %%%d > %%%d" % [roundi(ground * 100.0), roundi(ground_cap * 100.0)]])
 		if failed.is_empty():
 			var phys: Dictionary = await SupportCheck.physics_drift(expanded, node)
 			if not phys["ok"]:
@@ -185,6 +204,12 @@ static func generate(world_id: String, index: int, node: Node, opts: Dictionary 
 		for st: Dictionary in level["structures"]:
 			names.append(st["template"])
 		report["templates"] = names
+		report["ground"] = ground
+		report["ground_cap"] = ground_cap
+		var vars: Array = []
+		for st: Dictionary in level["structures"]:
+			vars.append(st.get("variant", {}))
+		report["variants"] = vars
 		if float(report["fill"]) < float(GameConfig.rule("generator.budget_warn_below")):
 			(report["warnings"] as Array).append("bütçe %%%d dolu (%d / %d blok)" % [
 					roundi(float(report["fill"]) * 100.0), used, int(report["budget"])])
@@ -229,7 +254,8 @@ static func describe(res: Dictionary) -> String:
 # --- Building one attempt ---
 
 static func _build_level(world: Dictionary, wi: int, index: int, d: float, role: String, params: Dictionary,
-		overrides: Dictionary, first: String, pool: PackedStringArray, rng: RandomNumberGenerator) -> Dictionary:
+		overrides: Dictionary, first: String, pool: PackedStringArray, rng: RandomNumberGenerator,
+		attempt: int = 0) -> Dictionary:
 	var budget := int(params["block_count"])
 	var count := maxi(1, maxi(int(params.get("structure_count", 1)), int(overrides.get("structure_count_min", 1))))
 	count = mini(count, int(GameConfig.rule("generator.max_structures")))
@@ -237,7 +263,7 @@ static func _build_level(world: Dictionary, wi: int, index: int, d: float, role:
 	var structs: Array[Dictionary] = []
 	for k in count:
 		var t := first if k == 0 else _pick_other(pool, structs, first, rng)
-		structs.append({"template": t, "seed": rng.randi(), "params": {"block_count": budget / count}})
+		structs.append(_structure(t, budget / count, rng, attempt, world, d, role))
 	var level := {
 		"id": level_id(wi, index), "world": str(world["id"]), "index": index,
 		"name_tr": "Bölüm %d" % index, "difficulty": d, "role": role,
@@ -263,12 +289,44 @@ static func _build_level(world: Dictionary, wi: int, index: int, d: float, role:
 			break
 		if float(used) / maxf(1.0, budget) >= warn or structs.size() >= int(GameConfig.rule("generator.max_structures")):
 			break
-		structs.append({"template": _pick_other(pool, structs, first, rng), "seed": rng.randi(),
-				"params": {"block_count": maxi(1, budget - used)}})
+		structs.append(_structure(_pick_other(pool, structs, first, rng), maxi(1, budget - used), rng, attempt, world, d, role))
 	var final_blocks: Array = LevelExpander.expand(level)["blocks"]
 	level["platform"] = LayoutCheck.platform_for(final_blocks)
 	level["platform"]["style"] = str(world.get("platform_style", ""))
 	return level
+
+
+## A structure call with the template variant for this attempt: the first feasible variant
+## (ground cap + budget limit), then the next ones on later attempts.
+static func _structure(t: String, block_count: int, rng: RandomNumberGenerator, attempt: int,
+		world: Dictionary, d: float, role: String) -> Dictionary:
+	var tpl := TemplateRegistry.create(t)
+	var vars: Array[Dictionary] = tpl.variants() if tpl else [{}]
+	var start := maxi(0, feasible_variant(world, t, d, role))
+	var v: Dictionary = vars[(start + attempt) % vars.size()]
+	var params := {"block_count": block_count}
+	params.merge(v, true)
+	return {"template": t, "seed": rng.randi(), "params": params, "variant": v.duplicate()}
+
+
+## Index of the first variant of template t that, alone at difficulty d with the full budget,
+## stays within the ground_contact_max_ratio of the role and the budget limit; -1 if none.
+static func feasible_variant(world: Dictionary, t: String, d: float, role: String) -> int:
+	var tpl := TemplateRegistry.create(t)
+	if tpl == null:
+		return -1
+	var budget := int(DifficultyCalc.params(d)["block_count"])
+	var cap := LevelChecks.ground_cap(d, role)
+	var vars := tpl.variants()
+	for i in vars.size():
+		var params := {"block_count": budget}
+		params.merge(vars[i], true)
+		var lv := {"id": "probe", "world": str(world.get("id", "")), "index": 1, "difficulty": d, "role": role,
+				"structures": [{"template": t, "seed": 0, "params": params}], "blocks": [], "keystones": [], "cores": []}
+		var ex := LevelExpander.expand(lv)
+		if (ex["blocks"] as Array).size() <= LevelChecks.budget_max(budget) and LevelChecks.ground_contact_ratio(ex) <= cap + 1e-6:
+			return i
+	return -1
 
 
 ## Another template from the pool (prefers one not used yet; may repeat when the pool is small).

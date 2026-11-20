@@ -119,5 +119,16 @@ func test_world_1_uses_variety() -> void:
 	var used := {}
 	for x in t:
 		used[x] = true
-	for name: String in GameConfig.world(WORLD)["allowed_templates"]:
-		assert_true(used.has(name), "Dünya 1 planında %s hiç yok: %s" % [name, t])
+	# Every template that can meet some slot's ground cap + budget limit must appear (variety);
+	# templates that fit no slot (domino_row: all dominoes stand on the platform) are reported.
+	var world := GameConfig.world(WORLD)
+	for name: String in world["allowed_templates"]:
+		var fits_somewhere := false
+		for k in range(1, 11):
+			var d := DifficultyCalc.level_difficulty(1, k)
+			if LevelGenerator.candidates(world, d).has(name) and LevelGenerator.feasible_variant(world, name, d, DifficultyCalc.role_for(k)) >= 0:
+				fits_somewhere = true
+		if fits_somewhere:
+			assert_true(used.has(name), "Dünya 1 planında %s hiç yok: %s" % [name, t])
+		else:
+			gut.p("%s hiçbir bölümün yere değen hacim / bütçe sınırına uymuyor" % name)

@@ -19,6 +19,12 @@ const ROLE_CRYSTAL := "crystal"
 ## Golden Core protection pieces (add_protected_core).
 const CRADLE := "ring_hanger"
 const LID := "plank_s"
+## "raised" variant: the structure stands on a deck carried by two stilts per deck row (Faz 3,
+## ground_contact_max_ratio). Decks from short to long; the shortest that spans the footprint is used.
+const DECKS: PackedStringArray = ["plank_s", "plank_l", "beam"]
+const STILT := "pillar_2"
+## Blocks the raised variant adds per deck row (two stilts + the deck).
+const RAISE_BLOCKS := 3
 
 var blocks: Array[Dictionary] = []
 ## Local ids ("b01", ...) of the keystone blocks (docs/03 §4 rule 2: at least one).
@@ -36,8 +42,76 @@ func generate(p: Dictionary, rng: RandomNumberGenerator) -> Dictionary:
 	blocks.clear()
 	keystones.clear()
 	cores.clear()
+	var raised := p_bool(p, "raised", false)
+	if raised:
+		# Leave room in the block budget for the stilts and the deck.
+		p = p.duplicate()
+		p["block_count"] = maxi(1, p_int(p, "block_count", RAISE_BLOCKS) - RAISE_BLOCKS)
 	_build(p, rng)
+	if raised:
+		_raise(rng)
 	return {"blocks": blocks.duplicate(true), "keystones": keystones.duplicate(), "cores": cores.duplicate(true)}
+
+
+## Parameter sets the generator may try, one per attempt in turn (merged into the structure's
+## params). Templates with a wide base offer {"raised": true} so they can meet
+## difficulty ground_contact_max_ratio in easy roles.
+func variants() -> Array[Dictionary]:
+	return [{}]
+
+
+## Lifts everything onto decks (one deck row per ~deck depth) carried by two stilts each; one
+## front stilt is a crystal keystone: break it and the deck tips with the whole structure.
+func _raise(rng: RandomNumberGenerator) -> void:
+	var box := _footprint()
+	var gap := float(GameConfig.rule("generator.block_gap"))
+	var deck := ""
+	for d in DECKS:
+		if size_of(d).x >= box.size.x:
+			deck = d
+			break
+	if deck.is_empty():
+		return  # too wide to raise: the ground check rejects the attempt
+	var dsize := size_of(deck)
+	var stilt := size_of(STILT)
+	var lift := stilt.y + dsize.y
+	for b in blocks:
+		b["y"] = float(b["y"]) + lift
+	for c in cores:
+		c["y"] = float(c["y"]) + lift
+	# Rounded, not ceiled: a footprint a little deeper than the deck may overhang its edges.
+	var rows := maxi(1, roundi(box.size.z / (dsize.z + gap)))
+	var cx := box.get_center().x
+	var cz := box.get_center().z
+	var stilt_x := dsize.x / 2.0 - stilt.x
+	var key_side := -1.0 if rng.randf() < 0.5 else 1.0
+	for r in rows:
+		var z := cz + (r - (rows - 1) / 2.0) * (dsize.z + gap)
+		var front := r == rows - 1
+		for side: float in [-1.0, 1.0]:
+			var key: bool = front and side == key_side
+			add_block(STILT, ROLE_CRYSTAL if key else ROLE_STRUCTURE, Vector3(cx + side * stilt_x, 0, z), Vector3.ZERO, key)
+		add_block(deck, ROLE_STRUCTURE, Vector3(cx, stilt.y, z))
+
+
+## Bounding box (x, z) of the blocks and cores generated so far.
+func _footprint() -> AABB:
+	var box := AABB()
+	var first := true
+	for b in blocks:
+		var rot := ShapeBuilder.to_vec3(b.get("rot", [0, 0, 0]))
+		var xform := Transform3D(Basis.from_euler(rot * (PI / 180.0), EULER_ORDER_YXZ), Vector3(float(b["x"]), float(b["y"]), float(b["z"])))
+		for c: Dictionary in GameConfig.shape(str(b["shape"])).get("colliders", []):
+			var piece := SupportCheck._piece(c, xform)
+			if piece.is_empty():
+				continue
+			box = piece["aabb"] if first else box.merge(piece["aabb"])
+			first = false
+	for c in cores:
+		var p := Vector3(float(c["x"]), float(c["y"]), float(c["z"]))
+		box = AABB(p, Vector3.ZERO) if first else box.expand(p)
+		first = false
+	return box
 
 
 func _build(_p: Dictionary, _rng: RandomNumberGenerator) -> void:

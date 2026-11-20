@@ -292,6 +292,37 @@ Bulgular: (1) Hedefe ulaşan iki bölüm "yere değen hacim"i en düşük olanla
 geniş tabanlı şablonlarda taban (taş) platformda kalıyor ve hacim %80'e ulaşmıyor. (2) Platform payının etkisi küçük (deney: `platform_margin` 0.5 → 0, keystone
 çöküşü en çok +%10). (3) L01 keystone %86 = K-021 ölçümüyle aynı (aracın doğrulaması). Açık karar (Sena): şablon tasarımı / hedef oranı / ölçüm biçimi.
 
+**Yere değen hacim tavanı (Sena, 2026-11-20 — ilk ölçümden sonra; K-018 ve `sim_targets` değişmedi):**
+- Ölçü: `LevelChecks.ground_contact_ratio` = platforma değen blokların hacmi / toplam blok hacmi (küre hariç).
+- Tavan: `difficulty.curves.ground_contact_max_ratio` (d1 %30 → d50 %40 → d100 %50; zorlukla artar) ve kolay rollerde
+  `role_overrides.{intro, build_up, breather}.ground_contact_max_ratio = 0.30` (ikisinin küçüğü). Başlangıç değerleri ölçümden: hedefe ulaşan
+  L01 %27, L05 %21 → kolay roller %30.
+- Generator: tavanı ve bütçe üst sınırını (`rules.generator.budget_max_over` = %25: blok sayısı ≤ bütçe × 1.25) **yeniden deneme koşulu** olarak uygular
+  (kontrol grupları `ground`, `budget`); planda yalnızca bu sınırlara bir varyantıyla uyabilen şablonlar seçilir (art arda tekrar yasağı aynen).
+- Varyantlar (`TowerTemplate.variants()`, her denemede sıradaki): `stack_pyramid` ve `staircase` → **yükseltilmiş** (`raised`: yapı, iki ayak + kirişten
+  oluşan bir güvertenin üstüne; ön ayaklardan biri kristal keystone — kırılınca güverte tüm yapıyla devrilir); `arch_shrine` → yan kulesiz + **yarım küp ayak**.
+- `domino_row` tüm dominolar yere bastığı için (%76) Dünya 1'in hiçbir bölümüne uymuyor → Dünya 1 planında yok (L02'nin bütçe aşımı da böylece çözüldü).
+- Dosya bölümleri değişmez: L03 (%37 > %30) raporlanır.
+
+**İkinci ölçüm — aynı kurallar + tavan (200 örnek, 2026-11-20). Eski → yeni:**
+
+| Bölüm | Rol | Şablon (eski → yeni) | Yere değen (tavan) | Tek atış (hedef) | Keystone çöküş | Gülleyle çözüm (≥%20) |
+|---|---|---|---|---|---|---|
+| L01 | intro | elle | %27 (%30) | %42 → %42 ✔ (30–60) | %86 ✔ | %56 ✔ |
+| L02 | build_up | domino → yükseltilmiş piramit | %76 → %24 | %0 → **%44** ⚠ (10–30, fazla kolay) | %33 → %46 | %0 → %91 ✔ |
+| L03 | build_up | dosya (kemer) | %37 (%30) | %0 → %0 ⚠ | %56 | %0 ⚠ |
+| L04 | breather | piramit → ikiz sütun | %50 → %21 | %0 → %20 ⚠ (25–55) | %50 → %54 | %21 → %71 ✔ |
+| L05 | new_mechanic | ikiz sütun → yükseltilmiş merdiven | %21 → %16 | %21 → %13 ✔ | %54 → %56 | %52 → %67 ✔ |
+| L06 | combine | merdiven → ikiz sütun + kemer | %40 → %22 | %0 → %0 ⚠ (6–20) | %30 → %49 | %8 → %9 ⚠ |
+| L07 | combine | piramit → kemer | %40 → %24 | %0 → %0 ⚠ | %10 → %46 | %6 → %0 ⚠ |
+| L08 | challenge | domino → merdiven | %76 → %33 | %0 → %0 ⚠ (2–8) | %33 → %27 | %0 → %0 ⚠ |
+| L09 | breather | merdiven → yükseltilmiş piramit | %40 → %16 | %0 → **%32** ✔ (25–55) | %30 → %45 | %2 → %94 ✔ |
+| L10 | boss | ikiz+domino → merdiven + ikiz sütun | %50 → %26 | %0 → %0 ⚠ (1–3) | %27 → %12 | %0 → %0 ⚠ |
+
+Özet: hedefte olan bölüm 2 → 3 (L01, L05, L09); "gülleyle çözüm" 3 → 6 bölümde ✔. Kolay roller artık çözülebiliyor (L02 hatta hedefin üstünde, L04 hafif altında);
+orta/zor rollerde (combine, challenge, boss) tek atış hâlâ %0 ve hiçbir generator keystone'u tek başına %80'e ulaşmıyor (en iyi %56). Süre: Dünya 1 ~1.5 dk.
+Hiçbir kule / hedef / sayı değiştirilmedi; karar Sena'nın.
+
 ### 8.2 Bölüm editörü (Godot editör eklentisi, Faz 3)
 > **K-024:** Faz 3'te özel ızgara editörü yerine Godot editör paneli yapılır: butonlar aşağıdaki gibi, bloklar Godot'un 3D gizmo'su ile taşınır. Aşağıdaki üç panelli düzen ileride değerlendirilir.
 - Sol panel: şablon/blok paleti · Orta: grid üzerinde sürükle-bırak · Sağ: seçili bloğun malzemesi, döndürme, keystone işareti.

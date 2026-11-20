@@ -33,6 +33,7 @@ const REQUIRED_RULES: PackedStringArray = [
 	"generator.block_gap", "generator.platform_margin",
 	"generator.max_attempts", "generator.budget_warn_below", "generator.structure_gap",
 	"generator.max_structures", "generator.base_seed",
+	"generator.budget_max_over",
 	"level_checks.keystone_min_visible_ratio", "level_checks.face_samples",
 	"feel.spark_amount", "feel.spark_lifetime_sec", "feel.spark_speed", "feel.spark_size",
 	"quality.default",

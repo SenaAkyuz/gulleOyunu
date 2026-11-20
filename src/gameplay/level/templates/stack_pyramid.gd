@@ -12,6 +12,11 @@ const MIN_BASE := 2
 const MAX_DEPTH_LAYERS := 3
 
 
+## Generator variants (ground_contact_max_ratio): see TowerTemplate.variants().
+func variants() -> Array[Dictionary]:
+	return [{}, {"raised": true}]
+
+
 func id() -> String:
 	return "stack_pyramid"
 
