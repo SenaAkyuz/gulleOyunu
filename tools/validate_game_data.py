@@ -150,6 +150,10 @@ if isinstance(dev.get("stress_columns"), int) and isinstance(dev.get("stress_row
     errors.append("rules.dev.stress_columns/rows oynanabilir alana (10 x 6) sigmali")
 if not isinstance(dev.get("panel_open_touches"), int) or dev.get("panel_open_touches") < 2:
     errors.append("rules.dev.panel_open_touches 2 veya daha buyuk tam sayi olmali")
+fake_safe = dev.get("fake_safe_area_px", {})
+if not isinstance(fake_safe, dict) or sorted(fake_safe.keys()) != ["bottom", "left", "right", "top"] or \
+        not all(isinstance(v, int) and 0 <= v <= 400 for v in fake_safe.values()):
+    errors.append("rules.dev.fake_safe_area_px left/top/right/bottom 0..400 tam sayi olmali")
 balls_by_id = {b.get("id"): b for b in balls_doc.get("balls", [])}
 for i, entry in enumerate(dev.get("panel", [])):
     where = f"rules.dev.panel[{i}] ({entry.get('label')})"

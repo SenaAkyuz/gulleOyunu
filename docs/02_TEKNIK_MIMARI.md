@@ -167,6 +167,10 @@ Level (Node3D)  ← level_loader.gd: JSON okur (LevelExpander ile şablonları a
 ├── FxPool (parçacık/parça havuzu)
 └── HUD (CanvasLayer)
 ```
+**Güvenli alan (Faz 7, K-035):** HUD'un üst grubu (`Top`, tam ekran Control) ve alttaki dev yazısı `SafeArea.margins()` (`src/ui/safe_area.gd`) kadar içeri kayar:
+telefonda `DisplayServer.get_display_safe_area()` (pencere pikseli) viewport pikseline çevrilir (genişlik 1080 sabit, uzun telefonda yükseklik uzar);
+masaüstünde 0. **S** tuşu `rules.dev.fake_safe_area_px` ile çentik taklidi yapar (varsayılan iPhone 15 Pro). Ekran boyutu değişince yeniden uygulanır.
+Faz 4 menüleri de aynı yardımcıyı kullanır.
 **Şablonlu bölümler (Faz 3):** `LevelExpander.expand(level)` → `structures` dizisindeki her şablon çağrısını bloklara çevirir
 (`baked: true` bölümler olduğu gibi kalır). Parametreler: `DifficultyCalc.params(difficulty)` (`src/core/difficulty_calc.gd`, `difficulty.json → curves`)
 üzerine yapının `params`'ı; rastgelelik yapının `seed`'inden (aynı dosya = aynı kule). Şablonlar `src/gameplay/level/templates/<id>.gd`
@@ -209,6 +213,7 @@ if Progress.is_unlocked(fire.unlock) and Inventory.count("fire") > 0:
 | `feel.crack_hp_ratio` | hp bu oranın altında blok çatlak görünür (Faz 1: koyulaşır) |
 | `feel.shake_trauma_per_impulse`, `shake_frequency`, `spark_min_impulse`, `spark_amount`, `spark_lifetime_sec`, `spark_speed`, `spark_size` | Kamera sarsıntısı + çarpma kıvılcımı (Adım 10) |
 | `dev.start_level_id`, `play_area_guide`, `nudge_impulse` | Geliştirici: açılış bölümü, G alan kılavuzu, ok tuşu itmesi |
+| `dev.fake_safe_area_px` | S tuşu: çentik / ana ekran çizgisi taklidi (HUD güvenli alanı, K-035) |
 | `dev.panel`, `dev.panel_open_touches` | Dev Panel kaydırıcıları (§5.3) |
 | `dev.stress_block_count`, `stress_columns`, `stress_rows`, `perf_warn_fps` | P stres kulesi + HUD performans uyarısı (S-008) |
 | `economy.rewards.core_jackpot_gold`, `sim.core_jackpot_levels_per_world`, `sim.avg_core_jackpot_rate` | Altın Küre jackpot'u (K-018) |

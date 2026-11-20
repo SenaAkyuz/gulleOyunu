@@ -100,7 +100,7 @@ func _ready() -> void:
 	_cannon.setup(_balls, GameConfig.starting_ball_id(), int(dots))
 
 	_build_area_guide()
-	_info_static = "%s · %s · %d blok + %d küre · top: %s\nSol tık: nişan · bırak: ateş   H hp · G alan · Boşluk · Tab seç · Oklar it · R baştan · N/B bölüm · F1 panel · P stres · F12" % [
+	_info_static = "%s · %s · %d blok + %d küre · top: %s\nSol tık: nişan · bırak: ateş   H hp · G alan · Boşluk · Tab seç · Oklar it · R baştan · N/B bölüm · S çentik · F1 panel · P stres · F12" % [
 		str(level_data.get("id", level_id)), _referee.objective_type, _tower.blocks.size(), _tower.cores.size(), _cannon.ball_id]
 	_info_static = "Kaynak: %s\n%s" % [current_source, _info_static]
 	_loaded = true
@@ -150,6 +150,9 @@ func _unhandled_input(event: InputEvent) -> void:
 		KEY_P:
 			stress_mode = not stress_mode
 			get_tree().reload_current_scene()
+		KEY_S:
+			SafeArea.fake_enabled = not SafeArea.fake_enabled
+			_hud.apply_safe_area()
 		KEY_N:
 			_switch_level(1)
 		KEY_B:

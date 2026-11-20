@@ -39,6 +39,9 @@ var _earned: int = 0
 @onready var _dev: Label = $DevInfo
 @onready var _perf: Label = $Top/PerfLabel
 @onready var _gold: Label = $Top/GoldLabel
+@onready var _top: Control = $Top
+## DevInfo offsets from the scene (bottom-anchored); the safe area is added on top of them.
+var _dev_base: Vector4
 
 
 func _ready() -> void:
@@ -54,6 +57,9 @@ func _ready() -> void:
 	_banner.visible = false
 	_sub_banner.visible = false
 	_jackpot.visible = false
+	_dev_base = Vector4(_dev.offset_left, _dev.offset_top, _dev.offset_right, _dev.offset_bottom)
+	get_viewport().size_changed.connect(apply_safe_area)
+	apply_safe_area()
 	EventBus.shots_changed.connect(_on_shots_changed)
 	EventBus.clear_progress_changed.connect(_on_clear_progress)
 	EventBus.level_completed.connect(_on_level_completed)
@@ -62,6 +68,20 @@ func _ready() -> void:
 	EventBus.currency_changed.connect(_on_currency_changed)
 	EventBus.level_rewarded.connect(_on_level_rewarded)
 	_set_gold(Economy.balance())
+
+
+## Keeps the HUD out of the notch / home-indicator area (SafeArea, K-035). Top is a full-rect
+## container, so its children keep their own margins inside the safe rect.
+func apply_safe_area() -> void:
+	var m := SafeArea.margins(get_viewport())
+	_top.offset_left = m.x
+	_top.offset_top = m.y
+	_top.offset_right = -m.z
+	_top.offset_bottom = -m.w
+	_dev.offset_left = _dev_base.x + m.x
+	_dev.offset_top = _dev_base.y - m.w
+	_dev.offset_right = _dev_base.z - m.z
+	_dev.offset_bottom = _dev_base.w - m.w
 
 
 ## best_stars: saved best result of this level (Progress); 0 = not cleared yet.

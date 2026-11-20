@@ -163,6 +163,8 @@
     "stress_columns": 5,
     "stress_rows": 4,
     "perf_warn_fps": 50,
+    "fake_safe_area_px": { "left": 0, "top": 162, "right": 0, "bottom": 93 },
+    "_doc_fake_safe_area": "S tusu (masaustu): telefon centigi taklidi; HUD bu kadar viewport pikseli iceri kayar. Varsayilan iPhone 15 Pro (ust 59 pt, alt 34 pt; 1179 px genislik -> 1080 viewport). Telefonda DisplayServer guvenli alani kullanilir (src/ui/safe_area.gd, K-035).",
     "_doc_stress": "P tusu: stress_block_count kup, stress_columns (x) x stress_rows (z) taban, kat kat (Akdeniz paleti sirayla). HUD sag ust: FPS + aktif govde / physics.max_active_bodies; FPS < perf_warn_fps veya butce asilinca kirmizi (S-008).",
     "nudge_impulse": 1.0,
     "_doc_nudge": "Ok tuslariyla secili cisme (Tab) uygulanan itme impulsu (N*s). Kenar kurali testi icin.",

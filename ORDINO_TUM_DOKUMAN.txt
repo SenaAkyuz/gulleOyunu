@@ -95,7 +95,7 @@ godot --headless --fixed-fps 60 --path . -s addons/gut/gut_cmdln.gd -gexit   # �
 ## 8. Mevcut durum
 - **Faz:** 1 — Gri Kutu **tamam** (2026-11-19). **Faz 2 — Veri omurgası ve kayıt tamam** (2026-11-19). **Faz 3 — kule şablonları, generator, bölüm editörü tamam** (2026-11-20, kısa kapanış K-034). Sıradaki: **Faz 7 — görsel üretim (Dünya 1 Akdeniz dikey dilim)**, docs/06'ya göre paralel; Faz 4–6 sonra (bkz. `docs/06_YOL_HARITASI.md`). Her faz bitince bu satırı güncelle.
 - Faz 1 çıktısı: L01 oynanır (tap_target + drag_release, sürekli atış K-023), hakem/doluluk çubuğu/yıldız/jackpot, hasar, sarsıntı + kıvılcım, Dev Panel (F1), stres testi (P).
-  Dev tuşları: G alan · Boşluk uyandır · Tab seç · Oklar it · H hp · R baştan · N/B sonraki/önceki bölüm · F1 panel · P stres · F12 ekran görüntüsü.
+  Dev tuşları: G alan · Boşluk uyandır · Tab seç · Oklar it · H hp · R baştan · N/B sonraki/önceki bölüm · S çentik taklidi · F1 panel · P stres · F12 ekran görüntüsü.
 - Faz 2 çıktısı: `SaveManager` (sürümlü, atomik, bozuk kayda dayanıklı `user://save.json`), `Economy`, `Progress` (ödül + açılmalar), `Inventory`, `ConfigValidator`; HUD'da altın + en iyi yıldız + kazanılan altın; Dev Panel'de "Kaydı sıfırla"; GUT testleri (`tests/`).
 - Faz 3 çıktısı: 6 kule şablonu, generator (`LevelGenerator`), simülasyon (`sim_cli`), aday hattı (`candidates_cli`), pişirme (`bake_cli`), bölüm editörü paneli (Godot'ta sol üst "Ordino Bölüm"); Dünya 1'in 10 bölümü pişirildi (L04/L09/L10 taslak). Testler ve araçlar oyuncunun kaydına yazmaz (`user://test_save/`).
 - Açık: Android performans ölçümü (S-008), tutorial elinin çizimi, hit-stop + konfeti (Faz 8), Faz 3 "sonra bakılacaklar" (docs/06).
@@ -487,6 +487,10 @@ Level (Node3D)  ← level_loader.gd: JSON okur (LevelExpander ile şablonları a
 ├── FxPool (parçacık/parça havuzu)
 └── HUD (CanvasLayer)
 ```
+**Güvenli alan (Faz 7, K-035):** HUD'un üst grubu (`Top`, tam ekran Control) ve alttaki dev yazısı `SafeArea.margins()` (`src/ui/safe_area.gd`) kadar içeri kayar:
+telefonda `DisplayServer.get_display_safe_area()` (pencere pikseli) viewport pikseline çevrilir (genişlik 1080 sabit, uzun telefonda yükseklik uzar);
+masaüstünde 0. **S** tuşu `rules.dev.fake_safe_area_px` ile çentik taklidi yapar (varsayılan iPhone 15 Pro). Ekran boyutu değişince yeniden uygulanır.
+Faz 4 menüleri de aynı yardımcıyı kullanır.
 **Şablonlu bölümler (Faz 3):** `LevelExpander.expand(level)` → `structures` dizisindeki her şablon çağrısını bloklara çevirir
 (`baked: true` bölümler olduğu gibi kalır). Parametreler: `DifficultyCalc.params(difficulty)` (`src/core/difficulty_calc.gd`, `difficulty.json → curves`)
 üzerine yapının `params`'ı; rastgelelik yapının `seed`'inden (aynı dosya = aynı kule). Şablonlar `src/gameplay/level/templates/<id>.gd`
@@ -529,6 +533,7 @@ if Progress.is_unlocked(fire.unlock) and Inventory.count("fire") > 0:
 | `feel.crack_hp_ratio` | hp bu oranın altında blok çatlak görünür (Faz 1: koyulaşır) |
 | `feel.shake_trauma_per_impulse`, `shake_frequency`, `spark_min_impulse`, `spark_amount`, `spark_lifetime_sec`, `spark_speed`, `spark_size` | Kamera sarsıntısı + çarpma kıvılcımı (Adım 10) |
 | `dev.start_level_id`, `play_area_guide`, `nudge_impulse` | Geliştirici: açılış bölümü, G alan kılavuzu, ok tuşu itmesi |
+| `dev.fake_safe_area_px` | S tuşu: çentik / ana ekran çizgisi taklidi (HUD güvenli alanı, K-035) |
 | `dev.panel`, `dev.panel_open_touches` | Dev Panel kaydırıcıları (§5.3) |
 | `dev.stress_block_count`, `stress_columns`, `stress_rows`, `perf_warn_fps` | P stres kulesi + HUD performans uyarısı (S-008) |
 | `economy.rewards.core_jackpot_gold`, `sim.core_jackpot_levels_per_world`, `sim.avg_core_jackpot_rate` | Altın Küre jackpot'u (K-018) |
@@ -1554,6 +1559,10 @@ Gülleyle çözüm 10/10 → 10/10. Tek atış hedefinde 6/10 → 3/10: L06 %19�
 (tek atış biraz kolaylaştı). Keystone çöküşü düştü: L02 s1_b04 %63→%46, L04 s1_b05 %59→%29, L06 %40→%54 (arttı), L07 s1_b11 %40→%19.
 Kalibrasyon Faz 6–9'da (sim_targets geçici); karar Sena'da.
 
+**Faz 7 ilerleme:** ✅ Dünya 1 görselleri (821d5ba) · ✅ pahlı bloklar, kaide, Blender topu (5d40344) · ✅ top kadrajı B (K-036) ·
+✅ HUD güvenli alan (`SafeArea`, S tuşu çentik taklidi; 19.5:9 ekran görüntüsü `_screenshots/f7_safe_on.png`) · ⏳ referans karşılaştırması · ⏳ performans (orta Android, 60 FPS).
+Android/iOS dışa aktarımda tam ekran + çentik alanına çizim ayarı Faz 11 export adımında cihazda doğrulanır.
+
 ## FAZ 4 — Oyun döngüsü ve menüler (4–5 gün)
 ```
 Faz 4: Ana menü, dünya haritası (8 kart, kilit/yıldız), dünya içi bölüm seçimi (10 düğüm + boss), HUD (level, gülle göstergesi, ayar),
@@ -2163,6 +2172,8 @@ Faz 0–1: 1 hafta · Faz 2–4: 2 hafta · Faz 5–6: 1.5 hafta · Faz 7–8: 2
     "stress_columns": 5,
     "stress_rows": 4,
     "perf_warn_fps": 50,
+    "fake_safe_area_px": { "left": 0, "top": 162, "right": 0, "bottom": 93 },
+    "_doc_fake_safe_area": "S tusu (masaustu): telefon centigi taklidi; HUD bu kadar viewport pikseli iceri kayar. Varsayilan iPhone 15 Pro (ust 59 pt, alt 34 pt; 1179 px genislik -> 1080 viewport). Telefonda DisplayServer guvenli alani kullanilir (src/ui/safe_area.gd, K-035).",
     "_doc_stress": "P tusu: stress_block_count kup, stress_columns (x) x stress_rows (z) taban, kat kat (Akdeniz paleti sirayla). HUD sag ust: FPS + aktif govde / physics.max_active_bodies; FPS < perf_warn_fps veya butce asilinca kirmizi (S-008).",
     "nudge_impulse": 1.0,
     "_doc_nudge": "Ok tuslariyla secili cisme (Tab) uygulanan itme impulsu (N*s). Kenar kurali testi icin.",

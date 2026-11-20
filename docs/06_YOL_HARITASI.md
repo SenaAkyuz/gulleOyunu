@@ -84,6 +84,10 @@ Gülleyle çözüm 10/10 → 10/10. Tek atış hedefinde 6/10 → 3/10: L06 %19�
 (tek atış biraz kolaylaştı). Keystone çöküşü düştü: L02 s1_b04 %63→%46, L04 s1_b05 %59→%29, L06 %40→%54 (arttı), L07 s1_b11 %40→%19.
 Kalibrasyon Faz 6–9'da (sim_targets geçici); karar Sena'da.
 
+**Faz 7 ilerleme:** ✅ Dünya 1 görselleri (821d5ba) · ✅ pahlı bloklar, kaide, Blender topu (5d40344) · ✅ top kadrajı B (K-036) ·
+✅ HUD güvenli alan (`SafeArea`, S tuşu çentik taklidi; 19.5:9 ekran görüntüsü `_screenshots/f7_safe_on.png`) · ⏳ referans karşılaştırması · ⏳ performans (orta Android, 60 FPS).
+Android/iOS dışa aktarımda tam ekran + çentik alanına çizim ayarı Faz 11 export adımında cihazda doğrulanır.
+
 ## FAZ 4 — Oyun döngüsü ve menüler (4–5 gün)
 ```
 Faz 4: Ana menü, dünya haritası (8 kart, kilit/yıldız), dünya içi bölüm seçimi (10 düğüm + boss), HUD (level, gülle göstergesi, ayar),
