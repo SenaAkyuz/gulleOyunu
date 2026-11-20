@@ -35,4 +35,8 @@ signal world_unlocked(world_id: String)
 ## Ball pieces owned changed (Inventory). count = -1 means unlimited.
 signal inventory_changed(ball_id: String, count: int)
 
+# --- Dev (debug builds) ---
+## A Dev Panel slider changed a value in memory (file: rules|balls|materials, key: dotted path).
+signal dev_value_changed(file: String, key: String)
+
 @warning_ignore_restore("unused_signal")

@@ -89,6 +89,7 @@ func _ready() -> void:
 	_platform.build(float(plat.get("width")), float(plat.get("depth")), plinth)
 	_tower.build(level_data)
 	EventBus.referee_state_changed.connect(_on_referee_state_changed)
+	EventBus.dev_value_changed.connect(_on_dev_value_changed)
 	_referee.setup(level_data, _tower, _platform)
 	_hud.setup(int(level_data.get("index", 0)), _referee.objective_type, Progress.stars_for(level_id))
 
@@ -209,6 +210,16 @@ func _nudge(direction: Vector3) -> void:
 		return
 	b.sleeping = false
 	b.apply_central_impulse(direction * float(GameConfig.rule("dev.nudge_impulse")))
+
+
+## Dev Panel: camera and cannon-scale sliders apply live (Faz 7 reference framing).
+func _on_dev_value_changed(file: String, key: String) -> void:
+	if file != "rules":
+		return
+	if key.begins_with("camera."):
+		_camera.configure(_camera_settings())
+	elif key == "cannon.scale":
+		_cannon.scale = Vector3.ONE * float(GameConfig.rule("cannon.scale"))
 
 
 ## rules.camera, overridden key-by-key by level.camera_override (docs/02 §2).

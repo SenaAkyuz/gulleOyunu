@@ -215,6 +215,7 @@ func dev_set(entry: Dictionary, value: float) -> void:
 		node[parts[parts.size() - 1]] = value
 	if str(entry["file"]) == "rules" and str(entry["key"]).begins_with("physics."):
 		apply_physics_settings()
+	EventBus.dev_value_changed.emit(str(entry["file"]), str(entry["key"]))
 
 
 ## Labels of entries whose value differs from what was loaded from JSON.

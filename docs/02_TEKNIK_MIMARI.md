@@ -213,6 +213,7 @@ if Progress.is_unlocked(fire.unlock) and Inventory.count("fire") > 0:
 | `feel.crack_hp_ratio` | hp bu oranın altında blok çatlak görünür (Faz 1: koyulaşır) |
 | `feel.shake_trauma_per_impulse`, `shake_frequency`, `spark_min_impulse`, `spark_amount`, `spark_lifetime_sec`, `spark_speed`, `spark_size` | Kamera sarsıntısı + çarpma kıvılcımı (Adım 10) |
 | `dev.start_level_id`, `play_area_guide`, `nudge_impulse` | Geliştirici: açılış bölümü, G alan kılavuzu, ok tuşu itmesi |
+| `dev.panel` kamera + top ölçeği kaydırıcıları | `camera.*` ve `cannon.scale` canlı uygulanır: `GameConfig.dev_set` → `EventBus.dev_value_changed` → LevelLoader kamerayı yeniden kurar (Faz 7 referans kadrajı). Bölümün `camera_override`'ı varsa o anahtarlar bölümden gelir |
 | `dev.fake_safe_area_px` | S tuşu: çentik / ana ekran çizgisi taklidi (HUD güvenli alanı, K-035) |
 | `dev.panel`, `dev.panel_open_touches` | Dev Panel kaydırıcıları (§5.3) |
 | `dev.stress_block_count`, `stress_columns`, `stress_rows`, `perf_warn_fps` | P stres kulesi + HUD performans uyarısı (S-008) |

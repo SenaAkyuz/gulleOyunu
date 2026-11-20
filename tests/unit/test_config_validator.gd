@@ -58,7 +58,7 @@ func test_tutorial_target_must_exist() -> void:
 
 
 func test_camera_override_unknown_key() -> void:
-	data["levels"]["w01_l01"]["camera_override"]["zoom"] = 2
+	data["levels"]["w01_l01"]["camera_override"] = {"distance": 14, "zoom": 2}
 	_assert_error("camera_override.zoom")
 
 

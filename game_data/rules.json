@@ -181,7 +181,12 @@
       { "label": "Kristal eşik", "file": "materials", "ids": ["crystal_amber", "crystal_cyan"], "key": "impact_threshold", "min": 0, "max": 30, "step": 0.5, "restart": true },
       { "label": "Sarsıntı / impuls", "file": "rules", "key": "feel.shake_trauma_per_impulse", "min": 0, "max": 0.05, "step": 0.001 },
       { "label": "Kıvılcım eşiği", "file": "rules", "key": "feel.spark_min_impulse", "min": 0, "max": 40, "step": 0.5, "restart": true },
-      { "label": "Kıvılcım boyutu", "file": "rules", "key": "feel.spark_size", "min": 0.02, "max": 0.5, "step": 0.01, "restart": true }
+      { "label": "Kıvılcım boyutu", "file": "rules", "key": "feel.spark_size", "min": 0.02, "max": 0.5, "step": 0.01, "restart": true },
+      { "label": "Kamera görüş açısı", "file": "rules", "key": "camera.fov_deg", "min": 20, "max": 60, "step": 0.5 },
+      { "label": "Kamera eğimi", "file": "rules", "key": "camera.pitch_deg", "min": 0, "max": 40, "step": 0.5 },
+      { "label": "Kamera mesafesi", "file": "rules", "key": "camera.distance", "min": 8, "max": 25, "step": 0.1 },
+      { "label": "Kamera bakış yüksekliği", "file": "rules", "key": "camera.look_at_height", "min": 0, "max": 8, "step": 0.1 },
+      { "label": "Top ölçeği", "file": "rules", "key": "cannon.scale", "min": 0.8, "max": 3, "step": 0.05 }
     ],
     "_doc_panel": "Dev Panel (F1 veya panel_open_touches parmak): kaydiricilar. file: rules|balls|materials; ids: balls/materials kayit id'leri (hepsi ayni degeri alir); key: noktali yol; restart: true ise bolum yeniden baslayinca uygulanir. Sadece debug build'de acilir; 'JSON'a kaydet' sadece editorden calisinca gorunur.",
     "_doc": "Gelistirici araclari. stress_block_count: P tusuyla kurulan performans test kulesindeki blok sayisi (S-008)."
