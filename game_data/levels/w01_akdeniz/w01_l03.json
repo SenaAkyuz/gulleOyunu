@@ -8,9 +8,9 @@
   "shots": 3,
   "objective": { "type": "clear_percent" },
   "aim_preview_dots": 17,
-  "platform": { "width": 7.44, "depth": 2.6, "style": "limestone_plinth" },
+  "platform": { "width": 5.4, "depth": 2.6, "style": "limestone_plinth" },
   "structures": [
-    { "template": "arch_shrine", "x": 0, "z": 0, "ry": 0, "seed": 1031, "params": { "floors": 2, "depth_layers": 1, "side_towers": true, "core": "hanging_center", "symmetry": 0.95 } }
+    { "template": "arch_shrine", "x": 0, "z": 0, "ry": 0, "seed": 1031, "params": { "floors": 2, "depth_layers": 1, "side_towers": false, "feet": "half", "core": "hanging_center", "symmetry": 0.95 } }
   ],
   "blocks": [],
   "joints": [],
@@ -20,5 +20,5 @@
   "intro_ball": null,
   "free_balls": {},
   "baked": false,
-  "_doc": "Sablon tabanli ornek: blocks/cores/keystones LevelExpander ile sablondan doldurulur; Faz 3 sonunda baked=true olarak dondurulur. K-025: hedef clear_percent, kure (kemer icinde yuvada) yalnizca jackpot. Platform = kule ayak izi + spawn_edge_inset + generator.platform_margin."
+  "_doc": "Sablon tabanli ornek: blocks/cores/keystones LevelExpander ile sablondan doldurulur; Faz 3 sonunda baked=true olarak dondurulur. K-030: hedef clear_percent, kure (kemer icinde yuvada) yalnizca jackpot. 8b (Sena): yan kulesiz, yarim kup ayakli kemer varyanti (yere degen hacim tavani K-029). Platform = kule ayak izi + spawn_edge_inset + generator.platform_margin."
 }

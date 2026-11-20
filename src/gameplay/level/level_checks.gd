@@ -11,6 +11,8 @@ const KEYSTONE := "keystone"
 const PHYSICS := "physics"
 const GROUND := "ground"
 const BUDGET := "budget"
+const KEYSTONE_CLEAR := "keystone_clear"
+const WITHIN_SHOTS := "within_shots"
 ## A block touches the ground when its lowest point is within this of the platform top (m).
 const GROUND_EPS := 0.01
 

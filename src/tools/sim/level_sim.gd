@@ -25,6 +25,43 @@ const KIND_KEYSTONE := "keystone"
 const KIND_GREEDY := "greedy"
 
 
+## Generator check (8b): `shots` direct shots at every keystone (centre, then other points of its
+## camera-facing faces). {keystone_id: [cleared share per shot]}.
+static func keystone_clears(level: Dictionary, host: Node, shots: int, rng: RandomNumberGenerator) -> Dictionary:
+	var bodies := SupportCheck._bodies(level)
+	var cam := KeystoneCheck.camera_position(level)
+	var trials: Array[Dictionary] = []
+	for k in level.get("keystones", []):
+		var idx := KeystoneCheck._index_of(bodies, str(k))
+		if idx < 0:
+			continue
+		var pts := KeystoneCheck._face_samples(bodies[idx], cam)
+		for s in shots:
+			var target: Vector3 = SupportCheck._mean(pts) if s == 0 else pts[rng.randi_range(0, pts.size() - 1)]
+			trials.append({"kind": KIND_KEYSTONE, "keystone": str(k), "targets": [target]})
+	await _run_trials(level, trials, host, maxi(1, trials.size()))
+	var out := {}
+	for t in trials:
+		if not out.has(t["keystone"]):
+			out[t["keystone"]] = []
+		(out[t["keystone"]] as Array).append(float(t["ratio"]))
+	return out
+
+
+## Generator check (8b): share of `n` greedy multi-shot runs that solve within level.shots.
+static func within_shots_rate(level: Dictionary, host: Node, n: int, rng: RandomNumberGenerator, batch: int = 20) -> float:
+	var visible := visible_targets(level)
+	var trials: Array[Dictionary] = []
+	for i in n:
+		trials.append({"kind": KIND_GREEDY, "targets": [_pick(visible, rng)]})
+	await _run_trials(level, trials, host, batch)
+	var ok := 0
+	for t in trials:
+		if t["solved"]:
+			ok += 1
+	return float(ok) / maxf(1, n)
+
+
 ## Full report for an expanded level. opts: samples, batch, greedy_samples, seed.
 static func run(level: Dictionary, host: Node, opts: Dictionary = {}) -> Dictionary:
 	var started := Time.get_ticks_msec()
@@ -130,14 +167,19 @@ static func _pick(points: PackedVector3Array, rng: RandomNumberGenerator) -> Vec
 # --- Running trials in parallel copies ---
 
 static func _run_trials(level: Dictionary, trials: Array[Dictionary], host: Node, batch: int) -> void:
+	# No Engine.time_scale tricks: in Godot 4 it also scales the physics step (wrong physics).
+	# For speed run headless with --fixed-fps 60 (one physics step per frame, CPU speed).
 	var i := 0
 	while i < trials.size():
 		var group := trials.slice(i, mini(i + batch, trials.size()))
 		var state := {"left": group.size()}
+		# Every batch in a fresh physics world: results do not depend on earlier simulations.
+		var world := SupportCheck.isolated_world(host)
 		for c in group.size():
-			_trial(level, group[c], host, Vector3(c * COPY_SPACING, 0, 0), state)
+			_trial(level, group[c], world, Vector3(c * COPY_SPACING, 0, 0), state)
 		while int(state["left"]) > 0:
 			await host.get_tree().physics_frame
+		world.queue_free()
 		i += batch
 
 

@@ -78,7 +78,8 @@ python3 tools/validate_game_data.py
 python3 tools/economy_sim.py
 # Godot testleri (GUT 9.7.1, addons/gut, MIT; ayarlar .gutconfig.json → res://tests, test_*.gd)
 # Taze checkout'ta önce: godot --headless --path . --import
-godot --headless --path . -s addons/gut/gut_cmdln.gd -gexit   # çıkış kodu 0 = hepsi geçti
+godot --headless --fixed-fps 60 --path . -s addons/gut/gut_cmdln.gd -gexit   # çıkış kodu 0 = hepsi geçti (--fixed-fps: her kare 1 fizik adımı, CPU hızında; ~30 sn)
+# Bölüm simülasyonu (docs/03 §8.1): godot --headless --fixed-fps 60 --path . -s src/tools/sim/sim_cli.gd -- --world akdeniz
 ```
 
 ## 8. Mevcut durum

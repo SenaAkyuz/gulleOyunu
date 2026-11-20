@@ -9,9 +9,9 @@ extends Node
 ##   waits until every body rests (asleep or slower than rules.physics.settle_linear_velocity_threshold,
 ##   no ball alive) or rules.physics.settle_timeout_sec.
 ## - WIN is checked every tick and happens the moment the objective is met. The only objective is
-##   clear_percent (K-018, K-025): cleared volume (or count) / total >= target; cleared = centre of mass
+##   clear_percent (K-018, K-030): cleared volume (or count) / total >= target; cleared = centre of mass
 ##   outside the platform (edge rule), or broken when rules.objective_defaults.broken_counts_as_cleared.
-##   Core/joints excluded. The Golden Core never ends a level (K-025).
+##   Core/joints excluded. The Golden Core never ends a level (K-030).
 ## - LOSS only in EVALUATE after the last shot settled (no automatic final clear).
 ## - Golden Core: checked every tick, also after the win; dropping it emits EventBus.core_dropped
 ##   (jackpot gold only, never affects stars or the result).
@@ -76,7 +76,7 @@ func setup(level: Dictionary, tower: TowerBuilder, platform: Platform) -> void:
 	objective_type = str(objective.get("type", GameConfig.rule("objective_defaults.type")))
 	clear_target = float(objective.get("target", GameConfig.rule("objective_defaults.clear_percent_target")))
 	if not SUPPORTED_OBJECTIVES.has(objective_type):
-		push_error("LevelReferee: '%s' hedefi yok (K-025); clear_percent kullanılıyor" % objective_type)
+		push_error("LevelReferee: '%s' hedefi yok (K-030); clear_percent kullanılıyor" % objective_type)
 		objective_type = OBJ_CLEAR_PERCENT
 
 	EventBus.ball_fired.connect(_on_ball_fired)

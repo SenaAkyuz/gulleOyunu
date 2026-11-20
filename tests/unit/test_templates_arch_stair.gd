@@ -117,7 +117,7 @@ func test_level_03_opens_full() -> void:
 	assert_eq((lv["cores"] as Array).size(), 1, "L03 jackpot küresi yuvada")
 	var bad := Kit.problems(lv)
 	assert_eq(bad.size(), 0, "; ".join(bad))
-	assert_eq(str(lv["objective"]["type"]), "clear_percent", "K-025: küre bölümü bitirmez")
+	assert_eq(str(lv["objective"]["type"]), "clear_percent", "K-030: küre bölümü bitirmez")
 	assert_eq(lv["platform"]["width"], LayoutCheck.platform_for(lv["blocks"])["width"], "dar platform (docs/03 §2)")
 	assert_eq(lv["platform"]["depth"], LayoutCheck.platform_for(lv["blocks"])["depth"], "dar platform (docs/03 §2)")
 	LevelLoader.dev_level_id = "w01_l03"

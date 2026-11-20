@@ -153,16 +153,32 @@ static func generate(world_id: String, index: int, node: Node, opts: Dictionary 
 	var role := DifficultyCalc.role_for(index)
 	var params := DifficultyCalc.params(d)
 	var overrides: Dictionary = (GameConfig.difficulty().get("role_overrides", {}) as Dictionary).get(role, {})
-	var first := str(opts.get("template", ""))
+	var forced := str(opts.get("template", ""))
+	var first := forced
+	var neighbours: Array[String] = []
 	if first.is_empty():
-		var plan := plan_world(world_id, opts)
-		first = str((plan["templates"] as Array)[index - 1]) if index - 1 < (plan["templates"] as Array).size() else ""
+		var plan_t: Array = plan_world(world_id, opts)["templates"]
+		first = str(plan_t[index - 1]) if index - 1 < plan_t.size() else ""
+		if index >= 2:
+			neighbours.append(str(plan_t[index - 2]))
+		if index < plan_t.size():
+			neighbours.append(str(plan_t[index]))
 	var pool := PackedStringArray()
 	for t in candidates(world, d):
 		if feasible_variant(world, t, d, role) >= 0:
 			pool.append(t)
+	# The planned template first; if it cannot pass, the attempts move on to the other templates of
+	# this slot that differ from both planned neighbours (8b). A forced template is used alone.
+	var tries: Array[String] = [first]
+	if forced.is_empty():
+		for t in pool:
+			if t != first and not neighbours.has(t):
+				tries.append(t)
 	var fail_counts := {LevelChecks.LAYOUT: 0, LevelChecks.SUPPORT: 0, LevelChecks.KEYSTONE: 0,
-			LevelChecks.BUDGET: 0, LevelChecks.GROUND: 0, LevelChecks.PHYSICS: 0}
+			LevelChecks.BUDGET: 0, LevelChecks.GROUND: 0, LevelChecks.PHYSICS: 0,
+			LevelChecks.KEYSTONE_CLEAR: 0, LevelChecks.WITHIN_SHOTS: 0}
+	var clear_target := float(GameConfig.rule("objective_defaults.clear_percent_target"))
+	var within_min := float((GameConfig.difficulty().get("sim_targets", {}) as Dictionary).get("min_solve_rate_within_shots", 0.0))
 	var ground_cap := LevelChecks.ground_cap(d, role)
 	var budget_max := LevelChecks.budget_max(int(params["block_count"]))
 	var report := {"templates": [], "attempts": 0, "fail_counts": fail_counts, "budget": int(params["block_count"]),
@@ -176,7 +192,14 @@ static func generate(world_id: String, index: int, node: Node, opts: Dictionary 
 		report["attempts"] = attempt + 1
 		var rng := RandomNumberGenerator.new()
 		rng.seed = seed_for(wi, index, attempt, _base_seed(opts))
-		var level := _build_level(world, wi, index, d, role, params, overrides, first, pool, rng, attempt)
+		# Attempts are split evenly between the templates to try; inside each share, chained
+		# multi-structure towers first, then single structures (8b).
+		var t_index := mini(attempt * tries.size() / max_attempts, tries.size() - 1)
+		var share_start := ceili(float(t_index) * max_attempts / tries.size())
+		var share_len := maxi(1, ceili(float(t_index + 1) * max_attempts / tries.size()) - share_start)
+		var single := (attempt - share_start) >= share_len / 2.0
+		var template := tries[t_index]
+		var level := _build_level(world, wi, index, d, role, params, overrides, template, pool, rng, attempt, single)
 		var expanded := LevelExpander.expand(level)
 		var problems := LevelChecks.static_problems(expanded)
 		var failed := LevelChecks.first_failure(problems)
@@ -193,6 +216,20 @@ static func generate(world_id: String, index: int, node: Node, opts: Dictionary 
 			if not phys["ok"]:
 				failed = LevelChecks.PHYSICS
 				problems[LevelChecks.PHYSICS] = PackedStringArray(["%s %.4f m kaydı" % [phys["worst"], phys["max_drift"]]])
+		var key_share := 0.0
+		var within := 0.0
+		if failed.is_empty():
+			# 8b: a direct keystone shot must clear the objective (difficulty = finding / hitting it).
+			var clears: Dictionary = await LevelSim.keystone_clears(expanded, node, int(GameConfig.rule("generator.keystone_shots")), rng)
+			key_share = _best_keystone_share(clears, clear_target)
+			if key_share < float(GameConfig.rule("generator.keystone_shot_success_share")):
+				failed = LevelChecks.KEYSTONE_CLEAR
+				problems[LevelChecks.KEYSTONE_CLEAR] = PackedStringArray(["keystone atışı %%%d hedefi tutmuyor: %s" % [roundi(clear_target * 100.0), _clears_text(clears)]])
+		if failed.is_empty():
+			within = await LevelSim.within_shots_rate(expanded, node, int(GameConfig.rule("generator.sim_greedy_samples")), rng)
+			if within < within_min:
+				failed = LevelChecks.WITHIN_SHOTS
+				problems[LevelChecks.WITHIN_SHOTS] = PackedStringArray(["gülleyle çözüm %%%d < %%%d" % [roundi(within * 100.0), roundi(within_min * 100.0)]])
 		if not failed.is_empty():
 			fail_counts[failed] = int(fail_counts[failed]) + 1
 			report["last_problems"] = LevelChecks.flatten(problems)
@@ -205,6 +242,10 @@ static func generate(world_id: String, index: int, node: Node, opts: Dictionary 
 			names.append(st["template"])
 		report["templates"] = names
 		report["ground"] = ground
+		report["template_planned"] = first
+		report["keystone_share"] = key_share
+		report["within_shots"] = within
+		report["single_fallback"] = single and (level["structures"] as Array).size() == 1 and 				maxi(int(params.get("structure_count", 1)), int(overrides.get("structure_count_min", 1))) > 1
 		report["ground_cap"] = ground_cap
 		var vars: Array = []
 		for st: Dictionary in level["structures"]:
@@ -246,6 +287,11 @@ static func describe(res: Dictionary) -> String:
 		return str(res.get("source", ""))
 	var text := "%s · %s · deneme %d · bütçe %%%d" % [res.get("source", ""), "+".join(PackedStringArray(r.get("templates", []))),
 			int(r.get("attempts", 0)), roundi(float(r.get("fill", 0.0)) * 100.0)]
+	var planned := str(r.get("template_planned", ""))
+	if not planned.is_empty() and not (r.get("templates", []) as Array).is_empty() and str(r["templates"][0]) != planned:
+		text += " · plan %s geçmedi" % planned
+	if bool(r.get("single_fallback", false)):
+		text += " · zincir kurulamadı, tek yapı"
 	if not (r.get("warnings", []) as Array).is_empty():
 		text += " · UYARI: " + "; ".join(PackedStringArray(r["warnings"]))
 	return text
@@ -255,10 +301,12 @@ static func describe(res: Dictionary) -> String:
 
 static func _build_level(world: Dictionary, wi: int, index: int, d: float, role: String, params: Dictionary,
 		overrides: Dictionary, first: String, pool: PackedStringArray, rng: RandomNumberGenerator,
-		attempt: int = 0) -> Dictionary:
+		attempt: int = 0, single: bool = false) -> Dictionary:
 	var budget := int(params["block_count"])
 	var count := maxi(1, maxi(int(params.get("structure_count", 1)), int(overrides.get("structure_count_min", 1))))
 	count = mini(count, int(GameConfig.rule("generator.max_structures")))
+	if single:
+		count = 1
 	var min_count := count  # never fewer (boss: role_overrides.boss.structure_count_min)
 	var structs: Array[Dictionary] = []
 	for k in count:
@@ -287,13 +335,36 @@ static func _build_level(world: Dictionary, wi: int, index: int, d: float, role:
 				structs.pop_back()
 				_layout(level)
 			break
-		if float(used) / maxf(1.0, budget) >= warn or structs.size() >= int(GameConfig.rule("generator.max_structures")):
+		if single or float(used) / maxf(1.0, budget) >= warn or structs.size() >= int(GameConfig.rule("generator.max_structures")):
 			break
 		structs.append(_structure(_pick_other(pool, structs, first, rng), maxi(1, budget - used), rng, attempt, world, d, role))
 	var final_blocks: Array = LevelExpander.expand(level)["blocks"]
 	level["platform"] = LayoutCheck.platform_for(final_blocks)
 	level["platform"]["style"] = str(world.get("platform_style", ""))
 	return level
+
+
+## Share of shots reaching `target` on the best keystone.
+static func _best_keystone_share(clears: Dictionary, target: float) -> float:
+	var best := 0.0
+	for k: String in clears:
+		var arr: Array = clears[k]
+		var ok := 0
+		for r in arr:
+			if float(r) >= target:
+				ok += 1
+		best = maxf(best, float(ok) / maxf(1, arr.size()))
+	return best
+
+
+static func _clears_text(clears: Dictionary) -> String:
+	var parts := PackedStringArray()
+	for k: String in clears:
+		var pct := PackedStringArray()
+		for r in clears[k]:
+			pct.append("%%%d" % roundi(float(r) * 100.0))
+		parts.append("%s %s" % [k, "/".join(pct)])
+	return ", ".join(parts)
 
 
 ## A structure call with the template variant for this attempt: the first feasible variant
@@ -358,13 +429,36 @@ static func _layout(level: Dictionary) -> void:
 		boxes.append(box)
 		total += box.size.x
 	total += gap * (boxes.size() - 1)
-	var left := -total / 2.0
+	# Chain (docs/03 §5, 8b): the next structures stand on the side the first one falls to — the side
+	# of its keystone (break the keystone and the plank / arch / wall / deck tips that way).
+	var order: Array[int] = []
 	for i in boxes.size():
+		order.append(i)
+	if boxes.size() > 1 and _keystone_side(level, 0) < 0.0:
+		order.reverse()
+	var left := -total / 2.0
+	for i in order:
 		var st: Dictionary = level["structures"][i]
 		st["x"] = snappedf(left - boxes[i].position.x, 0.001)
 		st["z"] = 0.0
 		st["ry"] = 0.0
 		left += boxes[i].size.x + gap
+
+
+## -1 / +1: which side of structure `i` (alone, at the origin) its first keystone is on.
+static func _keystone_side(level: Dictionary, i: int) -> float:
+	var single := level.duplicate(true)
+	var s: Dictionary = (level["structures"][i] as Dictionary).duplicate(true)
+	s["x"] = 0.0
+	s["z"] = 0.0
+	s["ry"] = 0.0
+	single["structures"] = [s]
+	var ex := LevelExpander.expand(single)
+	var centre := _bounds(ex).get_center().x
+	for b: Dictionary in ex["blocks"]:
+		if (ex["keystones"] as Array).has(b["id"]):
+			return -1.0 if float(b["x"]) < centre else 1.0
+	return 1.0
 
 
 ## True when every block of the level is inside the playable area (x).

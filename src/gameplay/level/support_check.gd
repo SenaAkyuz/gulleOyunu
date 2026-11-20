@@ -108,12 +108,13 @@ static func describe(result: Dictionary) -> String:
 ## Builds the level under `parent` with every body awake, simulates physics.pre_settle_sec and
 ## returns {ok, max_drift, drifts: {id: metres}, worst: id}. The temporary nodes are freed.
 static func physics_drift(level: Dictionary, parent: Node) -> Dictionary:
+	var world := isolated_world(parent)
 	var holder := Node3D.new()
 	var platform := Platform.new()
 	var tower := TowerBuilder.new()
 	holder.add_child(platform)
 	holder.add_child(tower)
-	parent.add_child(holder)
+	world.add_child(holder)
 	var plat: Dictionary = level.get("platform", {})
 	platform.build(float(plat.get("width")), float(plat.get("depth")))
 	tower.build(level)
@@ -133,9 +134,22 @@ static func physics_drift(level: Dictionary, parent: Node) -> Dictionary:
 		if d > max_drift:
 			max_drift = d
 			worst = b.block_id
-	holder.queue_free()
+	world.queue_free()
 	return {"ok": max_drift <= float(GameConfig.rule("physics.max_settle_drift")),
 			"max_drift": max_drift, "drifts": drifts, "worst": worst}
+
+
+## A fresh physics world for a check / simulation (a SubViewport with its own World3D that renders
+## nothing), so the result never depends on other bodies or on what was simulated before
+## (Jolt is deterministic for the same world history only). Free it when done.
+static func isolated_world(parent: Node) -> SubViewport:
+	var vp := SubViewport.new()
+	vp.own_world_3d = true
+	vp.world_3d = World3D.new()
+	vp.render_target_update_mode = SubViewport.UPDATE_DISABLED
+	vp.size = Vector2i(2, 2)
+	parent.add_child(vp)
+	return vp
 
 
 # --- Bodies and pieces ---

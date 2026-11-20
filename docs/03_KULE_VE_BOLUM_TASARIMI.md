@@ -68,7 +68,7 @@ Böylece yıldız sistemi "şans" değil "zekâ" ödüllendirir.
   veya `{ "type": "hint", "text_tr": "…" }` → yalnızca ipucu yazısı; çizimi Faz 2 UI'da).
 - Elle tasarlanmış tam örnek: `w01_l01.json` (`baked: true`, blok listesi + `keystones` + `cores` + `camera_override`).
 - **`objective`** (K-018): varsayılan `{ "type": "clear_percent" }`; hedef oranı `rules.objective_defaults.clear_percent_target`, bölüme özel `objective.target` (0–1) ile ezilebilir.
-  Tek hedef `clear_percent` (K-025: `drop_core` / `drop_all_cores` kaldırıldı); `cores` **opsiyoneldir** ve her zaman jackpot küresidir. `cores[].y` = kürenin alt yüzeyi.
+  Tek hedef `clear_percent` (K-030: `drop_core` / `drop_all_cores` kaldırıldı); `cores` **opsiyoneldir** ve her zaman jackpot küresidir. `cores[].y` = kürenin alt yüzeyi.
 
 ---
 
@@ -134,9 +134,9 @@ Düşük zorlukta 1 sıra (okunur, neredeyse düz), yüksek zorlukta 2–3 sıra
 4. **Simetri ayarı:** `symmetry` parametresi 0–1; düşük zorlukta simetrik (okunur), yüksekte asimetrik (şaşırtıcı).
 5. **Kenar payı:** Bloklar platform kenarından en az 0.3 birim (`rules.physics.spawn_edge_inset`) içeride doğar; aksi halde kenar kuralı (`02` §2) bölüm başında yanlış "düştü" sayabilir.
 6. **Altın Küre yerleşimi (K-018):**
-   a. Küre her bölümde yalnızca **jackpot**tır (K-025, bölümü asla bitirmez): kulenin **içine** (bloklarla çevrili), **kemer altına** veya **tepeye** gömülür. Keystone çöküşüyle
+   a. Küre her bölümde yalnızca **jackpot**tır (K-030, bölümü asla bitirmez): kulenin **içine** (bloklarla çevrili), **kemer altına** veya **tepeye** gömülür. Keystone çöküşüyle
       düşebilir ama garanti değildir; zorluk arttıkça daha derine gömülür (`core_protection`). Küre temizlik oranına katılmaz, yıldızı etkilemez.
-   b. ~~`drop_core` bölümleri~~ — K-025 ile kaldırıldı (küreyi tek atışla düşürüp bölümü bitirmek kule yıkmayı anlamsızlaştırıyordu).
+   b. ~~`drop_core` bölümleri~~ — K-030 ile kaldırıldı (küreyi tek atışla düşürüp bölümü bitirmek kule yıkmayı anlamsızlaştırıyordu).
 7. **Dar platform:** `clear_percent` bölümlerinde platform kulenin ayak izine yakın tutulur (§2); blokların %80'i düşebilmeli.
 
 ## 5. Çift kule ve çoklu yapı mantığı
@@ -255,7 +255,7 @@ flowchart LR
 - **Oyunda:** N/B dünyanın 10 bölümünde gezer; dosya varsa dosya, yoksa generator çıktısı (oturum boyunca önbellekte). Kaynak Dev Panel'de ve alttaki bilgi satırında.
 
 ### 8.1 Simülasyon metrikleri ve hedefler (`difficulty.json → sim_targets`)
-- **Çözüm** (K-018) = bölüm hedefine ulaşmak. Tek hedef `clear_percent`: blok hacminin `clear_percent_target` (0.8) oranı platformdan düşer (K-025).
+- **Çözüm** (K-018) = bölüm hedefine ulaşmak. Tek hedef `clear_percent`: blok hacminin `clear_percent_target` (0.8) oranı platformdan düşer (K-030).
 - `one_shot_solve_rate`: rastgele örneklenen 200 atış noktasından kaçı tek atışta çözüyor.
   - intro: %30–60 · build_up: %10–30 · challenge: %2–8 · boss: %0.5–3 (ama 0 olamaz!)
   - **İstisna — W1 L01 (FTUE):** rastgele atış oranı ~%15 (hedefin altında) kabul edildi; tutorial eli keystone'u gösterdiği için
@@ -322,6 +322,37 @@ geniş tabanlı şablonlarda taban (taş) platformda kalıyor ve hacim %80'e ula
 Özet: hedefte olan bölüm 2 → 3 (L01, L05, L09); "gülleyle çözüm" 3 → 6 bölümde ✔. Kolay roller artık çözülebiliyor (L02 hatta hedefin üstünde, L04 hafif altında);
 orta/zor rollerde (combine, challenge, boss) tek atış hâlâ %0 ve hiçbir generator keystone'u tek başına %80'e ulaşmıyor (en iyi %56). Süre: Dünya 1 ~1.5 dk.
 Hiçbir kule / hedef / sayı değiştirilmedi; karar Sena'nın.
+
+**8b — simülasyon generator döngüsünde (Sena, 2026-11-20; K-031; `sim_targets` değişmedi):**
+- **`keystone_clear_min`:** kule kabul edilmeden önce her keystone'a `rules.generator.keystone_shots` (3) doğrudan atış (merkez + yüzünde başka noktalar);
+  en iyi keystone'da atışların en az `keystone_shot_success_share`'i (0.5) `clear_percent` hedefine (0.8) ulaşmalı. Zorluk keystone'u bulmaktan / vurmaktan gelir, çökmeyen keystone'dan değil.
+- **Gülleyle çözüm:** `generator.sim_greedy_samples` (20) açgözlü deneme; oran `sim_targets.min_solve_rate_within_shots`'ın (0.2) altındaysa kule reddedilir.
+- **Zincir:** çok yapılı kulede sonraki yapılar birincinin **keystone tarafına** konur (keystone kırılınca kalas/kemer/duvar/güverte o yana devrilir).
+  Her şablonun deneme payının ilk yarısı çok yapılı, ikinci yarısı tek yapı ("zincir kurulamadı, tek yapı" raporlanır; boss için de geçerli).
+- **Yedek şablon:** planlanan şablon geçemezse denemeler, o bölüme uyan ve iki komşunun planlı şablonundan farklı diğer şablonlara eşit paylaştırılır ("plan X geçmedi").
+- Sınıra (`max_attempts`) varılırsa kural gevşetilmez: hata + kontrol başına düşme sayısı + son sebep.
+- L03: yan kulesiz, **yarım küp ayaklı** kemer (platform 5.4 × 2.6, yere değen %23).
+
+**Üçüncü ölçüm — 8b sonrası (200 örnek, 2026-11-20; izole fizik dünyası). Önceki (yere değen tavanı) → şimdi:**
+
+| Bölüm | Rol | Şablon (önce → şimdi) | Tek atış (hedef) | En iyi keystone (merkez atış) | Gülleyle çözüm (≥%20) |
+|---|---|---|---|---|---|
+| L01 | intro | elle | %42 → %37 ✔ (30–60) | ✔ %86 | %56 → %53 ✔ |
+| L02 | build_up | yükseltilmiş piramit | %44 → %37 ⚠ (10–30) | ✘ %63 | %91 → %90 ✔ |
+| L03 | build_up | kemer → **yarım ayaklı kemer** | %0 → **%14** ✔ | ✔ %82 | %0 → %59 ✔ |
+| L04 | breather | ikiz sütun | %20 → %23 ⚠ (25–55) | ✘ %40 | %71 → %72 ✔ |
+| L05 | new_mechanic | yük. merdiven → **kemer** (plan geçmedi) | %13 → %45 ⚠ (10–35) | ✔ %93 | %67 → %88 ✔ |
+| L06 | combine | ikiz + kemer → **yük. piramit** (plan ikiz geçmedi) | %0 → %30 ⚠ (6–20) | ✘ %53 | %9 → %88 ✔ |
+| L07 | combine | kemer | %0 → %46 ⚠ (6–20) | ✔ %93 | %0 → %89 ✔ |
+| L08 | challenge | merdiven → **üretilemedi** | – | 12 denemede keystone ≤%85 (yarısı tutmuyor) | – |
+| L09 | breather | yük. piramit → **kemer** (plan geçmedi) | %32 → **%54** ✔ (25–55) | ✔ %93 | %94 → %60 ✔ |
+| L10 | boss | merdiven + ikiz → **üretilemedi** | – | 12 denemede keystone ≤%75 (2 deneme alana sığmadı) | – |
+
+Özet: üretilen 8 bölümün hepsi artık tek keystone atışıyla çözülebilir ve gülleyle çözüm her yerde ≥ %20 (önce 3 bölümde %0'dı). Ama **tek atış oranı orta/zor rollerde
+hedefin çok üstüne çıktı** (combine %30–46, hedef %6–20) — rastgele atış da büyük çöküş yapıyor. L08 (challenge) ve L10 (boss) hiçbir şablonla keystone %80'i
+tutturamadı → **üretilemedi** (kural gevşetilmedi). Merkezden tek keystone atışı bazı kabul edilen bölümlerde ✘ (L02, L04, L06): generator 3 atışın yarısını
+yeterli sayıyor (merkez dışı noktalar tutuyor). Süre: Dünya 1 ~1.4 dk; test seti 6 dk 45 sn → ~30 sn (`--fixed-fps`).
+Not: 8b'nin ara ölçümü `Engine.time_scale` ile hızlandırılmıştı ve bu fizik adımını büyüttüğü için geçersizdi (yayınlanmadı); yukarıdaki tablo doğru adımla.
 
 ### 8.2 Bölüm editörü (Godot editör eklentisi, Faz 3)
 > **K-024:** Faz 3'te özel ızgara editörü yerine Godot editör paneli yapılır: butonlar aşağıdaki gibi, bloklar Godot'un 3D gizmo'su ile taşınır. Aşağıdaki üç panelli düzen ileride değerlendirilir.

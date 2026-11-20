@@ -64,7 +64,10 @@ func test_generated_world_1_within_caps() -> void:
 		if GameConfig.level_ids().has(id):
 			continue  # files are never changed (L01, L03): reported, not enforced
 		var res: Dictionary = await LevelGenerator.resolve(id, self)
-		assert_true(res["ok"], id)
+		if not res["ok"]:
+			assert_eq(Kit.failure_report_problem(res), "", id + " başarısızlık raporu eksik")
+			assert_push_error(id, "üretilemeyen bölüm için generator hata mesajı")
+			continue
 		var d := DifficultyCalc.level_difficulty(1, k)
 		var lv: Dictionary = res["level"]
 		assert_lte(LevelChecks.ground_contact_ratio(lv), LevelChecks.ground_cap(d, DifficultyCalc.role_for(k)) + 1e-6, id + " yere değen hacim")

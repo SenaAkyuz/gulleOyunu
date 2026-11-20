@@ -7,7 +7,7 @@ extends RefCounted
 ## Pure function over plain dictionaries so GUT can feed it broken data. Messages are Turkish.
 
 const VALID_COLLIDERS: PackedStringArray = ["box", "sphere", "cylinder", "convex"]
-## K-025: the Golden Core never ends a level -> no drop_core / drop_all_cores objectives.
+## K-030: the Golden Core never ends a level -> no drop_core / drop_all_cores objectives.
 const VALID_OBJECTIVES: PackedStringArray = ["clear_percent", "shatter_crystals"]
 const VALID_UNLOCKS: PackedStringArray = ["start", "level_cleared"]
 const MATERIAL_NUMBERS: PackedStringArray = ["density", "hp", "impact_threshold", "friction", "bounce"]

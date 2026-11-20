@@ -55,7 +55,7 @@ flowchart LR
 
 ### 3.3 Kazanma koşulu (bölüm bazında seçilir) ⚙️ `level.objective.type`
 ✅ Karar (K-018, Sena onayladı — K-010'un yerine): **Ana hedef "masayı temizle", Altın Küre jackpot.**
-✅ **K-025 (2026-11-19):** Altın Küre **hiçbir zaman bölümü bitirmez** — her bölümde kazanma koşulu temizliktir, küre her zaman yalnızca jackpot altını verir. `drop_core` / `drop_all_cores` kaldırıldı.
+✅ **K-030 (2026-11-19):** Altın Küre **hiçbir zaman bölümü bitirmez** — her bölümde kazanma koşulu temizliktir, küre her zaman yalnızca jackpot altını verir. `drop_core` / `drop_all_cores` kaldırıldı.
 
 | Tip | Açıklama | Ne zaman kullanılır |
 |---|---|---|
@@ -164,7 +164,7 @@ Her blok = **şekil (shape)** + **malzeme (material)**. Malzeme fizik ve etkile�
 | `lava_rock` | Koyu, turuncu çatlaklı | Yüksek | Yüksek | thermal_shock (Buz ×2) |
 | `metal` | Perçin, plaka | Çok yüksek | Çok yüksek | conductive |
 | `rope` / `chain` / `vine` | Bağlantı (joint) | — | Düşük/Yüksek/Orta | joint; rope/vine cuttable+flammable |
-| `core_gold` | **Altın Küre** (yalnızca jackpot, K-025) | Orta | Kırılmaz | objective |
+| `core_gold` | **Altın Küre** (yalnızca jackpot, K-030) | Orta | Kırılmaz | objective |
 
 **Kristal bloklar** (turuncu/turkuaz) kırılınca küçük altın (⚙️ `materials.json → coin_on_break`) ve tatmin edici cam kırılma efekti verir → oyuncuyu "daha çok yık" yönünde ödüllendirir.
 

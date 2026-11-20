@@ -47,7 +47,7 @@ Tek risk IAP/reklam eklentileri → `IAPService` / `AdsService` arayüzleriyle s
   1. **Ağırlık merkezinin yatay izdüşümü (x, z) platform üst yüzeyinin dışındaysa** (tolerans: `rules.physics.edge_margin`), **veya**
   2. `y < rules.physics.fall_kill_y` (platformun altına inmişse).
 - Kenarda asılı kalan ama ağırlık merkezi platform dışında olan cisim **düşmüş** sayılır; ağırlık merkezi platform içindeyse **düşmemiş** sayılır. Ara durum yok.
-- Kontrol sürekli yapılır: Altın Küre'nin ağırlık merkezi platform dışına çıktığı an "düştü" sayılır (jackpot; bölümü bitirmez, K-025). Bloklar için temizlik oranı (`clear_percent`, K-018) her karede canlı hesaplanır ve hedefe ulaşıldığı an kazanılır; kesin hüküm (kaybetme için) son gülle durulunca verilir.
+- Kontrol sürekli yapılır: Altın Küre'nin ağırlık merkezi platform dışına çıktığı an "düştü" sayılır (jackpot; bölümü bitirmez, K-030). Bloklar için temizlik oranı (`clear_percent`, K-018) her karede canlı hesaplanır ve hedefe ulaşıldığı an kazanılır; kesin hüküm (kaybetme için) son gülle durulunca verilir.
 - Ayrık platformlarda (Gökyüzü Adaları) "platform" = tüm platform üst yüzeylerinin birleşimi.
 - Oyuncuya görünür: kenarda asılı ama düşmüş sayılan cisim hafif gri parıltı alır.
 
@@ -298,7 +298,7 @@ Kural: Alan eklenince `save_version` artar ve `SaveManager._migrate_vN_to_vN1()`
   Testler: `tests/unit/test_save_manager.gd`, uçtan uca kazan → diske yaz → yeniden yükle: `tests/integration/test_persistence.gd`.
 
 ## 9. Test stratejisi
-- **GUT birim testleri** (GUT 9.7.1, `addons/gut`, `tests/unit/test_*.gd` + `tests/integration/`, `.gutconfig.json`; komut CLAUDE.md §7): Economy (harca/kazan/yetersiz bakiye), Inventory, Progress açılma koşulları ve ödüller, yıldız hesabı, save migrasyonu, GameConfig doğrulama, HUD, kalıcılık (kapat-aç). Faz 1 çekirdeği de testli: balistik, hasar formülü, kenar kuralı. Testler kayıt için `tests/helpers/save_sandbox.gd` kullanır (oyuncunun gerçek kaydına dokunmaz).
+- **GUT birim testleri** (GUT 9.7.1, `addons/gut`, `tests/unit/test_*.gd` + `tests/integration/`, `.gutconfig.json`; komut CLAUDE.md §7): Economy (harca/kazan/yetersiz bakiye), Inventory, Progress açılma koşulları ve ödüller, yıldız hesabı, save migrasyonu, GameConfig doğrulama, HUD, kalıcılık (kapat-aç). Faz 1 çekirdeği de testli: balistik, hasar formülü, kenar kuralı. Testler kayıt için `tests/helpers/save_sandbox.gd` kullanır (oyuncunun gerçek kaydına dokunmaz). Testler `--fixed-fps 60` ile koşar (her kare tek fizik adımı, CPU hızında). `Engine.time_scale` hızlandırma için **kullanılmaz** (Godot 4'te fizik adımını da büyütür). Fizik denemeleri ve simülasyonlar her seferinde **kendi fizik dünyasında** (`SupportCheck.isolated_world`: kendi `World3D`'si olan, çizim yapmayan bir `SubViewport`) koşar; Jolt aynı dünya geçmişinde deterministik olduğu için sonuç önceki simülasyonlardan etkilenmez.
 - **Headless bölüm simülasyonu** (`src/tools/sim`): her bölüm için örnek atış noktaları dener → "çözülebilir mi, kaç atışta" raporu (bkz. `03` §8).
 - **Python doğrulayıcı:** JSON şema, referans bütünlüğü (level'daki malzeme `materials.json`'da var mı, top id'leri geçerli mi).
 - **Cihaz testi:** Her faz sonunda en az 1 orta segment Android + 1 iPhone'da 60 FPS kontrolü.

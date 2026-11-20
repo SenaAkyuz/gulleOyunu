@@ -36,7 +36,7 @@ economy = load("economy.json")
 VALID_FLAGS = {"flammable", "cuttable", "conductive", "freezable", "shatter",
                "thermal_shock", "objective", "joint", "unbreakable"}
 VALID_UNLOCK = {"start", "level_cleared", "levels_cleared_count", "world_completed", "stars_total"}
-# K-025: Altin Kure bolumu asla bitirmez -> drop_core / drop_all_cores hedefi yok
+# K-030: Altin Kure bolumu asla bitirmez -> drop_core / drop_all_cores hedefi yok
 VALID_OBJECTIVES = {"clear_percent", "shatter_crystals"}
 VALID_ROLES = {r["role"] for r in difficulty.get("rhythm", [])}
 VALID_AIM = {"tap_target", "drag_release"}
@@ -367,7 +367,7 @@ for lf in sorted((ROOT / "levels").rglob("*.json")):
     if lv.get("baked"):
         if not lv.get("blocks"):
             errors.append(f"{rel}: baked=true ama blocks bos")
-        # cores opsiyonel: Altin Kure yalnizca jackpot (K-018, K-025)
+        # cores opsiyonel: Altin Kure yalnizca jackpot (K-018, K-030)
         if not lv.get("keystones"):
             warnings.append(f"{rel}: keystone isaretlenmemis")
     for b in lv.get("free_balls", {}):

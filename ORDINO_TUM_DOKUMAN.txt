@@ -87,7 +87,8 @@ python3 tools/validate_game_data.py
 python3 tools/economy_sim.py
 # Godot testleri (GUT 9.7.1, addons/gut, MIT; ayarlar .gutconfig.json → res://tests, test_*.gd)
 # Taze checkout'ta önce: godot --headless --path . --import
-godot --headless --path . -s addons/gut/gut_cmdln.gd -gexit   # çıkış kodu 0 = hepsi geçti
+godot --headless --fixed-fps 60 --path . -s addons/gut/gut_cmdln.gd -gexit   # çıkış kodu 0 = hepsi geçti (--fixed-fps: her kare 1 fizik adımı, CPU hızında; ~30 sn)
+# Bölüm simülasyonu (docs/03 §8.1): godot --headless --fixed-fps 60 --path . -s src/tools/sim/sim_cli.gd -- --world akdeniz
 ```
 
 ## 8. Mevcut durum
@@ -158,7 +159,7 @@ flowchart LR
 
 ### 3.3 Kazanma koşulu (bölüm bazında seçilir) ⚙️ `level.objective.type`
 ✅ Karar (K-018, Sena onayladı — K-010'un yerine): **Ana hedef "masayı temizle", Altın Küre jackpot.**
-✅ **K-025 (2026-11-19):** Altın Küre **hiçbir zaman bölümü bitirmez** — her bölümde kazanma koşulu temizliktir, küre her zaman yalnızca jackpot altını verir. `drop_core` / `drop_all_cores` kaldırıldı.
+✅ **K-030 (2026-11-19):** Altın Küre **hiçbir zaman bölümü bitirmez** — her bölümde kazanma koşulu temizliktir, küre her zaman yalnızca jackpot altını verir. `drop_core` / `drop_all_cores` kaldırıldı.
 
 | Tip | Açıklama | Ne zaman kullanılır |
 |---|---|---|
@@ -267,7 +268,7 @@ Her blok = **şekil (shape)** + **malzeme (material)**. Malzeme fizik ve etkile�
 | `lava_rock` | Koyu, turuncu çatlaklı | Yüksek | Yüksek | thermal_shock (Buz ×2) |
 | `metal` | Perçin, plaka | Çok yüksek | Çok yüksek | conductive |
 | `rope` / `chain` / `vine` | Bağlantı (joint) | — | Düşük/Yüksek/Orta | joint; rope/vine cuttable+flammable |
-| `core_gold` | **Altın Küre** (yalnızca jackpot, K-025) | Orta | Kırılmaz | objective |
+| `core_gold` | **Altın Küre** (yalnızca jackpot, K-030) | Orta | Kırılmaz | objective |
 
 **Kristal bloklar** (turuncu/turkuaz) kırılınca küçük altın (⚙️ `materials.json → coin_on_break`) ve tatmin edici cam kırılma efekti verir → oyuncuyu "daha çok yık" yönünde ödüllendirir.
 
@@ -364,7 +365,7 @@ Tek risk IAP/reklam eklentileri → `IAPService` / `AdsService` arayüzleriyle s
   1. **Ağırlık merkezinin yatay izdüşümü (x, z) platform üst yüzeyinin dışındaysa** (tolerans: `rules.physics.edge_margin`), **veya**
   2. `y < rules.physics.fall_kill_y` (platformun altına inmişse).
 - Kenarda asılı kalan ama ağırlık merkezi platform dışında olan cisim **düşmüş** sayılır; ağırlık merkezi platform içindeyse **düşmemiş** sayılır. Ara durum yok.
-- Kontrol sürekli yapılır: Altın Küre'nin ağırlık merkezi platform dışına çıktığı an "düştü" sayılır (jackpot; bölümü bitirmez, K-025). Bloklar için temizlik oranı (`clear_percent`, K-018) her karede canlı hesaplanır ve hedefe ulaşıldığı an kazanılır; kesin hüküm (kaybetme için) son gülle durulunca verilir.
+- Kontrol sürekli yapılır: Altın Küre'nin ağırlık merkezi platform dışına çıktığı an "düştü" sayılır (jackpot; bölümü bitirmez, K-030). Bloklar için temizlik oranı (`clear_percent`, K-018) her karede canlı hesaplanır ve hedefe ulaşıldığı an kazanılır; kesin hüküm (kaybetme için) son gülle durulunca verilir.
 - Ayrık platformlarda (Gökyüzü Adaları) "platform" = tüm platform üst yüzeylerinin birleşimi.
 - Oyuncuya görünür: kenarda asılı ama düşmüş sayılan cisim hafif gri parıltı alır.
 
@@ -615,7 +616,7 @@ Kural: Alan eklenince `save_version` artar ve `SaveManager._migrate_vN_to_vN1()`
   Testler: `tests/unit/test_save_manager.gd`, uçtan uca kazan → diske yaz → yeniden yükle: `tests/integration/test_persistence.gd`.
 
 ## 9. Test stratejisi
-- **GUT birim testleri** (GUT 9.7.1, `addons/gut`, `tests/unit/test_*.gd` + `tests/integration/`, `.gutconfig.json`; komut CLAUDE.md §7): Economy (harca/kazan/yetersiz bakiye), Inventory, Progress açılma koşulları ve ödüller, yıldız hesabı, save migrasyonu, GameConfig doğrulama, HUD, kalıcılık (kapat-aç). Faz 1 çekirdeği de testli: balistik, hasar formülü, kenar kuralı. Testler kayıt için `tests/helpers/save_sandbox.gd` kullanır (oyuncunun gerçek kaydına dokunmaz).
+- **GUT birim testleri** (GUT 9.7.1, `addons/gut`, `tests/unit/test_*.gd` + `tests/integration/`, `.gutconfig.json`; komut CLAUDE.md §7): Economy (harca/kazan/yetersiz bakiye), Inventory, Progress açılma koşulları ve ödüller, yıldız hesabı, save migrasyonu, GameConfig doğrulama, HUD, kalıcılık (kapat-aç). Faz 1 çekirdeği de testli: balistik, hasar formülü, kenar kuralı. Testler kayıt için `tests/helpers/save_sandbox.gd` kullanır (oyuncunun gerçek kaydına dokunmaz). Testler `--fixed-fps 60` ile koşar (her kare tek fizik adımı, CPU hızında). `Engine.time_scale` hızlandırma için **kullanılmaz** (Godot 4'te fizik adımını da büyütür). Fizik denemeleri ve simülasyonlar her seferinde **kendi fizik dünyasında** (`SupportCheck.isolated_world`: kendi `World3D`'si olan, çizim yapmayan bir `SubViewport`) koşar; Jolt aynı dünya geçmişinde deterministik olduğu için sonuç önceki simülasyonlardan etkilenmez.
 - **Headless bölüm simülasyonu** (`src/tools/sim`): her bölüm için örnek atış noktaları dener → "çözülebilir mi, kaç atışta" raporu (bkz. `03` §8).
 - **Python doğrulayıcı:** JSON şema, referans bütünlüğü (level'daki malzeme `materials.json`'da var mı, top id'leri geçerli mi).
 - **Cihaz testi:** Her faz sonunda en az 1 orta segment Android + 1 iPhone'da 60 FPS kontrolü.
@@ -710,7 +711,7 @@ Böylece yıldız sistemi "şans" değil "zekâ" ödüllendirir.
   veya `{ "type": "hint", "text_tr": "…" }` → yalnızca ipucu yazısı; çizimi Faz 2 UI'da).
 - Elle tasarlanmış tam örnek: `w01_l01.json` (`baked: true`, blok listesi + `keystones` + `cores` + `camera_override`).
 - **`objective`** (K-018): varsayılan `{ "type": "clear_percent" }`; hedef oranı `rules.objective_defaults.clear_percent_target`, bölüme özel `objective.target` (0–1) ile ezilebilir.
-  Tek hedef `clear_percent` (K-025: `drop_core` / `drop_all_cores` kaldırıldı); `cores` **opsiyoneldir** ve her zaman jackpot küresidir. `cores[].y` = kürenin alt yüzeyi.
+  Tek hedef `clear_percent` (K-030: `drop_core` / `drop_all_cores` kaldırıldı); `cores` **opsiyoneldir** ve her zaman jackpot küresidir. `cores[].y` = kürenin alt yüzeyi.
 
 ---
 
@@ -776,9 +777,9 @@ Düşük zorlukta 1 sıra (okunur, neredeyse düz), yüksek zorlukta 2–3 sıra
 4. **Simetri ayarı:** `symmetry` parametresi 0–1; düşük zorlukta simetrik (okunur), yüksekte asimetrik (şaşırtıcı).
 5. **Kenar payı:** Bloklar platform kenarından en az 0.3 birim (`rules.physics.spawn_edge_inset`) içeride doğar; aksi halde kenar kuralı (`02` §2) bölüm başında yanlış "düştü" sayabilir.
 6. **Altın Küre yerleşimi (K-018):**
-   a. Küre her bölümde yalnızca **jackpot**tır (K-025, bölümü asla bitirmez): kulenin **içine** (bloklarla çevrili), **kemer altına** veya **tepeye** gömülür. Keystone çöküşüyle
+   a. Küre her bölümde yalnızca **jackpot**tır (K-030, bölümü asla bitirmez): kulenin **içine** (bloklarla çevrili), **kemer altına** veya **tepeye** gömülür. Keystone çöküşüyle
       düşebilir ama garanti değildir; zorluk arttıkça daha derine gömülür (`core_protection`). Küre temizlik oranına katılmaz, yıldızı etkilemez.
-   b. ~~`drop_core` bölümleri~~ — K-025 ile kaldırıldı (küreyi tek atışla düşürüp bölümü bitirmek kule yıkmayı anlamsızlaştırıyordu).
+   b. ~~`drop_core` bölümleri~~ — K-030 ile kaldırıldı (küreyi tek atışla düşürüp bölümü bitirmek kule yıkmayı anlamsızlaştırıyordu).
 7. **Dar platform:** `clear_percent` bölümlerinde platform kulenin ayak izine yakın tutulur (§2); blokların %80'i düşebilmeli.
 
 ## 5. Çift kule ve çoklu yapı mantığı
@@ -897,7 +898,7 @@ flowchart LR
 - **Oyunda:** N/B dünyanın 10 bölümünde gezer; dosya varsa dosya, yoksa generator çıktısı (oturum boyunca önbellekte). Kaynak Dev Panel'de ve alttaki bilgi satırında.
 
 ### 8.1 Simülasyon metrikleri ve hedefler (`difficulty.json → sim_targets`)
-- **Çözüm** (K-018) = bölüm hedefine ulaşmak. Tek hedef `clear_percent`: blok hacminin `clear_percent_target` (0.8) oranı platformdan düşer (K-025).
+- **Çözüm** (K-018) = bölüm hedefine ulaşmak. Tek hedef `clear_percent`: blok hacminin `clear_percent_target` (0.8) oranı platformdan düşer (K-030).
 - `one_shot_solve_rate`: rastgele örneklenen 200 atış noktasından kaçı tek atışta çözüyor.
   - intro: %30–60 · build_up: %10–30 · challenge: %2–8 · boss: %0.5–3 (ama 0 olamaz!)
   - **İstisna — W1 L01 (FTUE):** rastgele atış oranı ~%15 (hedefin altında) kabul edildi; tutorial eli keystone'u gösterdiği için
@@ -964,6 +965,37 @@ geniş tabanlı şablonlarda taban (taş) platformda kalıyor ve hacim %80'e ula
 Özet: hedefte olan bölüm 2 → 3 (L01, L05, L09); "gülleyle çözüm" 3 → 6 bölümde ✔. Kolay roller artık çözülebiliyor (L02 hatta hedefin üstünde, L04 hafif altında);
 orta/zor rollerde (combine, challenge, boss) tek atış hâlâ %0 ve hiçbir generator keystone'u tek başına %80'e ulaşmıyor (en iyi %56). Süre: Dünya 1 ~1.5 dk.
 Hiçbir kule / hedef / sayı değiştirilmedi; karar Sena'nın.
+
+**8b — simülasyon generator döngüsünde (Sena, 2026-11-20; K-031; `sim_targets` değişmedi):**
+- **`keystone_clear_min`:** kule kabul edilmeden önce her keystone'a `rules.generator.keystone_shots` (3) doğrudan atış (merkez + yüzünde başka noktalar);
+  en iyi keystone'da atışların en az `keystone_shot_success_share`'i (0.5) `clear_percent` hedefine (0.8) ulaşmalı. Zorluk keystone'u bulmaktan / vurmaktan gelir, çökmeyen keystone'dan değil.
+- **Gülleyle çözüm:** `generator.sim_greedy_samples` (20) açgözlü deneme; oran `sim_targets.min_solve_rate_within_shots`'ın (0.2) altındaysa kule reddedilir.
+- **Zincir:** çok yapılı kulede sonraki yapılar birincinin **keystone tarafına** konur (keystone kırılınca kalas/kemer/duvar/güverte o yana devrilir).
+  Her şablonun deneme payının ilk yarısı çok yapılı, ikinci yarısı tek yapı ("zincir kurulamadı, tek yapı" raporlanır; boss için de geçerli).
+- **Yedek şablon:** planlanan şablon geçemezse denemeler, o bölüme uyan ve iki komşunun planlı şablonundan farklı diğer şablonlara eşit paylaştırılır ("plan X geçmedi").
+- Sınıra (`max_attempts`) varılırsa kural gevşetilmez: hata + kontrol başına düşme sayısı + son sebep.
+- L03: yan kulesiz, **yarım küp ayaklı** kemer (platform 5.4 × 2.6, yere değen %23).
+
+**Üçüncü ölçüm — 8b sonrası (200 örnek, 2026-11-20; izole fizik dünyası). Önceki (yere değen tavanı) → şimdi:**
+
+| Bölüm | Rol | Şablon (önce → şimdi) | Tek atış (hedef) | En iyi keystone (merkez atış) | Gülleyle çözüm (≥%20) |
+|---|---|---|---|---|---|
+| L01 | intro | elle | %42 → %37 ✔ (30–60) | ✔ %86 | %56 → %53 ✔ |
+| L02 | build_up | yükseltilmiş piramit | %44 → %37 ⚠ (10–30) | ✘ %63 | %91 → %90 ✔ |
+| L03 | build_up | kemer → **yarım ayaklı kemer** | %0 → **%14** ✔ | ✔ %82 | %0 → %59 ✔ |
+| L04 | breather | ikiz sütun | %20 → %23 ⚠ (25–55) | ✘ %40 | %71 → %72 ✔ |
+| L05 | new_mechanic | yük. merdiven → **kemer** (plan geçmedi) | %13 → %45 ⚠ (10–35) | ✔ %93 | %67 → %88 ✔ |
+| L06 | combine | ikiz + kemer → **yük. piramit** (plan ikiz geçmedi) | %0 → %30 ⚠ (6–20) | ✘ %53 | %9 → %88 ✔ |
+| L07 | combine | kemer | %0 → %46 ⚠ (6–20) | ✔ %93 | %0 → %89 ✔ |
+| L08 | challenge | merdiven → **üretilemedi** | – | 12 denemede keystone ≤%85 (yarısı tutmuyor) | – |
+| L09 | breather | yük. piramit → **kemer** (plan geçmedi) | %32 → **%54** ✔ (25–55) | ✔ %93 | %94 → %60 ✔ |
+| L10 | boss | merdiven + ikiz → **üretilemedi** | – | 12 denemede keystone ≤%75 (2 deneme alana sığmadı) | – |
+
+Özet: üretilen 8 bölümün hepsi artık tek keystone atışıyla çözülebilir ve gülleyle çözüm her yerde ≥ %20 (önce 3 bölümde %0'dı). Ama **tek atış oranı orta/zor rollerde
+hedefin çok üstüne çıktı** (combine %30–46, hedef %6–20) — rastgele atış da büyük çöküş yapıyor. L08 (challenge) ve L10 (boss) hiçbir şablonla keystone %80'i
+tutturamadı → **üretilemedi** (kural gevşetilmedi). Merkezden tek keystone atışı bazı kabul edilen bölümlerde ✘ (L02, L04, L06): generator 3 atışın yarısını
+yeterli sayıyor (merkez dışı noktalar tutuyor). Süre: Dünya 1 ~1.4 dk; test seti 6 dk 45 sn → ~30 sn (`--fixed-fps`).
+Not: 8b'nin ara ölçümü `Engine.time_scale` ile hızlandırılmıştı ve bu fizik adımını büyüttüğü için geçersizdi (yayınlanmadı); yukarıdaki tablo doğru adımla.
 
 ### 8.2 Bölüm editörü (Godot editör eklentisi, Faz 3)
 > **K-024:** Faz 3'te özel ızgara editörü yerine Godot editör paneli yapılır: butonlar aşağıdaki gibi, bloklar Godot'un 3D gizmo'su ile taşınır. Aşağıdaki üç panelli düzen ileride değerlendirilir.
@@ -1515,9 +1547,13 @@ Faz 0–1: 1 hafta · Faz 2–4: 2 hafta · Faz 5–6: 1.5 hafta · Faz 7–8: 2
 | K-022 | 2026-11-19 | Malzeme rolü: kristal tek vuruşta kırılır; ahşap/sandık orta (özel toplarla hızlı yok olur); taş/metal neredeyse kırılmaz, devrilerek temizlenir (docs/03 §6.3). Kesin sayılar Faz 6–9'da `/ordino-balance` ile | Ağır top (2 kg) ile taş 7–11 vuruşta kırılıyor; temizlik fizikle devirmekten gelmeli | Onaylandı |
 | K-023 | 2026-11-19 | **Sürekli atış:** gülle ilk temasından `rules.shots.refire_cooldown_sec` (0.3 sn) sonra yeni atış serbest, kulenin durulması beklenmez; kazanma her karede kontrol edilir (hedefe ulaşıldığı an WON), kaybetme yalnızca son gülle durulunca (veya `settle_timeout_sec`); yıldız kullanılan gülleye göre. **Ağır çekim kapalı** (`rules.feel.slowmo_enabled = false`); Faz 8'de yalnızca kazanma anında kısa vurgu olarak denenecek | Faz 1 oynanış testi: durulmayı beklemek ve ağır çekim akışı kesiyordu; 0.5 sn yavaş bulundu → 0.3 | Onaylandı |
 | K-024 | 2026-11-19 | **Bölüm editörü = Godot editör paneli** (Üret/seed, Simüle Et, Test Et, Kaydet/Pişir); bloklar Godot'un 3D sahnesinde kendi gizmo'su ile taşınır/döndürülür, sonra JSON'a yazılır. docs/03 §8.2'deki özel ızgara sürükle-bırak editörü şimdilik yapılmaz | Daha hızlı; Godot'un hazır 3D araçları yeterli; özel editör Faz 3'e 2–3 gün eklerdi | Onaylandı (Sena) |
-| K-025 | 2026-11-19 | **Altın Küre bölümü asla bitirmez:** her bölümde kazanma = temizlik (`clear_percent`); küre her zaman yalnızca jackpot. `drop_core` / `drop_all_cores` hedefleri kaldırıldı; L03 `clear_percent` oldu (platform kule ayak izine göre daraltıldı). `economy.sim.core_jackpot_levels_per_world` (8) Faz 6'da gözden geçirilecek | Sena: tek gülleyle küreyi vurup bölümü bitirmek kule yıkmayı anlamsızlaştırıyor | Onaylandı (Sena) |
-| K-026 | 2026-11-20 | **Domino: en az 3 sıra yan yana, her sıra z yönünde** (kameradan uzağa); ayak izi genişlik ≥ derinlik | Tek sıra kameradan tek sütun gibi okunuyordu; x yönündeki dizi gerçek gülleyle hiç zincirlenmedi (12/60, yalnız vurulanlar), z yönündeki 59/60 | Onaylandı (Sena) |
-| K-027 | 2026-11-20 | **Yere değen hacim tavanı + bütçe üst sınırı:** `difficulty.curves.ground_contact_max_ratio` (d1 %30 → d50 %40 → d100 %50), kolay rollerde (intro/build_up/breather) %30 tavan; generator bunu ve `rules.generator.budget_max_over` (%25) sınırını yeniden deneme koşulu olarak uygular; geniş tabanlı şablonlar kolay rollerde yükseltilmiş / yarım ayaklı varyantla gelir. K-018 ve `sim_targets` değişmedi | Sim: yalnız yere değen hacmi düşük kuleler (L01 %27, L05 %21) %80'e ulaşıyordu; tavan sonrası hedefteki bölüm 2 → 3, gülleyle çözülebilen 3 → 6 | Onaylandı (Sena) |
+| K-025 | 2026-11-19 | **Faz 3 planı (11 adım):** zorluk + şablon altyapısı + N/B, `support_check`, 6 şablon (3 adımda), malzeme + küre yerleşimi, generator, headless sim, aday hattı, Godot editör paneli (K-024), Dünya 1'in 10 bölümü (1, 4, 9, 10 elle). Ek şartlar: keystone görüş/erişim testleri, `support_check` docs/03 §4 kural 1'in tamamı, `sim_targets` dışını değiştirmeden raporlama, sim süresi ölçümü | Faz 2 bitti; içerik fazları için üretim hattı gerekiyor | Onaylandı (Sena) |
+| K-026 | 2026-11-19 | **Generator ayarları** (`rules.json`): `generator.block_gap` 0.02, `platform_margin` 0.5, `max_attempts` 12, `budget_warn_below` 0.6, `structure_gap` 1.0, `max_structures` 3, `base_seed` 1000; `level_checks.keystone_min_visible_ratio` 0.3, `face_samples` 3; `physics.support_contact_epsilon` 0.01; şablon zorluk aralıkları ve elle bölümler (1, 4, 9, 10) `difficulty.json`'da | Hepsi JSON'da, Sena değiştirebilir; başlangıç değerleri Faz 3 testlerinden | Onaylandı (Sena) |
+| K-027 | 2026-11-19 | **Top tanıtım bölümü malzemesi:** tanıtılan topun güçlü olduğu (`balls.json` `damage_mult > 1`) malzemeler kristal olmayan blokların en az %60'ı (`difficulty.intro_ball.strong_material_share`); W1 L08 Alev → ahşap. Alev davranışı Faz 5'te doğrulanacak | docs/03 §6.3 "Alev → ahşap %60" kuralı sayıyla JSON'a taşındı | Onaylandı (Sena) |
+| K-028 | 2026-11-20 | **Domino: en az 3 sıra yan yana, her sıra z yönünde** (kameradan uzağa); ayak izi genişlik ≥ derinlik | Tek sıra kameradan tek sütun gibi okunuyordu; x yönündeki dizi gerçek gülleyle hiç zincirlenmedi (12/60, yalnız vurulanlar), z yönündeki 59/60 ; regresyon testi: ayak izi genişlik ≥ derinlik ve ≥ 3 sıra (`tests/unit/test_templates_domino_truss.gd`), gerçek domino zinciri fizikte kristale ve küreye ulaşır | Onaylandı (Sena) |
+| K-029 | 2026-11-20 | **Yere değen hacim tavanı + bütçe üst sınırı:** `difficulty.curves.ground_contact_max_ratio` (d1 %30 → d50 %40 → d100 %50), kolay rollerde (intro/build_up/breather) %30 tavan; generator bunu ve `rules.generator.budget_max_over` (%25) sınırını yeniden deneme koşulu olarak uygular; geniş tabanlı şablonlar kolay rollerde yükseltilmiş / yarım ayaklı varyantla gelir. K-018 ve `sim_targets` değişmedi | Sim: yalnız yere değen hacmi düşük kuleler (L01 %27, L05 %21) %80'e ulaşıyordu; tavan sonrası hedefteki bölüm 2 → 3, gülleyle çözülebilen 3 → 6 | Onaylandı (Sena) |
+| K-030 | 2026-11-19 | **Altın Küre bölümü asla bitirmez:** her bölümde kazanma = temizlik (`clear_percent`); küre her zaman yalnızca jackpot. `drop_core` / `drop_all_cores` hedefleri kaldırıldı; L03 `clear_percent` oldu (platform kule ayak izine göre daraltıldı). `economy.sim.core_jackpot_levels_per_world` (8) Faz 6'da gözden geçirilecek | Sena: tek gülleyle küreyi vurup bölümü bitirmek kule yıkmayı anlamsızlaştırıyor | Onaylandı (Sena) |
+| K-031 | 2026-11-20 | **8b — simülasyon generator döngüsünde:** keystone_clear_min (en iyi keystone'a 3 atışın en az yarısı %80 temizlik), gülleyle çözüm ≥ %20 değilse ret, çok yapılıda zincir (sonraki yapı keystone tarafında) ya da tek yapıya dönüş, planlı şablon geçmezse bölüme uyan diğer şablonlar; sınırda hata + sebep. L03 yarım küp ayaklı kemer. Testler ve sim `--fixed-fps 60` + izole fizik dünyası (`Engine.time_scale` kullanılmaz) | Orta/zor bölümlerde hiçbir keystone %80'e ulaşmıyordu; zorluk keystone'u bulmaktan gelmeli | Onaylandı (Sena) |
 
 ## Açık sorular (Sena karar verecek)
 | No | Soru | Öneri | Durum |
@@ -1751,7 +1787,7 @@ Faz 0–1: 1 hafta · Faz 2–4: 2 hafta · Faz 5–6: 1.5 hafta · Faz 7–8: 2
     "special_balls_used_per_level_after_unlock": 0.4,
     "core_jackpot_levels_per_world": 8,
     "avg_core_jackpot_rate": 0.4,
-    "_doc_jackpot": "Dunya basina jackpot kureli bolum sayisi ve ortalama oyuncunun kureyi dusurme orani. K-025 ile drop_core bolumleri kalkti (her bolum kureli olabilir); sayi Faz 6 /ordino-balance ile gozden gecirilecek (_TODO_SENA).",
+    "_doc_jackpot": "Dunya basina jackpot kureli bolum sayisi ve ortalama oyuncunun kureyi dusurme orani. K-030 ile drop_core bolumleri kalkti (her bolum kureli olabilir); sayi Faz 6 /ordino-balance ile gozden gecirilecek (_TODO_SENA).",
     "target_packs_affordable_per_world": [2, 3]
   }
 }
@@ -1834,7 +1870,7 @@ Faz 0–1: 1 hafta · Faz 2–4: 2 hafta · Faz 5–6: 1.5 hafta · Faz 7–8: 2
     "clear_measure": "volume",
     "broken_counts_as_cleared": true,
     "_doc_broken": "Kirilan blok (hp 0) temizlenmis sayilir (Sena, 2026-11-18): kristali kirmak da onu masadan kaldirmaktir.",
-    "_doc": "K-018: varsayilan hedef clear_percent (bloklarin clear_percent_target orani platformdan duserse kazanilir). clear_measure: volume (blok hacmi) | count (adet). Altin Kure ve joint'ler orana dahil degil. Bolumde objective.target ile ezilebilir. Otomatik final temizligi yok. Altin Kure her zaman yalnizca jackpot'tur (economy.rewards.core_jackpot_gold), bolumu asla bitirmez (K-025).",
+    "_doc": "K-018: varsayilan hedef clear_percent (bloklarin clear_percent_target orani platformdan duserse kazanilir). clear_measure: volume (blok hacmi) | count (adet). Altin Kure ve joint'ler orana dahil degil. Bolumde objective.target ile ezilebilir. Otomatik final temizligi yok. Altin Kure her zaman yalnizca jackpot'tur (economy.rewards.core_jackpot_gold), bolumu asla bitirmez (K-030).",
     "core_shape": "core_sphere",
     "core_material": "core_gold",
     "_doc_core": "Bolum JSON'undaki cores[] ogeleri bu sekil + malzemeyle kurulur. cores[].y = kurenin alt yuzeyi (bloklarla ayni kural)."
@@ -1912,6 +1948,10 @@ Faz 0–1: 1 hafta · Faz 2–4: 2 hafta · Faz 5–6: 1.5 hafta · Faz 7–8: 2
     "platform_margin": 0.5,
     "max_attempts": 12,
     "budget_max_over": 0.25,
+    "keystone_shots": 3,
+    "keystone_shot_success_share": 0.5,
+    "sim_greedy_samples": 20,
+    "_doc_sim_loop": "8b (Sena 2026-11-20): kule kabul edilmeden once kisa sim. keystone_shots: her keystone'a bu kadar dogrudan atis (yuzunde farkli noktalar); en iyi keystone'da atislarin en az keystone_shot_success_share kadari objective (clear_percent) hedefine ulasmali (keystone_clear_min). sim_greedy_samples: acgozlu cok atisli deneme sayisi; cozum orani difficulty.sim_targets.min_solve_rate_within_shots altindaysa kule reddedilir. Hiz icin oyun/testler headless --fixed-fps 60 ile calistirilir (Engine.time_scale fizik adimini da buyuttugu icin kullanilmaz).",
     "budget_warn_below": 0.6,
     "structure_gap": 1.0,
     "max_structures": 3,
@@ -2128,9 +2168,9 @@ Faz 0–1: 1 hafta · Faz 2–4: 2 hafta · Faz 5–6: 1.5 hafta · Faz 7–8: 2
   "shots": 3,
   "objective": { "type": "clear_percent" },
   "aim_preview_dots": 17,
-  "platform": { "width": 7.44, "depth": 2.6, "style": "limestone_plinth" },
+  "platform": { "width": 5.4, "depth": 2.6, "style": "limestone_plinth" },
   "structures": [
-    { "template": "arch_shrine", "x": 0, "z": 0, "ry": 0, "seed": 1031, "params": { "floors": 2, "depth_layers": 1, "side_towers": true, "core": "hanging_center", "symmetry": 0.95 } }
+    { "template": "arch_shrine", "x": 0, "z": 0, "ry": 0, "seed": 1031, "params": { "floors": 2, "depth_layers": 1, "side_towers": false, "feet": "half", "core": "hanging_center", "symmetry": 0.95 } }
   ],
   "blocks": [],
   "joints": [],
@@ -2140,6 +2180,6 @@ Faz 0–1: 1 hafta · Faz 2–4: 2 hafta · Faz 5–6: 1.5 hafta · Faz 7–8: 2
   "intro_ball": null,
   "free_balls": {},
   "baked": false,
-  "_doc": "Sablon tabanli ornek: blocks/cores/keystones LevelExpander ile sablondan doldurulur; Faz 3 sonunda baked=true olarak dondurulur. K-025: hedef clear_percent, kure (kemer icinde yuvada) yalnizca jackpot. Platform = kule ayak izi + spawn_edge_inset + generator.platform_margin."
+  "_doc": "Sablon tabanli ornek: blocks/cores/keystones LevelExpander ile sablondan doldurulur; Faz 3 sonunda baked=true olarak dondurulur. K-030: hedef clear_percent, kure (kemer icinde yuvada) yalnizca jackpot. 8b (Sena): yan kulesiz, yarim kup ayakli kemer varyanti (yere degen hacim tavani K-029). Platform = kule ayak izi + spawn_edge_inset + generator.platform_margin."
 }
 ```

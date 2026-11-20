@@ -3,6 +3,7 @@ extends GutTest
 ## checks, no back-to-back template repeats, files never touched, the give-up path.
 
 const FLOATING := preload("res://tests/helpers/floating_template.gd")
+const Kit = preload("res://tests/helpers/template_kit.gd")
 const WORLD := "akdeniz"
 
 
@@ -48,11 +49,16 @@ func test_same_seed_same_tower() -> void:
 func test_every_world_1_level_passes() -> void:
 	var plan := LevelGenerator.plan_world(WORLD)
 	var lines := PackedStringArray()
+	var actual: Array[String] = []
 	for k in range(1, 11):
 		var id := LevelGenerator.level_id(1, k)
 		var res: Dictionary = await LevelGenerator.resolve(id, self)
-		assert_true(res["ok"], "%s üretilemedi: %s" % [id, res.get("report", {})])
 		if not res["ok"]:
+			# 8b: no relaxing — the failure must be reported completely.
+			assert_eq(Kit.failure_report_problem(res), "", id + " başarısızlık raporu eksik")
+			assert_push_error(id, "üretilemeyen bölüm için generator hata mesajı")
+			lines.append("%s: ÜRETİLEMEDİ · %s · %s" % [id, res["report"]["fail_counts"], "; ".join(res["report"]["last_problems"])])
+			actual.append("")
 			continue
 		var lv: Dictionary = res["level"]
 		var bad := LevelChecks.flatten(LevelChecks.static_problems(lv))
@@ -68,10 +74,19 @@ func test_every_world_1_level_passes() -> void:
 					has_key = has_key or k_id.begins_with("s%d_" % s)
 				assert_true(has_key, "%s yapı %d keystone'suz" % [id, s])
 		if k == 10:
-			assert_gte(n_struct, 2, "boss en az 2 yapı (role_overrides.boss)")
+			# Boss: >= 2 structures, unless no chain reached the objective (8b: then a single one).
+			assert_true(n_struct >= 2 or bool(res["report"].get("single_fallback", false)), "boss en az 2 yapı ya da raporlu tek yapı")
 		lines.append("%s: %s · %d blok" % [id, LevelGenerator.describe(res), (lv["blocks"] as Array).size()])
-		assert_eq(plan["templates"][k - 1], LevelGenerator.HANDMADE if bool(lv.get("baked", false)) else str(lv["structures"][0]["template"]))
+		var used := LevelGenerator.HANDMADE if bool(lv.get("baked", false)) else str(lv["structures"][0]["template"])
+		actual.append(used)
+		if str(res.get("source", "")) == LevelGenerator.SOURCE_FILE or str(res.get("source", "")) == LevelGenerator.SOURCE_BAKED:
+			assert_eq(plan["templates"][k - 1], used, "dosya bölümünün şablonu planla aynı")
 	gut.p("\n" + "\n".join(lines))
+	# The templates actually used (the planned one or a slot fallback, 8b) never repeat back to back.
+	for i in range(1, actual.size()):
+		if actual[i].is_empty() or actual[i - 1].is_empty():
+			continue
+		assert_ne(actual[i], actual[i - 1], "üretilen L%02d ve L%02d aynı şablon: %s" % [i, i + 1, actual[i]])
 
 
 func test_files_are_never_touched() -> void:
