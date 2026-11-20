@@ -5,6 +5,7 @@
       "id": "akdeniz", "index": 1, "name_tr": "Akdeniz Sahili", "level_count": 10, "unlock_stars_required": 0,
       "background_dir": "res://assets/backgrounds/akdeniz/", "card": "res://assets/ui/cards/akdeniz.png",
       "platform_style": "limestone_plinth", "environment": "res://src/gameplay/world/env/akdeniz.tres", "music": "music_akdeniz",
+      "light": { "color": [1.0, 0.93, 0.80], "energy": 1.15 },
       "palette": { "stone": 0.45, "wood": 0.25, "crystal_amber": 0.15, "crystal_cyan": 0.15 },
       "modifiers": {},
       "allowed_templates": ["stack_pyramid", "twin_pillars", "arch_shrine", "domino_row", "staircase"]

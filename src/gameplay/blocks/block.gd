@@ -256,6 +256,11 @@ func _visual_material(material_name: String) -> StandardMaterial3D:
 	var m := StandardMaterial3D.new()
 	var color: Color = PLACEHOLDER_COLORS.get(material_name, FALLBACK_COLOR)
 	m.albedo_color = color
+	# Faz 7: the material's texture (materials.<id>.texture in rules.visuals.material_texture_dir),
+	# projected per object (triplanar) so every block size looks right; grey-box colour if missing.
+	var tex_id := str(GameConfig.material(material_name).get("texture", ""))
+	if SurfaceTexture.apply(m, str(GameConfig.rule("visuals.material_texture_dir")) + tex_id + ".png"):
+		m.albedo_color = Color(1, 1, 1, color.a)
 	if color.a < 1.0:
 		m.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 		m.emission_enabled = true

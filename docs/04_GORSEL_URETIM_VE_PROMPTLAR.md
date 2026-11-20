@@ -273,3 +273,12 @@ Use the attached image ONLY as a style and color reference.
 - `tex_wood`: `rich brown wooden planks with visible grain, slightly painted, iron bolt holes`
 - `tex_crystal_amber`: `glowing amber glass with inner light and subtle internal facets`
 - `tex_crystal_cyan`: `glowing turquoise glass with inner light and subtle internal facets`
+
+**Durum (2026-11-20):** 8 görsel üretildi, kalite kontrolünden geçti ve yerleştirildi (`assets/`, Git LFS). Oyunda:
+- Arka plan `LevelBackground` (`src/gameplay/world/level_background.gd`): 3D sahnenin **arkasında** CanvasLayer (Environment `background_mode = Canvas`),
+  ekran yüksekliğini doldurur, yanlar kırpılır (K-035). Ön katman (`front.png`) **şimdilik kapalı** (`rules.visuals.background_front = ""`): far görselinin
+  köşelerinde zaten amfora/çiçek var, ikinci kez ekleyince kalabalıklaşıyordu; paralaks eklenince küçültülüp açılabilir.
+- Dünya ortamı `src/gameplay/world/env/akdeniz.tres` (sıcak ambient, glow) + `worlds.akdeniz.light` (güneş rengi).
+- Blok ve kaide dokuları `SurfaceTexture` ile nesne uzayında triplanar (UV gerekmez; `rules.visuals.texture_world_scale`).
+- Kalite notları: far'da kemerler kenara çok yakın (19.5:9'da büyük kısmı kırpılıyor, sorun değil); sol üstteki çiçekler HUD şeridine taşıyor (yazılar okunuyor).
+  Kaide şimdilik düz kutu: oymalı kaide + pahlı blok mesh'leri Blender adımında.

@@ -120,6 +120,14 @@
     "bounce": 0.05,
     "_doc": "Platform (kaide) fizik degerleri. Boyut (width x depth) bolum JSON'undan gelir; ust yuzey y=0."
   },
+  "visuals": {
+    "background_far": "far.webp",
+    "background_front": "",
+    "material_texture_dir": "res://assets/textures/materials/",
+    "platform_texture_dir": "res://assets/textures/platform/",
+    "texture_world_scale": 0.5,
+    "_doc": "Faz 7 (docs/04): dunyanin background_dir + background_far / background_front 3D sahnenin ARKASINDA iki katman (ekran yuksekligini doldurur, yanlar kirpilir, K-035). Bloklar materials.<id>.texture adli dokuyu material_texture_dir'den, kaide worlds.platform_style dokusunu platform_texture_dir'den alir (yoksa gri kutu rengi). background_front bos = on katman kapali (2026-11-20: far gorselinin koselerinde zaten amfora/cicek var, front.png ikinci kez ekleyip kalabaliklastiriyordu; dosya assets'te duruyor, paralaks gelince kucultulup kullanilabilir). texture_world_scale: doku tekrari (1 doku = 1 / scale birim; 0.5 -> her 2 birimde bir)."
+  },
   "generator": {
     "block_gap": 0.02,
     "platform_margin": 0.5,

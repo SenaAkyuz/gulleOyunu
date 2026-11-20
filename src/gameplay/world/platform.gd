@@ -11,7 +11,8 @@ var half_width: float = 0.0
 var half_depth: float = 0.0
 
 
-func build(width: float, depth: float) -> void:
+## texture_path: the world's plinth texture (Faz 7); "" or missing = grey-box colour.
+func build(width: float, depth: float, texture_path: String = "") -> void:
 	half_width = width / 2.0
 	half_depth = depth / 2.0
 	var thickness := float(GameConfig.rule("platform.thickness"))
@@ -28,6 +29,8 @@ func build(width: float, depth: float) -> void:
 	mesh.size = size
 	var mat := StandardMaterial3D.new()
 	mat.albedo_color = PLACEHOLDER_COLOR
+	if SurfaceTexture.apply(mat, texture_path):
+		mat.albedo_color = Color.WHITE
 	mesh.material = mat
 	var mi := MeshInstance3D.new()
 	mi.mesh = mesh

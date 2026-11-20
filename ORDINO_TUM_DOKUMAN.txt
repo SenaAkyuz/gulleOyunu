@@ -1367,6 +1367,15 @@ Use the attached image ONLY as a style and color reference.
 - `tex_crystal_amber`: `glowing amber glass with inner light and subtle internal facets`
 - `tex_crystal_cyan`: `glowing turquoise glass with inner light and subtle internal facets`
 
+**Durum (2026-11-20):** 8 görsel üretildi, kalite kontrolünden geçti ve yerleştirildi (`assets/`, Git LFS). Oyunda:
+- Arka plan `LevelBackground` (`src/gameplay/world/level_background.gd`): 3D sahnenin **arkasında** CanvasLayer (Environment `background_mode = Canvas`),
+  ekran yüksekliğini doldurur, yanlar kırpılır (K-035). Ön katman (`front.png`) **şimdilik kapalı** (`rules.visuals.background_front = ""`): far görselinin
+  köşelerinde zaten amfora/çiçek var, ikinci kez ekleyince kalabalıklaşıyordu; paralaks eklenince küçültülüp açılabilir.
+- Dünya ortamı `src/gameplay/world/env/akdeniz.tres` (sıcak ambient, glow) + `worlds.akdeniz.light` (güneş rengi).
+- Blok ve kaide dokuları `SurfaceTexture` ile nesne uzayında triplanar (UV gerekmez; `rules.visuals.texture_world_scale`).
+- Kalite notları: far'da kemerler kenara çok yakın (19.5:9'da büyük kısmı kırpılıyor, sorun değil); sol üstteki çiçekler HUD şeridine taşıyor (yazılar okunuyor).
+  Kaide şimdilik düz kutu: oymalı kaide + pahlı blok mesh'leri Blender adımında.
+
 ---
 
 <!-- DOSYA: docs/05_EKONOMI_VE_MONETIZASYON.md -->
@@ -2097,6 +2106,14 @@ Faz 0–1: 1 hafta · Faz 2–4: 2 hafta · Faz 5–6: 1.5 hafta · Faz 7–8: 2
     "bounce": 0.05,
     "_doc": "Platform (kaide) fizik degerleri. Boyut (width x depth) bolum JSON'undan gelir; ust yuzey y=0."
   },
+  "visuals": {
+    "background_far": "far.webp",
+    "background_front": "",
+    "material_texture_dir": "res://assets/textures/materials/",
+    "platform_texture_dir": "res://assets/textures/platform/",
+    "texture_world_scale": 0.5,
+    "_doc": "Faz 7 (docs/04): dunyanin background_dir + background_far / background_front 3D sahnenin ARKASINDA iki katman (ekran yuksekligini doldurur, yanlar kirpilir, K-035). Bloklar materials.<id>.texture adli dokuyu material_texture_dir'den, kaide worlds.platform_style dokusunu platform_texture_dir'den alir (yoksa gri kutu rengi). background_front bos = on katman kapali (2026-11-20: far gorselinin koselerinde zaten amfora/cicek var, front.png ikinci kez ekleyip kalabaliklastiriyordu; dosya assets'te duruyor, paralaks gelince kucultulup kullanilabilir). texture_world_scale: doku tekrari (1 doku = 1 / scale birim; 0.5 -> her 2 birimde bir)."
+  },
   "generator": {
     "block_gap": 0.02,
     "platform_margin": 0.5,
@@ -2209,6 +2226,7 @@ Faz 0–1: 1 hafta · Faz 2–4: 2 hafta · Faz 5–6: 1.5 hafta · Faz 7–8: 2
       "id": "akdeniz", "index": 1, "name_tr": "Akdeniz Sahili", "level_count": 10, "unlock_stars_required": 0,
       "background_dir": "res://assets/backgrounds/akdeniz/", "card": "res://assets/ui/cards/akdeniz.png",
       "platform_style": "limestone_plinth", "environment": "res://src/gameplay/world/env/akdeniz.tres", "music": "music_akdeniz",
+      "light": { "color": [1.0, 0.93, 0.80], "energy": 1.15 },
       "palette": { "stone": 0.45, "wood": 0.25, "crystal_amber": 0.15, "crystal_cyan": 0.15 },
       "modifiers": {},
       "allowed_templates": ["stack_pyramid", "twin_pillars", "arch_shrine", "domino_row", "staircase"]

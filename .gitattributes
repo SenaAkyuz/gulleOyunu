@@ -1,0 +1,8 @@
+# Git LFS for binary art and audio (CLAUDE.md §3: görseller/ses için Git LFS)
+assets/**/*.png filter=lfs diff=lfs merge=lfs -text
+assets/**/*.webp filter=lfs diff=lfs merge=lfs -text
+assets/**/*.jpg filter=lfs diff=lfs merge=lfs -text
+assets/**/*.glb filter=lfs diff=lfs merge=lfs -text
+assets/**/*.wav filter=lfs diff=lfs merge=lfs -text
+assets/**/*.ogg filter=lfs diff=lfs merge=lfs -text
+assets/**/*.ttf filter=lfs diff=lfs merge=lfs -text

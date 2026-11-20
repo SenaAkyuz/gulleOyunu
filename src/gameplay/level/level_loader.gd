@@ -78,8 +78,15 @@ func _ready() -> void:
 
 	_camera.configure(_camera_settings())
 
+	# Faz 7: world backdrop, environment, sun and plinth texture (docs/04, K-035).
+	var world := GameConfig.world(str(level_data.get("world", "")))
+	var backdrop := LevelBackground.new()
+	backdrop.name = "Backdrop"
+	add_child(backdrop)
+	backdrop.setup(world, $WorldEnvironment, $DirectionalLight3D)
 	var plat: Dictionary = level_data.get("platform", {})
-	_platform.build(float(plat.get("width")), float(plat.get("depth")))
+	var plinth := str(GameConfig.rule("visuals.platform_texture_dir")) + str(world.get("platform_style", "")) + ".png"
+	_platform.build(float(plat.get("width")), float(plat.get("depth")), plinth)
 	_tower.build(level_data)
 	EventBus.referee_state_changed.connect(_on_referee_state_changed)
 	_referee.setup(level_data, _tower, _platform)
