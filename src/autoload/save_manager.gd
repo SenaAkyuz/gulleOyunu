@@ -54,6 +54,8 @@ static func is_test_run() -> bool:
 	var args := OS.get_cmdline_args()
 	if args.has("-s") or args.has("--script"):
 		return true
+	if OS.get_cmdline_user_args().has("--editor-test-level"):
+		return true  # level editor "Test Et": a trial play never touches the player's save
 	for a in args:
 		if a.contains("addons/gut") or a.contains("src/tools/"):
 			return true

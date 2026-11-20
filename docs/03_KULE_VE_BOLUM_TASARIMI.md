@@ -417,7 +417,17 @@ Not: sıralama hedef tutan metrik sayısına göre; L07'de tek atış hedefini t
 Tam tablolar ve ekran görüntüleri `_candidates/` altında.
 
 ### 8.2 Bölüm editörü (Godot editör eklentisi, Faz 3)
-> **K-024:** Faz 3'te özel ızgara editörü yerine Godot editör paneli yapılır: butonlar aşağıdaki gibi, bloklar Godot'un 3D gizmo'su ile taşınır. Aşağıdaki üç panelli düzen ileride değerlendirilir.
+> **K-024 / Adım 10 sapması (Sena, 2026-11-20):** aşağıdaki üç panelli ızgara sürükle-bırak editörü **yapılmadı**; yerine Godot editör paneli + önizleme sahnesi:
+> - **Eklenti:** `addons/ordino_level_editor/` (sağ dock "Ordino Bölüm"). Dünya / bölüm seç; rol, zorluk, kaynak (dosya / generator / elle tasarlanacak); seed ve şablon ("plan" ya da dünyanın şablonları).
+> - **Önizleme sahnesi** `res://_editor/level_preview.tscn` (git dışı): her blok bir `StaticBody3D` (adı blok id'si, şekil çarpışma + gri-kutu mesh; keystone kırmızımsı). **Fizik kapalı**; bloklar Godot'un kendi
+>   taşı / döndür aracıyla düzenlenir; `LevelPreview.read()` konum/dönüşleri JSON'a geri çevirir (`src/tools/editor/level_preview.gd`).
+> - **Butonlar:** *Aç* (dosya ya da generator sonucu) · *Üret* (seed / şablonla, tüm generator kontrolleri) · *5 Aday* (aday hattı; tablo + küçük görüntü + "Önizle") ·
+>   *Simüle Et* (önizlemedeki haliyle LevelSim) · *Test Et* (oyunu önizlemedeki bölümle açar; **test kaydı** kullanır) · *Kaydet (JSON)* (`baked: true`; dosya varsa onay ister).
+> - **Neden arka plan süreci:** Godot editörü düzenlenen sahnede fizik çalıştırmaz ve autoload'lar (`GameConfig` …) editörde yoktur. Bu yüzden üretim / simülasyon / adaylar
+>   ayrı bir headless Godot'ta (`src/tools/sim/editor_cli.gd`, `candidates_cli.gd`) koşar; dock sonucu JSON'dan okur (dosya önce `.tmp`'ye yazılıp yeniden adlandırılır).
+>   *5 Aday* görüntü alabilmek için pencereli açılır (ekranda kısa süre bir oyun penceresi görünür).
+> - Uygulanabilirlik denemesi: önizleme turu (JSON → düğüm → JSON) birebir; gizmo düzenlemesi geri okunuyor; arka plan süreci Windows'ta Türkçe karakterli yolda çalışıyor (L02 üretimi ~1.6 sn);
+>   eklenti headless editörde hatasız yükleniyor. Dock'un tıklama akışı (sahne açma, gizmo, Test Et) editörde elle denenir.
 - Sol panel: şablon/blok paleti · Orta: grid üzerinde sürükle-bırak · Sağ: seçili bloğun malzemesi, döndürme, keystone işareti.
 - Butonlar: **Test Et** (oyunu bu bölümle başlat) · **Simüle Et** (metrikleri göster) · **Kaydet (JSON)** · **Yeniden Üret (seed)**.
 - Claude'a da yaptırılabilir: `/ordino-level-designer w02 bölüm 6'yı daha zor yap, halat ekle`.

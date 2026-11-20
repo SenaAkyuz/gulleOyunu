@@ -104,7 +104,7 @@ ordino-games/
 │   │   ├── world/      world_modifiers.gd  background_parallax.gd  platform.gd
 │   │   └── fx/         camera_shake.gd  hit_stop.gd  fx_pool.gd  slowmo.gd
 │   ├── ui/             hud/  world_map/  level_select/  results/  shop/  settings/  dev_panel/
-│   └── tools/          level_editor/ (Godot editör paneli, K-024)  sim/ (headless doğrulama)
+│   └── tools/          editor/ (LevelPreview — K-024 editör paneli `addons/ordino_level_editor/`)  sim/ (LevelSim, sim_cli, candidates_cli, editor_cli)
 ├── tests/              # GUT testleri
 ├── tools/              # Python: validate_game_data.py, economy_sim.py, blender/
 └── .claude/skills/     # proje skill'leri

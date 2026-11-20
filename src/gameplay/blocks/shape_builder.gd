@@ -1,3 +1,4 @@
+@tool
 class_name ShapeBuilder
 extends RefCounted
 ## Builds CollisionShape3D children (+ grey-box MeshInstance3D) for one shapes.json entry and

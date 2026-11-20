@@ -19,6 +19,11 @@ static var dev_level_id: String = ""
 static var dev_level_data: Dictionary = {}
 ## Where the current level came from (LevelGenerator.describe), shown in the Dev Panel and HUD.
 static var current_source: String = ""
+## Level editor dock "Test Et" (Step 10): the game is started with this user argument and plays
+## the level saved here.
+const EDITOR_TEST_ARG := "--editor-test-level"
+const EDITOR_TEST_LEVEL := "user://editor/test_level.json"
+static var _editor_test_done: bool = false
 
 var level_data: Dictionary = {}
 ## Peak active bodies since the level started (S-008 budget check).
@@ -42,6 +47,12 @@ var _loaded: bool = false
 func _ready() -> void:
 	if level_id.is_empty():
 		level_id = dev_level_id if not dev_level_id.is_empty() else str(GameConfig.rule("dev.start_level_id"))
+	# Editor dock "Test Et": the preview level, written to EDITOR_TEST_LEVEL, played once.
+	if dev_level_data.is_empty() and OS.get_cmdline_user_args().has(EDITOR_TEST_ARG) and not _editor_test_done:
+		var parsed: Variant = JSON.parse_string(FileAccess.get_file_as_string(EDITOR_TEST_LEVEL))
+		if parsed is Dictionary:
+			dev_level_data = parsed
+		_editor_test_done = true
 	if stress_mode:
 		level_data = StressLevel.build()
 	elif not dev_level_data.is_empty():
