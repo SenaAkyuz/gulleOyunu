@@ -32,9 +32,9 @@ Tek risk IAP/reklam eklentileri → `IAPService` / `AdsService` arayüzleriyle s
 - Arka yüzler de görünebilir → bloklar **6 yüzü de dokulu** modellenir (Blender scripti buna göre).
 
 **Kamera** ⚙️ `rules.camera`:
-- **Perspektif**, FOV ≈ 40°, kuleye **yukarıdan ≈ 20° eğik** (pitch) bakar, kule odağına uzaklık ≈ 16 birim.
+- **Perspektif**, FOV 34° (yatay), kuleye **neredeyse göz hizasından, 9° eğik** (pitch) bakar, bakış noktasına (y 3.2) uzaklık 14.5 birim (K-037, referans kadrajı; eski K-017: 40° / 20° / 18).
   Kulenin ön, üst ve kısmen yan yüzleri görünür → derinlik ve hacim okunur (referans görsellerdeki premium 3D his).
-- **v1'de kamera sabit** (S-007, Önerildi): çapraz, ≈20° yukarıdan. Kule etrafında döndürme (orbit) **v2'de** değerlendirilir → `rules.camera.orbit_enabled = false`.
+- **v1'de kamera sabit** (S-007, Önerildi): sabit, hafif yukarıdan (K-037: 9°). Kule etrafında döndürme (orbit) **v2'de** değerlendirilir → `rules.camera.orbit_enabled = false`.
 - Bölüm bazında `camera_override` (yaw/pitch/distance) ile geniş veya ikiz kulelerde kadraj ayarlanabilir.
 
 **Okunabilirlik (tam 3D'nin riski) — önlemler:**

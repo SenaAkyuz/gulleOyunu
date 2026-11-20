@@ -352,9 +352,9 @@ Tek risk IAP/reklam eklentileri → `IAPService` / `AdsService` arayüzleriyle s
 - Arka yüzler de görünebilir → bloklar **6 yüzü de dokulu** modellenir (Blender scripti buna göre).
 
 **Kamera** ⚙️ `rules.camera`:
-- **Perspektif**, FOV ≈ 40°, kuleye **yukarıdan ≈ 20° eğik** (pitch) bakar, kule odağına uzaklık ≈ 16 birim.
+- **Perspektif**, FOV 34° (yatay), kuleye **neredeyse göz hizasından, 9° eğik** (pitch) bakar, bakış noktasına (y 3.2) uzaklık 14.5 birim (K-037, referans kadrajı; eski K-017: 40° / 20° / 18).
   Kulenin ön, üst ve kısmen yan yüzleri görünür → derinlik ve hacim okunur (referans görsellerdeki premium 3D his).
-- **v1'de kamera sabit** (S-007, Önerildi): çapraz, ≈20° yukarıdan. Kule etrafında döndürme (orbit) **v2'de** değerlendirilir → `rules.camera.orbit_enabled = false`.
+- **v1'de kamera sabit** (S-007, Önerildi): sabit, hafif yukarıdan (K-037: 9°). Kule etrafında döndürme (orbit) **v2'de** değerlendirilir → `rules.camera.orbit_enabled = false`.
 - Bölüm bazında `camera_override` (yaw/pitch/distance) ile geniş veya ikiz kulelerde kadraj ayarlanabilir.
 
 **Okunabilirlik (tam 3D'nin riski) — önlemler:**
@@ -1561,7 +1561,7 @@ Gülleyle çözüm 10/10 → 10/10. Tek atış hedefinde 6/10 → 3/10: L06 %19�
 Kalibrasyon Faz 6–9'da (sim_targets geçici); karar Sena'da.
 
 **Faz 7 ilerleme:** ✅ Dünya 1 görselleri (821d5ba) · ✅ pahlı bloklar, kaide, Blender topu (5d40344) · ✅ top kadrajı B (K-036) ·
-✅ HUD güvenli alan (`SafeArea`, S tuşu çentik taklidi; 19.5:9 ekran görüntüsü `_screenshots/f7_safe_on.png`) · ⏳ referans karşılaştırması · ⏳ performans (orta Android, 60 FPS).
+✅ kamera C (K-037: kule ekranı doldurur, göz hizasına yakın; tek atış hedefinde 3/10 → 4/10, keystone/gülleyle çözüm aynı) · ✅ HUD güvenli alan (`SafeArea`, S tuşu çentik taklidi; 19.5:9 ekran görüntüsü `_screenshots/f7_safe_on.png`) · ⏳ referans karşılaştırması · ⏳ performans (orta Android, 60 FPS).
 Android/iOS dışa aktarımda tam ekran + çentik alanına çizim ayarı Faz 11 export adımında cihazda doğrulanır.
 
 ## FAZ 4 — Oyun döngüsü ve menüler (4–5 gün)
@@ -1741,6 +1741,7 @@ Faz 0–1: 1 hafta · Faz 2–4: 2 hafta · Faz 5–6: 1.5 hafta · Faz 7–8: 2
 | K-034 | 2026-11-20 | **Faz 3 kısa kapanış, sonra Faz 7 (görsel):** Dünya 1'in 10 bölümü pişirildi (L04/L09/L10 taslak); kalibrasyon (L02, L05, L08, L10), elle bölüm cilası ve editör cilası "sonra bakılacaklar" listesine (docs/06). Faz 7 docs/06'ya göre paralel ilerleyebildiği için Faz 4–6'dan önce başlıyor | Sena görsel olarak test etmek istiyor; kalan işler Faz 6–9 dengesine bağlı | Onaylandı (Sena) |
 | K-035 | 2026-11-20 | **Arka planlar uzun telefon / çentik uyumlu:** 2:3 üretim, oyunda yükseklik dolar yanlar kırpılır; üst %18 sakin gök (çentik + HUD), oyun alanı ortadaki %50, kimlik öğeleri kenardan %10–25 içeride, alt %5 sade (docs/04 §3.0) | iPhone 19.5:9'da görselin yalnız ortadaki %69'u görünür; Dynamic Island ve HUD üst şeride biner | Onaylandı (Sena) |
 | K-036 | 2026-11-20 | **Top kadrajı B:** top referans görsellerdeki gibi büyük, arkadan görünür, altı ekranla kırpık: `rules.cannon.position` [0, 0.3, 9.5], `rules.cannon.scale` 1.7 (K-016'daki [0,0,6] değişti). Model `tools/blender/make_cannon.py` (kırmızı + altın, tekerlekli) | Küçük top referanstaki "büyük, gösterişli top" hissini vermiyordu; A/B/C ekran görüntüleriyle karşılaştırıldı. Çıkış noktası kuleden uzaklaştığı için Dünya 1 simülasyonu yeniden ölçülür; sayılar Sena kararına kadar değişmez | Onaylandı (Sena) |
+| K-037 | 2026-11-21 | **Kamera C (referans kadrajı):** `rules.camera` fov 34 (width), pitch 9, distance 14.5, look_at_height 3.2 (K-017'deki 40 / 20 / 18 / 4 değişti). L01'in `camera_override`'ı kaldırıldı. Dev Panel'de kamera + top ölçeği kaydırıcıları canlı | Referanslarda kule ekranın çoğunu kaplar, kamera neredeyse göz hizasındadır; eski kadrajda kule genişliğin ~%25'iydi. 4 aday (mevcut, A, B, C) ekran görüntüsüyle karşılaştırıldı; A'da top fazla yakın. Ölçüm: 10/10 keystone görünür (L02, L04, L07'de görünürlük arttı), keystone ve gülleyle çözüm simülasyonları değişmedi, tek atış hedefinde 3/10 → 4/10 | Onaylandı (Sena) |
 
 ## Açık sorular (Sena karar verecek)
 | No | Soru | Öneri | Durum |
@@ -1751,7 +1752,7 @@ Faz 0–1: 1 hafta · Faz 2–4: 2 hafta · Faz 5–6: 1.5 hafta · Faz 7–8: 2
 | S-004 | Oyun dili: TR + EN ilk sürümde mi? | Evet | Kapandı → K-014 |
 | S-005 | Mac erişimi var mı? (iOS build için şart) | Codemagic bulut build | Kapandı → K-015 |
 | S-006 | Oyun adı: "Ordino Games" yayıncı adı mı, oyun adı mı? | Faz 11'e kadar çalışma adı kullanılır | Ertelendi |
-| S-007 | Kamera: oyuncu kuleyi döndürebilsin mi? | **Sena:** v1'de kamera sabit (çapraz, ~20° yukarıdan, `rules.camera`). Tasarım kuralı: her keystone varsayılan kamera açısından görünür olmalı (`docs/03` §4 kural 3). Kamera döndürme v2'de değerlendirilir. | Önerildi |
+| S-007 | Kamera: oyuncu kuleyi döndürebilsin mi? | **Sena:** v1'de kamera sabit (hafif yukarıdan; K-037: 9°, `rules.camera`). Tasarım kuralı: her keystone varsayılan kamera açısından görünür olmalı (`docs/03` §4 kural 3). Kamera döndürme v2'de değerlendirilir. | Önerildi |
 | S-008 | Performans bütçesi tam 3D'de aynı mı kalsın? | **Sena:** ≤120 aktif gövde olarak kalır; Faz 1'de orta segment Android cihazda ölçülür, gerekirse revize edilir. **Not 2026-11-19:** masaüstü ölçümü tamam (RTX 3050 Ti, 120 blok stres kulesi ~140 FPS, tepe 121 aktif gövde); Android ölçümü bekliyor. | Önerildi |
 
 ---
@@ -2088,16 +2089,16 @@ Faz 0–1: 1 hafta · Faz 2–4: 2 hafta · Faz 5–6: 1.5 hafta · Faz 7–8: 2
   },
   "camera": {
     "projection": "perspective",
-    "fov_deg": 40,
-    "pitch_deg": 20,
+    "fov_deg": 34,
+    "pitch_deg": 9,
     "yaw_deg": 0,
-    "distance": 18,
-    "look_at_height": 4,
+    "distance": 14.5,
+    "look_at_height": 3.2,
     "keep_aspect": "width",
     "_doc_keep_aspect": "width: fov_deg yatay aci (portrede kule alani sigar) | height: fov_deg dikey aci (Godot varsayilani)",
     "orbit_enabled": false,
     "orbit_max_yaw_deg": 35,
-    "_doc_s007": "S-007 (Onerildi): v1 kamera sabit, capraz ~20 derece yukaridan; her keystone bu acidan gorunur olmali. Orbit v2.",
+    "_doc_s007": "S-007 (Onerildi): v1 kamera sabit, hafif yukaridan (K-037: fov 34, pitch 9, distance 14.5, look 3.2 = referans kadraji; K-017 eski 40/20/18/4); her keystone bu acidan gorunur olmali. Orbit v2.",
     "_doc": "Tam 3D kamera. Bolum JSON'unda camera_override ile ezilebilir."
   },
   "feel": {
@@ -2343,7 +2344,6 @@ Faz 0–1: 1 hafta · Faz 2–4: 2 hafta · Faz 5–6: 1.5 hafta · Faz 7–8: 2
   "objective": { "type": "clear_percent" },
   "aim_preview_dots": 20,
   "platform": { "width": 3, "depth": 2, "style": "limestone_plinth" },
-  "camera_override": { "distance": 14, "look_at_height": 3.0 },
   "structures": [],
   "blocks": [
     { "id": "b01", "shape": "pillar_2", "mat": "stone", "x": -0.4, "y": 0, "z": 0.0, "rot": [0, 0, 0] },
@@ -2363,7 +2363,7 @@ Faz 0–1: 1 hafta · Faz 2–4: 2 hafta · Faz 5–6: 1.5 hafta · Faz 7–8: 2
   "intro_ball": null,
   "free_balls": {},
   "baked": true,
-  "_doc": "FTUE bolumu (K-018 clear_percent), sablon twin_pillars 'Kristal Ayakli Masa'. Masa: sol tas ayak (b01, x -0.4) + sag amber kristal ayak (b02 KEYSTONE, x +0.7, z +0.3 one cekik -> kameradan ilk gorunen blok). Ustte ahsap kalas, iki tas sutun arasinda gomulu Altin Kure, ahsap cati ve turkuaz kup. Keystone vurulunca (kristal tek vurusta kirilir) masa saga devrilir, yuk sag kenardan dokulur, kure de duser (ilk jackpot). Sol ayak konumu hassas: x -0.3 ve daha icerisi -> masa devrilmeden coker; x -0.5 ve disari -> kalas ayagin ustunde kalir; -0.35..-0.4 arasi en saglam. Sim 2026-11-19 (top kutlesi 2, kristal hp 10, nisan sapmasi +-0.25): keystone atisi 40/40 kazanma, %86 temizlik, jackpot 40/40. camera_override: kule kucuk kaliyordu (varsayilan distance 18 / bakis 4); 14 / 3.0 ile top hala kadrajda (13'te topun tabani kesiliyor, 12'de top cikiyor)."
+  "_doc": "FTUE bolumu (K-018 clear_percent), sablon twin_pillars 'Kristal Ayakli Masa'. Masa: sol tas ayak (b01, x -0.4) + sag amber kristal ayak (b02 KEYSTONE, x +0.7, z +0.3 one cekik -> kameradan ilk gorunen blok). Ustte ahsap kalas, iki tas sutun arasinda gomulu Altin Kure, ahsap cati ve turkuaz kup. Keystone vurulunca (kristal tek vurusta kirilir) masa saga devrilir, yuk sag kenardan dokulur, kure de duser (ilk jackpot). Sol ayak konumu hassas: x -0.3 ve daha icerisi -> masa devrilmeden coker; x -0.5 ve disari -> kalas ayagin ustunde kalir; -0.35..-0.4 arasi en saglam. Sim 2026-11-19 (top kutlesi 2, kristal hp 10, nisan sapmasi +-0.25): keystone atisi 40/40 kazanma, %86 temizlik, jackpot 40/40. camera_override kaldirildi (2026-11-20, K-037): eski 14 / 3.0 ayari yeni varsayilan kamerayla (34 derece, egim 9, mesafe 14.5, bakis 3.2) neredeyse ayni."
 }
 ```
 

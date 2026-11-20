@@ -9,7 +9,6 @@
   "objective": { "type": "clear_percent" },
   "aim_preview_dots": 20,
   "platform": { "width": 3, "depth": 2, "style": "limestone_plinth" },
-  "camera_override": { "distance": 14, "look_at_height": 3.0 },
   "structures": [],
   "blocks": [
     { "id": "b01", "shape": "pillar_2", "mat": "stone", "x": -0.4, "y": 0, "z": 0.0, "rot": [0, 0, 0] },
@@ -29,5 +28,5 @@
   "intro_ball": null,
   "free_balls": {},
   "baked": true,
-  "_doc": "FTUE bolumu (K-018 clear_percent), sablon twin_pillars 'Kristal Ayakli Masa'. Masa: sol tas ayak (b01, x -0.4) + sag amber kristal ayak (b02 KEYSTONE, x +0.7, z +0.3 one cekik -> kameradan ilk gorunen blok). Ustte ahsap kalas, iki tas sutun arasinda gomulu Altin Kure, ahsap cati ve turkuaz kup. Keystone vurulunca (kristal tek vurusta kirilir) masa saga devrilir, yuk sag kenardan dokulur, kure de duser (ilk jackpot). Sol ayak konumu hassas: x -0.3 ve daha icerisi -> masa devrilmeden coker; x -0.5 ve disari -> kalas ayagin ustunde kalir; -0.35..-0.4 arasi en saglam. Sim 2026-11-19 (top kutlesi 2, kristal hp 10, nisan sapmasi +-0.25): keystone atisi 40/40 kazanma, %86 temizlik, jackpot 40/40. camera_override: kule kucuk kaliyordu (varsayilan distance 18 / bakis 4); 14 / 3.0 ile top hala kadrajda (13'te topun tabani kesiliyor, 12'de top cikiyor)."
+  "_doc": "FTUE bolumu (K-018 clear_percent), sablon twin_pillars 'Kristal Ayakli Masa'. Masa: sol tas ayak (b01, x -0.4) + sag amber kristal ayak (b02 KEYSTONE, x +0.7, z +0.3 one cekik -> kameradan ilk gorunen blok). Ustte ahsap kalas, iki tas sutun arasinda gomulu Altin Kure, ahsap cati ve turkuaz kup. Keystone vurulunca (kristal tek vurusta kirilir) masa saga devrilir, yuk sag kenardan dokulur, kure de duser (ilk jackpot). Sol ayak konumu hassas: x -0.3 ve daha icerisi -> masa devrilmeden coker; x -0.5 ve disari -> kalas ayagin ustunde kalir; -0.35..-0.4 arasi en saglam. Sim 2026-11-19 (top kutlesi 2, kristal hp 10, nisan sapmasi +-0.25): keystone atisi 40/40 kazanma, %86 temizlik, jackpot 40/40. camera_override kaldirildi (2026-11-20, K-037): eski 14 / 3.0 ayari yeni varsayilan kamerayla (34 derece, egim 9, mesafe 14.5, bakis 3.2) neredeyse ayni."
 }
