@@ -22,8 +22,9 @@
     "_doc_drag": "drag_release (sapan): ekranda bas, geri cek, birak. Asagi cekmek namluyu yukseltir, sola cekmek saga atar (ters yon). Aci = cekme (px, 1080 genislikli ekran) x drag_deg_per_px; pitch [min,max], yaw +-drag_yaw_max_deg. Hiz sabit (balls.json launch_speed). drag_dead_zone_px'ten kisa cekiste birakmak atis yapmaz."
   },
   "cannon": {
-    "position": [0, 0, 6],
-    "_doc": "Top (cannon) konumu [x, y, z]. Faz 1 Adim 3'te ekranda kesinlesecek (docs/03 eski degeri (0,-1,8) kameradan gorunmuyordu)."
+    "position": [0, 0.3, 9.5],
+    "scale": 1.7,
+    "_doc": "Top (cannon) konumu [x, y, z] ve olcegi. K-016: [0,0,6]; K-036 (2026-11-20, Faz 7): referans gorsellerdeki gibi buyuk, arkadan, alti ekranla kirpik top -> [0,0.3,9.5], scale 1.7. Olcek namlu ucunu (gullenin cikis noktasi) da tasir; keystone_check ayni degerleri okur."
   },
   "shots": {
     "default_per_level": 3,

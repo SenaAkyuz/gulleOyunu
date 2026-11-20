@@ -105,6 +105,8 @@ if not (is_num(aim.get("drag_pitch_min_deg")) and is_num(aim.get("drag_pitch_max
     errors.append("rules.aim.drag_pitch_min_deg < drag_pitch_max_deg, ikisi de -90..90 arasi olmali")
 if not is_vec3(rules.get("cannon", {}).get("position")):
     errors.append("rules.cannon.position [x, y, z] olmali")
+if not is_num(rules.get("cannon", {}).get("scale")) or rules["cannon"]["scale"] <= 0:
+    errors.append("rules.cannon.scale pozitif sayi olmali")
 if not is_num(phys.get("spawn_edge_inset")) or phys.get("spawn_edge_inset") < 0:
     errors.append("rules.physics.spawn_edge_inset 0 veya pozitif sayi olmali")
 crack = rules.get("feel", {}).get("crack_hp_ratio")

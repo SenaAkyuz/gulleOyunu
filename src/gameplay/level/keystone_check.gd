@@ -229,11 +229,12 @@ static func _platform_box(level: Dictionary) -> Dictionary:
 			"size": [float(plat.get("width", 0)), thick, float(plat.get("depth", 0))]}, Transform3D.IDENTITY)
 
 
-## Cannon pivot (world) and muzzle length, read from cannon.tscn + rules.cannon.position.
+## Cannon pivot (world) and muzzle length, read from cannon.tscn + rules.cannon.position / scale.
 static func _cannon_geometry() -> Dictionary:
 	var c: Node3D = CANNON_SCENE.instantiate()
-	var pivot_local := (c.get_node("Yaw/Pitch") as Node3D).position
-	var muzzle_len := absf((c.get_node("Yaw/Pitch/Muzzle") as Node3D).position.z)
+	var s := float(GameConfig.rule("cannon.scale"))
+	var pivot_local := (c.get_node("Yaw/Pitch") as Node3D).position * s
+	var muzzle_len := absf((c.get_node("Yaw/Pitch/Muzzle") as Node3D).position.z) * s
 	c.free()
 	return {"pivot": ShapeBuilder.to_vec3(GameConfig.rule("cannon.position")) + pivot_local, "muzzle_len": muzzle_len}
 

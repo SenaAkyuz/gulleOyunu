@@ -79,6 +79,11 @@ test kaydı izolasyonu. **Dünya 1'in 10 bölümü pişirildi** (`baked: true`);
 **Sonra bakılacaklar (K-034):** L02, L05, L08, L10 tek atış hedefin üstünde (kalibrasyon, Faz 6–9 hasar dengesi); L04, L09, L10 elle tasarım (§9); L07'de merkez keystone atışı
 %80'i tutmuyor (3 atıştan biri tutuyor); editör panelinin cilası; `economy.sim.core_jackpot_levels_per_world` (K-030); Alev Topu tanıtımı (L08) Faz 5'te doğrulanacak.
 
+**K-036 top kadrajı ölçümü (2026-11-20, `sim_cli --world akdeniz`, sayılar değişmedi):** top [0,0,6] → [0,0.3,9.5] ×1.7, çıkış noktası kuleden ~3.5 birim uzaklaştı.
+Gülleyle çözüm 10/10 → 10/10. Tek atış hedefinde 6/10 → 3/10: L06 %19→%23, L07 %15→%21, L09 %53→%57 hedefin hemen üstüne çıktı
+(tek atış biraz kolaylaştı). Keystone çöküşü düştü: L02 s1_b04 %63→%46, L04 s1_b05 %59→%29, L06 %40→%54 (arttı), L07 s1_b11 %40→%19.
+Kalibrasyon Faz 6–9'da (sim_targets geçici); karar Sena'da.
+
 ## FAZ 4 — Oyun döngüsü ve menüler (4–5 gün)
 ```
 Faz 4: Ana menü, dünya haritası (8 kart, kilit/yıldız), dünya içi bölüm seçimi (10 düğüm + boss), HUD (level, gülle göstergesi, ayar),

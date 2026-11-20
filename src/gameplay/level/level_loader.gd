@@ -93,6 +93,7 @@ func _ready() -> void:
 	_hud.setup(int(level_data.get("index", 0)), _referee.objective_type, Progress.stars_for(level_id))
 
 	_cannon.position = ShapeBuilder.to_vec3(GameConfig.rule("cannon.position"))
+	_cannon.scale = Vector3.ONE * float(GameConfig.rule("cannon.scale"))
 	var dots: Variant = level_data.get("aim_preview_dots")
 	if dots == null:
 		dots = GameConfig.rule("aim.default_preview_dots")

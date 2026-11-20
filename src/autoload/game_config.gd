@@ -13,7 +13,7 @@ const REQUIRED_RULES: PackedStringArray = [
 	"aim.preview_dot_interval_sec", "aim.arc", "aim.on_miss",
 	"aim.drag_deg_per_px", "aim.drag_pitch_min_deg", "aim.drag_pitch_max_deg",
 	"aim.drag_yaw_max_deg", "aim.drag_dead_zone_px",
-	"cannon.position",
+	"cannon.position", "cannon.scale",
 	"objective_defaults.core_shape", "objective_defaults.core_material",
 	"objective_defaults.type", "objective_defaults.clear_percent_target",
 	"objective_defaults.clear_measure", "objective_defaults.broken_counts_as_cleared",
